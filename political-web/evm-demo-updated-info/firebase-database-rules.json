@@ -1,0 +1,57 @@
+{
+  "rules": {
+    ".read": true,
+    ".write": true,
+    "candidatePages": {
+      ".indexOn": ["slug", "serialNumber", "createdAt", "updatedAt"],
+      "$candidateId": {
+        ".validate": "newData.hasChildren(['id', 'slug', 'candidateName', 'partyName', 'serialNumber'])"
+      }
+    },
+    "electionInfo": {
+      ".indexOn": ["name", "dateTime"]
+    },
+    "settings": {
+      ".indexOn": ["enableSound", "enableVibration", "allowMultipleVotes"]
+    },
+    "indexes": {
+      ".read": true,
+      ".write": true,
+      "bySlug": {
+        ".indexOn": ["candidateName", "serialNumber", "lastUpdated"]
+      },
+      "bySerial": {
+        ".indexOn": ["slug", "candidateName", "lastUpdated"]
+      },
+      "byParty": {
+        ".indexOn": ["candidateName", "serialNumber", "votes", "lastUpdated"]
+      },
+      "byElection": {
+        ".indexOn": ["candidateName", "serialNumber", "partyName", "lastUpdated"]
+      },
+      "metadata": {
+        ".indexOn": ["lastIndexUpdate", "totalCandidates"]
+      }
+    }
+  }
+}
+
+// Instructions for Firebase Realtime Database:
+// 1. Go to Firebase Console (https://console.firebase.google.com)
+// 2. Select your project: shivai-50d37
+// 3. Go to Realtime Database -> Rules
+// 4. Replace the existing rules with the JSON above
+// 5. Click "Publish"
+
+// Performance Benefits:
+// - candidatePages indexed by slug for fast candidate lookup
+// - candidatePages indexed by serialNumber for EVM row generation
+// - candidatePages indexed by createdAt/updatedAt for sorting
+// - electionInfo indexed for quick election data access
+// - settings indexed for fast app configuration loading
+
+// Additional Performance Tips:
+// 1. Use shallow queries when possible: ?shallow=true
+// 2. Limit data with orderBy and limitToFirst/limitToLast
+// 3. Use Firebase offline persistence for faster loading
+// 4. Consider using Firebase Firestore for complex queries

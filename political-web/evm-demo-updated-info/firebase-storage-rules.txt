@@ -1,0 +1,43 @@
+// Firebase Storage Security Rules
+// Copy these rules to your Firebase Console -> Storage -> Rules
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow read and write access to all files
+    match /{allPaths=**} {
+      allow read, write: if true;
+    }
+    
+    // More secure alternative (uncomment if you want basic security):
+    // match /photos/{fileName} {
+    //   allow read: if true;
+    //   allow write: if request.resource.size < 5 * 1024 * 1024; // 5MB limit
+    // }
+    // match /symbols/{fileName} {
+    //   allow read: if true;
+    //   allow write: if request.resource.size < 3 * 1024 * 1024; // 3MB limit
+    // }
+    // match /audio/{fileName} {
+    //   allow read: if true;
+    //   allow write: if request.resource.size < 5 * 1024 * 1024; // 5MB limit
+    // }
+  }
+}
+
+// Instructions:
+// 1. Go to Firebase Console (https://console.firebase.google.com)
+// 2. Select your project: shivai-50d37
+// 3. Go to Storage -> Rules
+// 4. Replace the existing rules with the rules above
+// 5. Click "Publish"
+
+// Current restrictive rules (causing the error):
+// rules_version = '2';
+// service firebase.storage {
+//   match /b/{bucket}/o {
+//     match /{allPaths=**} {
+//       allow read, write: if request.auth != null;
+//     }
+//   }
+// }
