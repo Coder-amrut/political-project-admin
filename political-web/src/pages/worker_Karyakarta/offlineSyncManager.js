@@ -161,8 +161,28 @@ export async function syncOfflineQueue(workerApi) {
           syncedCount++;
           break;
 
+        case 'COMPLAINT':
+          await workerApi.storeComplaint(item.payload);
+          syncedCount++;
+          break;
+
         case 'COMPLAINT_STATUS':
           await workerApi.updateComplaintStatus(item.payload.id, item.payload.status);
+          syncedCount++;
+          break;
+
+        case 'TASK':
+          await workerApi.createTask(item.payload);
+          syncedCount++;
+          break;
+
+        case 'FOLLOW_UP':
+          await workerApi.createFollowUp(item.payload);
+          syncedCount++;
+          break;
+
+        case 'VISIT_LOG':
+          await workerApi.recordVisitLog(item.payload);
           syncedCount++;
           break;
 

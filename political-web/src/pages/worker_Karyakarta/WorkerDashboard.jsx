@@ -265,6 +265,56 @@ export default function WorkerDashboard() {
   const [tasksList, setTasksList] = useState([]);
   const [followUpsList, setFollowUpsList] = useState([]);
 
+  // Citizen Grievances / Complaints State
+  const [isAddingComplaint, setIsAddingComplaint] = useState(false);
+  const [submittingComplaint, setSubmittingComplaint] = useState(false);
+  const [complaintDuplicateWarning, setComplaintDuplicateWarning] = useState(null);
+  const [complaintFormData, setComplaintFormData] = useState({
+    name: '',
+    phone: '',
+    category: 'पाणी पुरवठा (Water Supply)',
+    desc: '',
+    urgency: 'मध्यम (Medium)',
+    photo: null,
+    location: '',
+  });
+
+  // Tasks & Follow-ups State
+  const [taskActiveTab, setTaskActiveTab] = useState('tasks'); // 'tasks' | 'followups'
+  const [isAddingTask, setIsAddingTask] = useState(false);
+  const [newTaskData, setNewTaskData] = useState({
+    title: '',
+    deadline: '',
+    priority: 'Medium',
+    category: 'बूथ प्रचार (Booth Outreach)',
+  });
+  const [isAddingFollowUp, setIsAddingFollowUp] = useState(false);
+  const [newFollowUpData, setNewFollowUpData] = useState({
+    citizen_name: '',
+    phone: '',
+    topic: '',
+    next_date: '',
+    notes: '',
+  });
+
+  // 6-Level Geographic Hierarchy State
+  const [hierarchyData, setHierarchyData] = useState(null);
+  const [loadingHierarchy, setLoadingHierarchy] = useState(false);
+  const [selectedHierarchyLevel, setSelectedHierarchyLevel] = useState(6);
+
+  // Visit Log State
+  const [activeVisitContact, setActiveVisitContact] = useState(null);
+  const [visitFormData, setVisitFormData] = useState({
+    name: '',
+    phone: '',
+    status: 'Supportive',
+    notes: '',
+    location: '',
+  });
+
+  // Inline Survey Duplicate Warning State
+  const [surveyDuplicateWarning, setSurveyDuplicateWarning] = useState(null);
+
   const [dashboardStats, setDashboardStats] = useState({
     totalAssigned: 0,
     contacted: 0,
@@ -444,6 +494,168 @@ export default function WorkerDashboard() {
     }
   };
 
+  const loadHierarchy = async () => {
+    try {
+      setLoadingHierarchy(true);
+      const data = await workerApi.getGeographyHierarchy();
+      if (data) setHierarchyData(data);
+    } catch (e) {
+      console.warn('Hierarchy load issue:', e);
+    } finally {
+      setLoadingHierarchy(false);
+    }
+  };
+
+  // Check Duplicate helper
+  const checkDuplicateField = async (field, val, setWarning) => {
+    if (!val || val.trim().length < 6) {
+      setWarning(null);
+      return;
+    }
+    try {
+      const res = await workerApi.checkDuplicate(field === 'phone' ? { phone: val } : { voter_id: val });
+      if (res?.is_duplicate && res?.matches?.length > 0) {
+        setWarning(res.matches[0]);
+      } else {
+        setWarning(null);
+      }
+    } catch (e) {
+      console.warn('Duplicate check error:', e);
+    }
+  };
+
+  // Complaint Submit Handler
+  const handleComplaintSubmit = async (e) => {
+    e.preventDefault();
+    if (!complaintFormData.name.trim() || !complaintFormData.desc.trim()) {
+      alert(isMr ? 'कृपया नागरिकाचे नाव आणि समस्येचे वर्णन भरा.' : 'Please enter citizen name and description.');
+      return;
+    }
+
+    const payload = {
+      ...complaintFormData,
+      location: complaintFormData.location || currentCoords?.address || 'सांगली (Sangli)',
+    };
+
+    if (!isNetworkOnline()) {
+      enqueueOfflineItem({
+        type: 'COMPLAINT',
+        label_mr: `नागरिक तक्रार - ${complaintFormData.name} (${complaintFormData.category})`,
+        label_en: `Citizen Complaint - ${complaintFormData.name}`,
+        payload,
+      });
+
+      alert(isMr 
+        ? '📶 इंटरनेट जोडणी नाही.\nतक्रार डिव्हाइसवर सुरक्षित साठवली आहे!\nनेटवर्क येताच ती आपोआप सर्व्हरवर सिंक होईल.'
+        : '📶 Offline.\nComplaint saved locally on device!\nIt will automatically sync when online.');
+      
+      setIsAddingComplaint(false);
+      setComplaintFormData({
+        name: '',
+        phone: '',
+        category: 'पाणी पुरवठा (Water Supply)',
+        desc: '',
+        urgency: 'मध्यम (Medium)',
+        photo: null,
+        location: '',
+      });
+      setComplaintDuplicateWarning(null);
+      return;
+    }
+
+    setSubmittingComplaint(true);
+    try {
+      await workerApi.storeComplaint(payload);
+      alert(isMr ? '✓ तक्रार / समस्या यशस्वीरीत्या नोंदवली गेली!' : '✓ Citizen complaint registered successfully!');
+      setIsAddingComplaint(false);
+      setComplaintFormData({
+        name: '',
+        phone: '',
+        category: 'पाणी पुरवठा (Water Supply)',
+        desc: '',
+        urgency: 'मध्यम (Medium)',
+        photo: null,
+        location: '',
+      });
+      setComplaintDuplicateWarning(null);
+      loadComplaints();
+      loadOverview();
+    } catch (err) {
+      console.error('Failed to submit complaint:', err);
+      alert(isMr ? 'तक्रार नोंदवताना त्रुटी आली.' : 'Failed to register complaint.');
+    } finally {
+      setSubmittingComplaint(false);
+    }
+  };
+
+  // Task Toggle & Create
+  const handleToggleTask = async (id) => {
+    try {
+      await workerApi.toggleTask(id);
+      loadTasks();
+      loadOverview();
+    } catch (e) {
+      console.error('Failed to toggle task:', e);
+    }
+  };
+
+  const handleCreateTask = async (e) => {
+    e.preventDefault();
+    if (!newTaskData.title.trim()) return;
+    try {
+      await workerApi.createTask(newTaskData);
+      setIsAddingTask(false);
+      setNewTaskData({ title: '', deadline: '', priority: 'Medium', category: 'बूथ प्रचार (Booth Outreach)' });
+      loadTasks();
+      loadOverview();
+    } catch (e) {
+      console.error('Failed to create task:', e);
+    }
+  };
+
+  // Follow-up Update & Create
+  const handleUpdateFollowUpStatus = async (id, status) => {
+    try {
+      await workerApi.updateFollowUpStatus(id, status);
+      loadFollowUps();
+      loadOverview();
+    } catch (e) {
+      console.error('Failed to update follow-up:', e);
+    }
+  };
+
+  const handleCreateFollowUp = async (e) => {
+    e.preventDefault();
+    if (!newFollowUpData.citizen_name.trim()) return;
+    try {
+      await workerApi.createFollowUp(newFollowUpData);
+      setIsAddingFollowUp(false);
+      setNewFollowUpData({ citizen_name: '', phone: '', topic: '', next_date: '', notes: '' });
+      loadFollowUps();
+      loadOverview();
+    } catch (e) {
+      console.error('Failed to create follow-up:', e);
+    }
+  };
+
+  // Visit Log Handler
+  const handleSaveVisitLog = async (e) => {
+    e.preventDefault();
+    if (!visitFormData.name.trim()) return;
+    try {
+      await workerApi.recordVisitLog({
+        ...visitFormData,
+        location: visitFormData.location || currentCoords?.address || 'सांगली (Sangli)',
+      });
+      alert(isMr ? '✓ भेट यशस्वीरीत्या नोंदवली गेली!' : '✓ Visit log recorded successfully!');
+      setActiveVisitContact(null);
+      loadContacts();
+      loadOverview();
+    } catch (e) {
+      console.error('Failed to record visit log:', e);
+    }
+  };
+
   // Sync and fetch all data on mount or when user changes
   useEffect(() => {
     setLoading(true);
@@ -459,6 +671,7 @@ export default function WorkerDashboard() {
       loadContacts(),
       loadMeetings(),
       loadCandidates(),
+      loadHierarchy(),
     ]).finally(() => setLoading(false));
   }, [user]);
 
@@ -581,12 +794,20 @@ export default function WorkerDashboard() {
           badge: isMr ? 'सक्रिय' : 'Active',
           badgeTheme: 'amber',
         },
+        {
+          id: 'Hierarchy',
+          label_mr: '६-स्तरीय क्षेत्ररचना दर्शक',
+          label_en: 'Geography Hierarchy (State to Booth)',
+          icon: Compass,
+          badge: isMr ? '६ स्तर' : '6 Levels',
+          badgeTheme: 'teal',
+        },
       ],
     },
     {
       id: 'voter_engagement',
-      title_mr: 'मतदार संपर्क व सर्वेक्षण',
-      title_en: 'VOTER ENGAGEMENT & SURVEYS',
+      title_mr: 'मतदार संपर्क, पाहणी व कृती',
+      title_en: 'VOTER ENGAGEMENT & FIELD ACTION',
       items: [
         {
           id: 'Survey',
@@ -601,6 +822,22 @@ export default function WorkerDashboard() {
           label_mr: 'नागरिक संपर्क व बैठका',
           label_en: 'Citizen Connect & Meetings',
           icon: Calendar,
+        },
+        {
+          id: 'Complaints',
+          label_mr: 'नागरिकांच्या समस्या व विनंत्या',
+          label_en: 'Citizen Grievances & Requests',
+          icon: AlertCircle,
+          badge: complaintsData.filter((c) => c.status === 'Pending').length > 0 ? `${complaintsData.filter((c) => c.status === 'Pending').length} ${isMr ? 'बाकी' : 'Pending'}` : (isMr ? 'थेट' : 'Live'),
+          badgeTheme: 'amber',
+        },
+        {
+          id: 'Tasks',
+          label_mr: 'कार्ये व मतदार पाठपुरावा',
+          label_en: 'Tasks & Citizen Follow-ups',
+          icon: CheckSquare,
+          badge: tasksList.filter((t) => !t.completed).length > 0 ? `${tasksList.filter((t) => !t.completed).length} ${isMr ? 'कामे' : 'Tasks'}` : null,
+          badgeTheme: 'blue',
         },
       ],
     },
@@ -2024,6 +2261,23 @@ export default function WorkerDashboard() {
                             </td>
                             <td>
                               <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                <button
+                                  className="icon-btn"
+                                  title={isMr ? "मतदार प्रत्यक्ष भेट नोंदवा" : "Log Visit"}
+                                  style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' }}
+                                  onClick={() => {
+                                    setActiveVisitContact(contact);
+                                    setVisitFormData({
+                                      name: contact.name,
+                                      phone: contact.phone || '',
+                                      status: contact.status || 'Supportive',
+                                      notes: '',
+                                      location: currentCoords?.address || '',
+                                    });
+                                  }}
+                                >
+                                  <CalendarCheck size={16} />
+                                </button>
                                 <button className="icon-btn icon-btn-primary" title="Call Voter" onClick={() => alert(`Calling ${contact.name} (${contact.phone})...`)}>
                                   <PhoneCall size={16} color="var(--primary)" />
                                 </button>
@@ -2044,6 +2298,82 @@ export default function WorkerDashboard() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Visit Log Recording Modal */}
+                {activeVisitContact && (
+                  <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(15, 23, 42, 0.72)',
+                    backdropFilter: 'blur(4px)',
+                    zIndex: 9999,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '16px'
+                  }}>
+                    <div style={{ background: '#ffffff', borderRadius: '16px', maxWidth: '480px', width: '100%', padding: '22px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #cbd5e1' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
+                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>🤝</span>
+                          <span>{isMr ? 'मतदार प्रत्यक्ष भेट नोंद (Visit Log)' : 'Record Voter Visit'}</span>
+                        </h3>
+                        <button type="button" onClick={() => setActiveVisitContact(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px', color: '#94a3b8' }}>✕</button>
+                      </div>
+
+                      <form onSubmit={handleSaveVisitLog} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                          <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '700' }}>{isMr ? 'मतदाराचे नाव' : 'Voter Name'}</div>
+                          <div style={{ fontSize: '14px', fontWeight: '800', color: '#0f172a' }}>{activeVisitContact.name} ({activeVisitContact.phone || 'मोबाईल नाही'})</div>
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                            {isMr ? 'राजकीय कल / मतदाराची भावना' : 'Voter Sentiment / Response'}
+                          </label>
+                          <select 
+                            className="form-input" 
+                            value={visitFormData.status} 
+                            onChange={(e) => setVisitFormData({ ...visitFormData, status: e.target.value })}
+                          >
+                            <option value="Supportive">🟢 अनुकूल / पाठीराखा (Supportive)</option>
+                            <option value="Undecided">⚪ अनिर्णित / विचार करत आहेत (Undecided)</option>
+                            <option value="Needs Info">🟡 माहिती / भेट आवश्यक (Needs Info)</option>
+                            <option value="Opposed">🔴 प्रतिकूल (Opposed)</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                            {isMr ? 'भेटीतील चर्चेचे महत्त्वाचे मुद्दे / अभिप्राय *' : 'Discussion Notes & Feedback *'}
+                          </label>
+                          <textarea
+                            rows="3"
+                            required
+                            className="form-input"
+                            placeholder={isMr ? "उदा. पाणी पुरवठ्याची समस्या मांडली, उमेदवाराला मत देण्याचे आश्वासन दिले..." : "Enter visit notes..."}
+                            value={visitFormData.notes}
+                            onChange={(e) => setVisitFormData({ ...visitFormData, notes: e.target.value })}
+                          />
+                        </div>
+
+                        <div style={{ fontSize: '11.5px', color: '#475569', background: '#ecfdf5', padding: '8px 12px', borderRadius: '8px', border: '1px solid #a7f3d0', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <MapPin size={14} color="#059669" />
+                          <span>📍 {currentCoords?.address || (isMr ? 'सांगली शहर प्रभाग (GPS आपोआप जोडले जाईल)' : 'GPS will be tagged')}</span>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                          <button type="button" className="btn-outline" onClick={() => setActiveVisitContact(null)}>
+                            {t('cancel')}
+                          </button>
+                          <button type="submit" className="btn-success" style={{ fontWeight: 750, padding: '8px 18px' }}>
+                            ✓ {isMr ? 'भेट जतन करा' : 'Save Visit Log'}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })()}
@@ -3262,8 +3592,22 @@ export default function WorkerDashboard() {
                             className="form-input" 
                             placeholder="उदा. ९८XXXXXXXX" 
                             value={surveyFormData.phone} 
-                            onChange={(e) => setSurveyFormData({ ...surveyFormData, phone: e.target.value.replace(/\D/g, '') })} 
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/\D/g, '');
+                              setSurveyFormData({ ...surveyFormData, phone: val });
+                              if (val.length >= 10) {
+                                checkDuplicateField('phone', val, setSurveyDuplicateWarning);
+                              } else {
+                                setSurveyDuplicateWarning(null);
+                              }
+                            }} 
                           />
+                          {surveyDuplicateWarning && (
+                            <div style={{ marginTop: '5px', padding: '6px 10px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '6px', color: '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <AlertTriangle size={13} style={{ flexShrink: 0 }} />
+                              <span>⚠️ {surveyDuplicateWarning}</span>
+                            </div>
+                          )}
                         </div>
 
                         <div>
@@ -3956,6 +4300,833 @@ export default function WorkerDashboard() {
       );
     }
 
+
+    // -------------------------------------------------------------------------
+    // 7. CITIZEN GRIEVANCES & REQUESTS DESK (नागरिकांच्या समस्या व विनंत्या)
+    // -------------------------------------------------------------------------
+    if (activeTab === 'Complaints') {
+      const filteredComplaints = complaintsData.filter((c) => {
+        const matchesStatus = complaintFilter === 'All' || c.status === complaintFilter;
+        if (!matchesStatus) return false;
+        if (!complaintSearchQuery.trim()) return true;
+        const q = complaintSearchQuery.toLowerCase();
+        return (
+          (c.name && c.name.toLowerCase().includes(q)) ||
+          (c.phone && c.phone.includes(q)) ||
+          (c.category && c.category.toLowerCase().includes(q)) ||
+          (c.complaint_code && c.complaint_code.toLowerCase().includes(q)) ||
+          (c.desc && c.desc.toLowerCase().includes(q))
+        );
+      });
+
+      const totalCount = complaintsData.length;
+      const pendingCount = complaintsData.filter((c) => c.status === 'Pending').length;
+      const inProgressCount = complaintsData.filter((c) => c.status === 'In Progress').length;
+      const resolvedCount = complaintsData.filter((c) => c.status === 'Resolved' || c.status === 'Action Taken').length;
+
+      return (
+        <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* Header */}
+          <div className="page-header" style={{ marginBottom: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <AlertCircle size={28} color="#ea580c" />
+                <span>{isMr ? 'नागरिकांच्या समस्या व विनंत्या' : 'Citizen Grievances & Requests'}</span>
+              </h1>
+              <div className="page-subtitle">
+                {isMr ? 'प्रभागातील नागरिकांनी मांडलेल्या समस्यांची नोंद करा, फोटो जोडा आणि निवारणाचा पाठपुरावा करा.' : 'Log citizen grievances, capture geotagged photos, and track issue resolution.'}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => setIsAddingComplaint(true)}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontWeight: 750 }}
+            >
+              <Plus size={18} />
+              <span>{isMr ? '+ नवीन तक्रार / विनंती नोंदवा' : '+ Register New Grievance'}</span>
+            </button>
+          </div>
+
+          {/* Quick Metric Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px' }}>
+            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderTop: '3.5px solid #64748b', borderRadius: '12px', padding: '14px 18px' }}>
+              <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '700' }}>{isMr ? 'एकूण समस्या' : 'Total Grievances'}</div>
+              <div style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a', marginTop: '4px' }}>{totalCount}</div>
+            </div>
+
+            <div style={{ background: '#ffffff', border: '1px solid #fed7aa', borderTop: '3.5px solid #ea580c', borderRadius: '12px', padding: '14px 18px' }}>
+              <div style={{ fontSize: '12px', color: '#c2410c', fontWeight: '700' }}>{isMr ? 'प्रलंबित (Pending)' : 'Pending'}</div>
+              <div style={{ fontSize: '24px', fontWeight: '900', color: '#c2410c', marginTop: '4px' }}>{pendingCount}</div>
+            </div>
+
+            <div style={{ background: '#ffffff', border: '1px solid #bfdbfe', borderTop: '3.5px solid #2563eb', borderRadius: '12px', padding: '14px 18px' }}>
+              <div style={{ fontSize: '12px', color: '#1d4ed8', fontWeight: '700' }}>{isMr ? 'कार्यवाही सुरू (In Progress)' : 'In Progress'}</div>
+              <div style={{ fontSize: '24px', fontWeight: '900', color: '#1d4ed8', marginTop: '4px' }}>{inProgressCount}</div>
+            </div>
+
+            <div style={{ background: '#ffffff', border: '1px solid #bbf7d0', borderTop: '3.5px solid #16a34a', borderRadius: '12px', padding: '14px 18px' }}>
+              <div style={{ fontSize: '12px', color: '#15803d', fontWeight: '700' }}>{isMr ? 'सोडवलेल्या (Resolved)' : 'Resolved'}</div>
+              <div style={{ fontSize: '24px', fontWeight: '900', color: '#15803d', marginTop: '4px' }}>{resolvedCount}</div>
+            </div>
+          </div>
+
+          {/* Search & Filter Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: '#ffffff', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {['All', 'Pending', 'In Progress', 'Resolved'].map((st) => (
+                <button
+                  key={st}
+                  type="button"
+                  onClick={() => setComplaintFilter(st)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    border: 'none',
+                    background: complaintFilter === st ? '#ea580c' : '#f1f5f9',
+                    color: complaintFilter === st ? '#ffffff' : '#475569',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  {st === 'All' ? (isMr ? 'सर्व समस्या' : 'All') : st === 'Pending' ? (isMr ? 'प्रलंबित' : 'Pending') : st === 'In Progress' ? (isMr ? 'कार्यवाही सुरू' : 'In Progress') : (isMr ? 'सोडवलेल्या' : 'Resolved')}
+                </button>
+              ))}
+            </div>
+
+            <div style={{ position: 'relative', width: '280px' }}>
+              <Search size={14} color="#94a3b8" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+              <input
+                type="text"
+                placeholder={isMr ? "नागरिकाचे नाव, फोन किंवा विषय शोधा..." : "Search complaints..."}
+                value={complaintSearchQuery}
+                onChange={(e) => setComplaintSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '7px 24px 7px 30px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '12px',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Complaints Table */}
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div style={{ overflowX: 'auto' }}>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>{isMr ? 'तक्रार क्र.' : 'Code'}</th>
+                    <th>{isMr ? 'नागरिकाचे नाव व फोन' : 'Citizen & Phone'}</th>
+                    <th>{isMr ? 'विषय / वर्ग' : 'Category'}</th>
+                    <th>{isMr ? 'तपशील व स्थान' : 'Description & Location'}</th>
+                    <th>{isMr ? 'नोंद तारीख' : 'Date'}</th>
+                    <th>{isMr ? 'स्थिती (Status)' : 'Status'}</th>
+                    <th style={{ textAlign: 'right' }}>{isMr ? 'कृती' : 'Action'}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredComplaints.length > 0 ? (
+                    filteredComplaints.map((c) => (
+                      <tr key={c.id || c.complaint_code}>
+                        <td>
+                          <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#0f172a', fontSize: '12px', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>
+                            {c.complaint_code || `GRV-${c.id}`}
+                          </span>
+                        </td>
+                        <td>
+                          <div style={{ fontWeight: 700, color: '#0f172a' }}>{c.name}</div>
+                          <div style={{ fontSize: '11.5px', color: '#64748b' }}>📞 {c.phone || '-'}</div>
+                        </td>
+                        <td>
+                          <span style={{
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            background: '#eff6ff',
+                            color: '#1d4ed8',
+                            border: '1px solid #bfdbfe'
+                          }}>
+                            {c.category}
+                          </span>
+                        </td>
+                        <td style={{ maxWidth: '280px' }}>
+                          <div style={{ fontSize: '12.5px', color: '#334155', lineHeight: 1.4 }}>{c.desc}</div>
+                          {c.notes && (
+                            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                              📍 {c.notes}
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap' }}>
+                          {c.date_reported || 'आज'}
+                        </td>
+                        <td>
+                          <select
+                            value={c.status}
+                            onChange={(e) => handleUpdateComplaintStatus(c.id, e.target.value)}
+                            style={{
+                              padding: '4px 8px',
+                              borderRadius: '6px',
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              border: c.status === 'Resolved' ? '1px solid #86efac' : c.status === 'In Progress' ? '1px solid #93c5fd' : '1px solid #fed7aa',
+                              background: c.status === 'Resolved' ? '#f0fdf4' : c.status === 'In Progress' ? '#eff6ff' : '#fff7ed',
+                              color: c.status === 'Resolved' ? '#15803d' : c.status === 'In Progress' ? '#1d4ed8' : '#c2410c'
+                            }}
+                          >
+                            <option value="Pending">⏳ प्रलंबित (Pending)</option>
+                            <option value="In Progress">🔄 कार्यवाही सुरू (In Progress)</option>
+                            <option value="Resolved">✓ सोडवली (Resolved)</option>
+                          </select>
+                        </td>
+                        <td style={{ textAlign: 'right' }}>
+                          {c.phone && (
+                            <button
+                              type="button"
+                              className="icon-btn icon-btn-success"
+                              title="WhatsApp Chat"
+                              onClick={() => alert(`Opening WhatsApp chat for ${c.phone}...`)}
+                            >
+                              <MessageCircle size={15} color="#16a34a" />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                        {isMr ? 'कोणतीही तक्रार आढळली नाही' : 'No grievances found.'}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* New Complaint Registration Modal with Photo & GPS */}
+          {isAddingComplaint && (
+            <div style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(15, 23, 42, 0.72)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px'
+            }}>
+              <div style={{
+                background: '#ffffff',
+                borderRadius: '16px',
+                maxWidth: '620px',
+                width: '100%',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                border: '1px solid #cbd5e1',
+                padding: '24px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <AlertCircle size={22} color="#ea580c" />
+                    <span>{isMr ? 'नवीन नागरिक समस्या / विनंती नोंदवा' : 'Register New Grievance'}</span>
+                  </h3>
+                  <button type="button" onClick={() => setIsAddingComplaint(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px', color: '#94a3b8' }}>✕</button>
+                </div>
+
+                <form onSubmit={handleComplaintSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                        {isMr ? 'नागरिकाचे पूर्ण नाव *' : 'Citizen Full Name *'}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        className="form-input"
+                        placeholder={isMr ? "उदा. रमेश बापू पाटील" : "Enter citizen name"}
+                        value={complaintFormData.name}
+                        onChange={(e) => setComplaintFormData({ ...complaintFormData, name: e.target.value })}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                        {isMr ? 'मोबाईल नंबर' : 'Phone Number'}
+                      </label>
+                      <input
+                        type="tel"
+                        maxLength="10"
+                        className="form-input"
+                        placeholder="९८XXXXXXXX"
+                        value={complaintFormData.phone}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '');
+                          setComplaintFormData({ ...complaintFormData, phone: val });
+                          if (val.length >= 10) {
+                            checkDuplicateField('phone', val, setComplaintDuplicateWarning);
+                          } else {
+                            setComplaintDuplicateWarning(null);
+                          }
+                        }}
+                      />
+                      {complaintDuplicateWarning && (
+                        <div style={{ marginTop: '5px', padding: '6px 10px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '6px', color: '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <AlertTriangle size={13} style={{ flexShrink: 0 }} />
+                          <span>⚠️ {complaintDuplicateWarning}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                        {isMr ? 'समस्येचा वर्ग (Category) *' : 'Category *'}
+                      </label>
+                      <select
+                        className="form-input"
+                        value={complaintFormData.category}
+                        onChange={(e) => setComplaintFormData({ ...complaintFormData, category: e.target.value })}
+                      >
+                        <option value="पाणी पुरवठा (Water Supply)">💧 पाणी पुरवठा (Water Supply)</option>
+                        <option value="रस्ते व गटार (Roads & Drainage)">🛣️ रस्ते व गटार (Roads & Drainage)</option>
+                        <option value="वीज व पथदिवे (Street Lights)">💡 वीज व पथदिवे (Street Lights)</option>
+                        <option value="कचरा व स्वच्छता (Sanitation)">🧹 कचरा व स्वच्छता (Sanitation)</option>
+                        <option value="आरोग्य व रुग्णालय (Healthcare)">🏥 आरोग्य व रुग्णालय (Healthcare)</option>
+                        <option value="शासकीय योजना / पेन्शन (Schemes)">📄 शासकीय योजना / पेन्शन (Schemes)</option>
+                        <option value="इतर समस्या (Others)">📌 इतर समस्या (Others)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                        {isMr ? 'तातडीची पातळी (Urgency)' : 'Urgency Level'}
+                      </label>
+                      <select
+                        className="form-input"
+                        value={complaintFormData.urgency}
+                        onChange={(e) => setComplaintFormData({ ...complaintFormData, urgency: e.target.value })}
+                      >
+                        <option value="तातडीचे (Urgent)">🔴 तातडीचे (Urgent - 24 hours)</option>
+                        <option value="मध्यम (Medium)">🟡 मध्यम (Medium - 3 days)</option>
+                        <option value="सामान्य (Normal)">🟢 सामान्य (Normal)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                      {isMr ? 'समस्येचे सविस्तर वर्णन *' : 'Detailed Description *'}
+                    </label>
+                    <textarea
+                      rows="3"
+                      required
+                      className="form-input"
+                      placeholder={isMr ? "समस्येचे सविस्तर कारण व मागणी येथे लिहा..." : "Describe the grievance details..."}
+                      value={complaintFormData.desc}
+                      onChange={(e) => setComplaintFormData({ ...complaintFormData, desc: e.target.value })}
+                    />
+                  </div>
+
+                  {/* Photo / Document Upload Section */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                      📷 {isMr ? 'समस्येचा फोटो / कागदपत्र जोडा' : 'Attach Photo or Document'}
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf,.doc,.docx"
+                      className="form-input"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setComplaintFormData({ ...complaintFormData, photo: file.name });
+                        }
+                      }}
+                    />
+                    <span style={{ fontSize: '11px', color: '#64748b' }}>
+                      {isMr ? 'खराब रस्ता, तुंबलेली गटार किंवा अर्जाचा फोटो जोडा.' : 'Attach site photo or application document.'}
+                    </span>
+                  </div>
+
+                  {/* Auto Geotag Strip */}
+                  <div style={{ fontSize: '12px', color: '#0369a1', background: '#e0f2fe', padding: '10px 14px', borderRadius: '8px', border: '1px solid #bae6fd', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <MapPin size={16} color="#0284c7" />
+                    <span>
+                      📍 {isMr ? 'GPS स्थान' : 'GPS Location'}: <strong>{currentCoords?.address || 'स्थान आपोआप टॅग होईल'}</strong>
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                    <button type="button" className="btn-outline" onClick={() => setIsAddingComplaint(false)} disabled={submittingComplaint}>
+                      {t('cancel')}
+                    </button>
+                    <button type="submit" className="btn-success" disabled={submittingComplaint} style={{ fontWeight: 750, padding: '9px 22px' }}>
+                      {submittingComplaint ? (isMr ? 'नोंद होत आहे...' : 'Saving...') : (isMr ? '✓ तक्रार नोंदवा' : 'Register Grievance')}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // -------------------------------------------------------------------------
+    // 8. TASKS & CITIZEN FOLLOW-UP DESK (कार्ये व मतदार पाठपुरावा)
+    // -------------------------------------------------------------------------
+    if (activeTab === 'Tasks') {
+      const completedTasksCount = tasksList.filter((t) => t.completed).length;
+      const pendingTasksCount = tasksList.length - completedTasksCount;
+
+      return (
+        <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* Header */}
+          <div className="page-header" style={{ marginBottom: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div>
+              <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckSquare size={28} color="#2563eb" />
+                <span>{isMr ? 'कार्ये व मतदार पाठपुरावा' : 'Tasks & Citizen Follow-ups'}</span>
+              </h1>
+              <div className="page-subtitle">
+                {isMr ? 'दैनंदिन कामांचे नियोजन करा, पूर्ण झालेली कामे चिन्हांकित करा आणि नागरिकांशी नियमित संपर्क ठेवा.' : 'Manage daily tasks, mark completions, and follow up with voters.'}
+              </div>
+            </div>
+
+            {/* View Switcher */}
+            <div style={{ display: 'flex', gap: '6px', background: '#ffffff', padding: '4px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+              <button
+                type="button"
+                onClick={() => setTaskActiveTab('tasks')}
+                style={{
+                  padding: '7px 16px',
+                  borderRadius: '7px',
+                  border: 'none',
+                  fontWeight: 700,
+                  fontSize: '12.5px',
+                  cursor: 'pointer',
+                  background: taskActiveTab === 'tasks' ? '#2563eb' : 'transparent',
+                  color: taskActiveTab === 'tasks' ? '#ffffff' : '#64748b',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                📋 {isMr ? `दैनंदिन कामे (${tasksList.length})` : `Tasks (${tasksList.length})`}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTaskActiveTab('followups')}
+                style={{
+                  padding: '7px 16px',
+                  borderRadius: '7px',
+                  border: 'none',
+                  fontWeight: 700,
+                  fontSize: '12.5px',
+                  cursor: 'pointer',
+                  background: taskActiveTab === 'followups' ? '#ea580c' : 'transparent',
+                  color: taskActiveTab === 'followups' ? '#ffffff' : '#64748b',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                🤝 {isMr ? `मतदार पाठपुरावा (${followUpsList.length})` : `Follow-ups (${followUpsList.length})`}
+              </button>
+            </div>
+          </div>
+
+          {/* Section 1: My Daily Tasks */}
+          {taskActiveTab === 'tasks' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>
+                  {isMr ? `एकूण कामे: ${tasksList.length} | पूर्ण: ${completedTasksCount} | शिल्लक: ${pendingTasksCount}` : `Total: ${tasksList.length} | Done: ${completedTasksCount} | Pending: ${pendingTasksCount}`}
+                </div>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => setIsAddingTask(true)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', fontSize: '13px', fontWeight: 700 }}
+                >
+                  <Plus size={16} />
+                  <span>{isMr ? '+ नवीन काम जोडा' : '+ Add Task'}</span>
+                </button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
+                {tasksList.map((task) => (
+                  <div
+                    key={task.id}
+                    className="card"
+                    style={{
+                      padding: '16px',
+                      borderRadius: '12px',
+                      border: task.completed ? '1px solid #bbf7d0' : '1px solid #e2e8f0',
+                      background: task.completed ? '#f0fdf4' : '#ffffff',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                      <input
+                        type="checkbox"
+                        checked={Boolean(task.completed)}
+                        onChange={() => handleToggleTask(task.id)}
+                        style={{ width: '18px', height: '18px', accentColor: '#16a34a', marginTop: '2px', cursor: 'pointer' }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          fontSize: '14.5px',
+                          fontWeight: 750,
+                          color: task.completed ? '#15803d' : '#0f172a',
+                          textDecoration: task.completed ? 'line-through' : 'none'
+                        }}>
+                          {task.title}
+                        </div>
+                        <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px' }}>
+                          🏷️ {task.category || 'बूथ कार्य'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid rgba(0,0,0,0.06)', fontSize: '11.5px' }}>
+                      <span style={{ color: '#64748b' }}>
+                        📅 {isMr ? 'मुदत:' : 'Due:'} {task.deadline || 'आज'}
+                      </span>
+                      <span style={{
+                        padding: '2px 8px',
+                        borderRadius: '10px',
+                        fontWeight: 700,
+                        fontSize: '10.5px',
+                        background: task.priority === 'High' ? '#fef2f2' : task.priority === 'Urgent' ? '#fff1f2' : '#eff6ff',
+                        color: task.priority === 'High' ? '#b91c1c' : task.priority === 'Urgent' ? '#be123c' : '#1d4ed8',
+                        border: '1px solid currentColor'
+                      }}>
+                        {task.priority || 'Medium'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Section 2: Citizen Follow-ups */}
+          {taskActiveTab === 'followups' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>
+                  {isMr ? 'प्रलंबित मतदार भेटी व संवादाचा पाठपुरावा' : 'Pending voter visits and communication follow-ups'}
+                </div>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => setIsAddingFollowUp(true)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', fontSize: '13px', fontWeight: 700 }}
+                >
+                  <Plus size={16} />
+                  <span>{isMr ? '+ नवीन पाठपुरावा नोंदवा' : '+ Add Follow-up'}</span>
+                </button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
+                {followUpsList.map((item) => (
+                  <div
+                    key={item.id}
+                    className="card"
+                    style={{
+                      padding: '16px',
+                      borderRadius: '12px',
+                      border: item.status === 'Completed' ? '1px solid #bbf7d0' : '1px solid #e2e8f0',
+                      background: item.status === 'Completed' ? '#f0fdf4' : '#ffffff',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '12px'
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+                        <div>
+                          <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a' }}>{item.citizen_name}</div>
+                          <div style={{ fontSize: '12px', color: '#64748b' }}>📞 {item.phone || '-'}</div>
+                        </div>
+                        <span style={{
+                          padding: '3px 8px',
+                          borderRadius: '8px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          background: item.status === 'Completed' ? '#dcfce7' : '#fff7ed',
+                          color: item.status === 'Completed' ? '#15803d' : '#c2410c',
+                          border: item.status === 'Completed' ? '1px solid #86efac' : '1px solid #fed7aa'
+                        }}>
+                          {item.status === 'Completed' ? (isMr ? '✓ पूर्ण' : 'Done') : (isMr ? '⏳ प्रलंबित' : 'Pending')}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: '12.5px', color: '#334155', background: '#f8fafc', padding: '8px 10px', borderRadius: '6px', border: '1px solid #e2e8f0', marginTop: '6px' }}>
+                        💬 {item.topic}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                      <span style={{ fontSize: '11.5px', color: '#64748b' }}>
+                        📅 {item.next_date || 'लवकरच'}
+                      </span>
+
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        {item.phone && (
+                          <button
+                            type="button"
+                            className="icon-btn icon-btn-primary"
+                            title="Call"
+                            onClick={() => alert(`Calling ${item.citizen_name} (${item.phone})...`)}
+                          >
+                            <PhoneCall size={14} color="#2563eb" />
+                          </button>
+                        )}
+                        {item.status !== 'Completed' && (
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateFollowUpStatus(item.id, 'Completed')}
+                            style={{
+                              border: 'none',
+                              background: '#16a34a',
+                              color: '#ffffff',
+                              padding: '4px 10px',
+                              borderRadius: '6px',
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            ✓ {isMr ? 'पूर्ण झाले' : 'Mark Done'}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Add Task Modal */}
+          {isAddingTask && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+              <div style={{ background: '#ffffff', borderRadius: '14px', maxWidth: '440px', width: '100%', padding: '20px', border: '1px solid #cbd5e1' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>{isMr ? 'नवीन काम जोडा' : 'Add New Task'}</h3>
+                  <button type="button" onClick={() => setIsAddingTask(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px', color: '#94a3b8' }}>✕</button>
+                </div>
+                <form onSubmit={handleCreateTask} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>{isMr ? 'कामाचे नाव / शीर्षक *' : 'Task Title *'}</label>
+                    <input type="text" required className="form-input" placeholder={isMr ? "उदा. बूथ क्र. ४ मतदार यादी पडताळणी" : "Enter title"} value={newTaskData.title} onChange={(e) => setNewTaskData({ ...newTaskData, title: e.target.value })} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>{isMr ? 'कामाचा वर्ग' : 'Category'}</label>
+                    <select className="form-input" value={newTaskData.category} onChange={(e) => setNewTaskData({ ...newTaskData, category: e.target.value })}>
+                      <option value="बूथ प्रचार (Booth Outreach)">बूथ प्रचार (Booth Outreach)</option>
+                      <option value="मतदार संपर्क (Voter Contact)">मतदार संपर्क (Voter Contact)</option>
+                      <option value="पत्रक वाटप (Pamphlet Distribution)">पत्रक वाटप (Pamphlet Distribution)</option>
+                      <option value="अहवाल सादर करणे (Reporting)">अहवाल सादर करणे (Reporting)</option>
+                    </select>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>{isMr ? 'मुदत (Deadline)' : 'Deadline'}</label>
+                      <input type="text" className="form-input" placeholder="उदा. उद्या सायं" value={newTaskData.deadline} onChange={(e) => setNewTaskData({ ...newTaskData, deadline: e.target.value })} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>{isMr ? 'प्राधान्य' : 'Priority'}</label>
+                      <select className="form-input" value={newTaskData.priority} onChange={(e) => setNewTaskData({ ...newTaskData, priority: e.target.value })}>
+                        <option value="High">🔴 High</option>
+                        <option value="Medium">🟡 Medium</option>
+                        <option value="Normal">🟢 Normal</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '6px' }}>
+                    <button type="button" className="btn-outline" onClick={() => setIsAddingTask(false)}>{t('cancel')}</button>
+                    <button type="submit" className="btn-primary" style={{ fontWeight: 750 }}>✓ {isMr ? 'काम जोडा' : 'Add Task'}</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Add Follow-up Modal */}
+          {isAddingFollowUp && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+              <div style={{ background: '#ffffff', borderRadius: '14px', maxWidth: '440px', width: '100%', padding: '20px', border: '1px solid #cbd5e1' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                  <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>{isMr ? 'नवीन पाठपुरावा नोंदवा' : 'Add Follow-up'}</h3>
+                  <button type="button" onClick={() => setIsAddingFollowUp(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px', color: '#94a3b8' }}>✕</button>
+                </div>
+                <form onSubmit={handleCreateFollowUp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>{isMr ? 'नागरिकाचे नाव *' : 'Citizen Name *'}</label>
+                    <input type="text" required className="form-input" placeholder="उदा. अशोक कदम" value={newFollowUpData.citizen_name} onChange={(e) => setNewFollowUpData({ ...newFollowUpData, citizen_name: e.target.value })} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>{isMr ? 'फोन नंबर' : 'Phone'}</label>
+                    <input type="tel" maxLength="10" className="form-input" placeholder="९८XXXXXXXX" value={newFollowUpData.phone} onChange={(e) => setNewFollowUpData({ ...newFollowUpData, phone: e.target.value })} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>{isMr ? 'पाठपुराव्याचा विषय *' : 'Topic *'}</label>
+                    <input type="text" required className="form-input" placeholder="उदा. रस्ता कामाची पाहणी, मतदार यादी नाव नोंदणी" value={newFollowUpData.topic} onChange={(e) => setNewFollowUpData({ ...newFollowUpData, topic: e.target.value })} />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, marginBottom: '4px' }}>{isMr ? 'पुढील संपर्काची तारीख' : 'Next Follow-up Date'}</label>
+                    <input type="text" className="form-input" placeholder="उदा. २० ऑक्टोबर सायं ५ वाजता" value={newFollowUpData.next_date} onChange={(e) => setNewFollowUpData({ ...newFollowUpData, next_date: e.target.value })} />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '6px' }}>
+                    <button type="button" className="btn-outline" onClick={() => setIsAddingFollowUp(false)}>{t('cancel')}</button>
+                    <button type="submit" className="btn-success" style={{ fontWeight: 750 }}>✓ {isMr ? 'नोंदवा' : 'Save'}</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. 6-LEVEL GEOGRAPHIC HIERARCHY EXPLORER (क्षेत्ररचना दर्शक)
+    // -------------------------------------------------------------------------
+    if (activeTab === 'Hierarchy') {
+      const hierarchyLevels = [
+        { level: 1, name_mr: 'राज्य (State)', name_en: 'State', value_mr: 'महाराष्ट्र (Maharashtra)', code: 'MH-27', icon: '🏛️', desc_mr: 'राज्यस्तरीय निवडणूक क्षेत्र' },
+        { level: 2, name_mr: 'जिल्हा (District)', name_en: 'District', value_mr: 'सांगली (Sangli)', code: 'DIST-31', icon: '🏢', desc_mr: 'जिल्हा परिषद व मुख्यालय क्षेत्र' },
+        { level: 3, name_mr: 'विधानसभा (Assembly)', name_en: 'Assembly', value_mr: '२८२ सांगली विधानसभा मतदारसंघ', code: 'AC-282', icon: '🗳️', desc_mr: 'विधानसभा निवडणूक कार्यक्षेत्र' },
+        { level: 4, name_mr: 'तालुका / प्रभाग (Taluka / Ward)', name_en: 'Taluka / Ward', value_mr: 'मिरज तालुका / प्रभाग क्रमांक १२', code: 'TAL-MIRAJ', icon: '📍', desc_mr: 'स्थानिक स्वराज्य संस्था प्रभाग' },
+        { level: 5, name_mr: 'गाव / शहर परिसर (Village / Area)', name_en: 'Village / Area', value_mr: 'सांगली शहर मध्य / वॉर्ड परिसर', code: 'VIL-SANGLI', icon: '🏘️', desc_mr: 'नागरी वस्ती व लोकवस्ती कार्यक्षेत्र' },
+        { level: 6, name_mr: 'बूथ / भाग (Booth / Part)', name_en: 'Booth / Part', value_mr: 'बूथ क्र. १ ते १४ (प्राथमिक शाळा केंद्र)', code: 'BOOTH-12/1', icon: '🎯', desc_mr: 'कार्यकर्त्याचे प्रत्यक्ष नियुक्त मतदान केंद्र' },
+      ];
+
+      return (
+        <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* Header */}
+          <div className="page-header" style={{ marginBottom: 0 }}>
+            <div>
+              <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Compass size={28} color="#0f766e" />
+                <span>{isMr ? '६-स्तरीय क्षेत्ररचना दर्शक (Geographic Hierarchy)' : '6-Level Geography Hierarchy'}</span>
+              </h1>
+              <div className="page-subtitle">
+                {isMr
+                  ? 'राज्य ➔ जिल्हा ➔ विधानसभा ➔ तालुका ➔ गाव ➔ बूथ/भाग अशी संपूर्ण ६-स्तरीय प्रशासकीय क्षेत्ररचना.'
+                  : 'Full 6-level geographic structure: State -> District -> Assembly -> Taluka -> Village -> Booth.'}
+              </div>
+            </div>
+          </div>
+
+          {/* Interactive Breadcrumb Strip */}
+          <div style={{
+            background: 'linear-gradient(135deg, #0f2b5c 0%, #000080 100%)',
+            color: '#ffffff',
+            borderRadius: '14px',
+            padding: '18px 22px',
+            boxShadow: '0 4px 14px rgba(0, 0, 128, 0.15)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px'
+          }}>
+            <div style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', color: '#93c5fd', fontWeight: 800 }}>
+              🇮🇳 {isMr ? 'तुमची नियुक्त क्षेत्र शृंखला (Assigned Hierarchy Chain)' : 'Your Assigned Hierarchy Chain'}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px', fontSize: '13px', fontWeight: 700 }}>
+              <span style={{ background: 'rgba(255,255,255,0.15)', padding: '4px 10px', borderRadius: '6px' }}>महाराष्ट्र (राज्य)</span>
+              <span style={{ color: '#FF9933' }}>➔</span>
+              <span style={{ background: 'rgba(255,255,255,0.15)', padding: '4px 10px', borderRadius: '6px' }}>सांगली (जिल्हा)</span>
+              <span style={{ color: '#FF9933' }}>➔</span>
+              <span style={{ background: 'rgba(255,255,255,0.15)', padding: '4px 10px', borderRadius: '6px' }}>२८२ सांगली (विधानसभा)</span>
+              <span style={{ color: '#FF9933' }}>➔</span>
+              <span style={{ background: 'rgba(255,255,255,0.15)', padding: '4px 10px', borderRadius: '6px' }}>मिरज / प्रभाग १२</span>
+              <span style={{ color: '#FF9933' }}>➔</span>
+              <span style={{ background: 'rgba(255,255,255,0.15)', padding: '4px 10px', borderRadius: '6px' }}>सांगली शहर</span>
+              <span style={{ color: '#10b981' }}>➔</span>
+              <span style={{ background: '#10b981', color: '#ffffff', padding: '4px 12px', borderRadius: '6px', boxShadow: '0 2px 6px rgba(16,185,129,0.3)' }}>बूथ क्र. १ ते १४ (नियुक्त)</span>
+            </div>
+          </div>
+
+          {/* 6 Level Cards Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+            {hierarchyLevels.map((lvl) => (
+              <div
+                key={lvl.level}
+                className="card"
+                style={{
+                  padding: '18px',
+                  borderRadius: '14px',
+                  border: lvl.level === 6 ? '2px solid #10b981' : '1px solid #e2e8f0',
+                  background: lvl.level === 6 ? '#f0fdf4' : '#ffffff',
+                  boxShadow: lvl.level === 6 ? '0 4px 12px rgba(16, 185, 129, 0.12)' : '0 2px 6px rgba(0,0,0,0.03)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '20px' }}>{lvl.icon}</span>
+                    <span style={{
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      color: lvl.level === 6 ? '#15803d' : '#2563eb',
+                      background: lvl.level === 6 ? '#dcfce7' : '#eff6ff',
+                      padding: '2px 8px',
+                      borderRadius: '10px',
+                      textTransform: 'uppercase'
+                    }}>
+                      {isMr ? `स्तर ${lvl.level}` : `Level ${lvl.level}`}
+                    </span>
+                  </div>
+
+                  <span style={{ fontFamily: 'monospace', fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>
+                    {lvl.code}
+                  </span>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 700 }}>{isMr ? lvl.name_mr : lvl.name_en}</div>
+                  <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginTop: '2px' }}>{lvl.value_mr}</div>
+                </div>
+
+                <div style={{ fontSize: '12px', color: '#64748b', lineHeight: 1.4, paddingTop: '8px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
+                  {lvl.desc_mr}
+                </div>
+
+                {lvl.level === 6 && (
+                  <div style={{ background: '#dcfce7', color: '#166534', padding: '6px 10px', borderRadius: '6px', fontSize: '11.5px', fontWeight: 750, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span>✓</span>
+                    <span>{isMr ? 'तुमचे प्रत्यक्ष कार्यक्षेत्र येथे नियुक्त आहे' : 'Your active field duty is assigned here'}</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="card" style={{ marginTop: '2rem', textAlign: 'center', padding: '4rem 2rem' }}>

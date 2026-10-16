@@ -22,6 +22,10 @@ export const workerApi = {
     const res = await apiClient.get('/worker/tasks');
     return res.data?.data;
   },
+  createTask: async (taskData) => {
+    const res = await apiClient.post('/worker/tasks', taskData);
+    return res.data;
+  },
   toggleTask: async (id) => {
     const res = await apiClient.patch(`/worker/tasks/${id}/toggle`);
     return res.data?.data;
@@ -31,6 +35,10 @@ export const workerApi = {
   getFollowUps: async () => {
     const res = await apiClient.get('/worker/follow-ups');
     return res.data?.data;
+  },
+  createFollowUp: async (followUpData) => {
+    const res = await apiClient.post('/worker/follow-ups', followUpData);
+    return res.data;
   },
   updateFollowUpStatus: async (id, status = 'Completed') => {
     const res = await apiClient.patch(`/worker/follow-ups/${id}/status`, { status });
@@ -52,9 +60,25 @@ export const workerApi = {
     const res = await apiClient.get('/worker/complaints');
     return res.data?.data;
   },
+  storeComplaint: async (complaintData) => {
+    const res = await apiClient.post('/worker/complaints', complaintData);
+    return res.data;
+  },
   updateComplaintStatus: async (id, status) => {
     const res = await apiClient.patch(`/worker/complaints/${id}/status`, { status });
     return res.data;
+  },
+
+  // Duplicate Detection
+  checkDuplicate: async ({ phone, voter_id }) => {
+    const res = await apiClient.get('/worker/check-duplicate', { params: { phone, voter_id } });
+    return res.data;
+  },
+
+  // 6-Level Geographic Hierarchy
+  getGeographyHierarchy: async () => {
+    const res = await apiClient.get('/worker/geography-hierarchy');
+    return res.data?.data;
   },
 
   // 7. Attendance
@@ -85,6 +109,10 @@ export const workerApi = {
   getContacts: async () => {
     const res = await apiClient.get('/worker/contacts');
     return res.data?.data;
+  },
+  recordVisitLog: async (visitData) => {
+    const res = await apiClient.post('/worker/contacts/visit-log', visitData);
+    return res.data;
   },
   getMeetings: async () => {
     const res = await apiClient.get('/worker/meetings');

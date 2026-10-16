@@ -963,6 +963,250 @@ class WorkerDashboardController extends Controller
     }
 
     /**
+     * Store citizen complaint/grievance
+     */
+    public function storeComplaint(Request $request)
+    {
+        $workerId = $this->getWorkerId($request);
+        $validator = Validator::make($request->all(), [
+            'name'     => 'required|string|max:255',
+            'phone'    => 'nullable|string|max:20',
+            'category' => 'required|string|max:100',
+            'desc'     => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation error',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        $code = 'GRV-' . strtoupper(substr(uniqid(), -5));
+        $dateReported = now()->format('d M Y');
+
+        $notes = $request->input('notes', '');
+        if ($request->filled('location')) {
+            $notes .= " | Location: " . $request->input('location');
+        }
+        if ($request->filled('urgency')) {
+            $notes .= " | Urgency: " . $request->input('urgency');
+        }
+        if ($request->filled('photo')) {
+            $notes .= " | Photo attached";
+        }
+
+        $id = DB::table('worker_complaints')->insertGetId([
+            'complaint_code' => $code,
+            'worker_id'      => $workerId,
+            'name'           => $request->input('name'),
+            'phone'          => $request->input('phone'),
+            'category'       => $request->input('category'),
+            'desc'           => $request->input('desc'),
+            'date_reported'  => $dateReported,
+            'status'         => 'Pending',
+            'notes'          => $notes ?: null,
+            'created_at'     => now(),
+            'updated_at'     => now(),
+        ]);
+
+        $this->logActivity($workerId, 'alert', "नागरिक समस्या नोंदवली: {$request->input('name')} ({$request->input('category')})", '#FEF3C7', '#D97706');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'तक्रार / समस्या यशस्वीरीत्या नोंदवली गेली!',
+            'data'    => [
+                'id'             => $id,
+                'complaint_code' => $code,
+            ],
+        ], 201);
+    }
+
+    /**
+     * Create new worker task
+     */
+    public function createTask(Request $request)
+    {
+        $workerId = $this->getWorkerId($request);
+        $title = $request->input('title');
+        if (!$title) {
+            return response()->json(['success' => false, 'message' => 'Title is required'], 422);
+        }
+
+        $id = DB::table('worker_tasks')->insertGetId([
+            'worker_id'  => $workerId,
+            'title'      => $title,
+            'deadline'   => $request->input('deadline', now()->addDays(2)->format('d M Y')),
+            'priority'   => $request->input('priority', 'Medium'),
+            'completed'  => false,
+            'category'   => $request->input('category', 'Field Duty'),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->logActivity($workerId, 'clipboard', "नवीन कार्य जोडले: {$title}", '#EFF6FF', '#2563EB');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'कार्य यशस्वीरीत्या जोडले गेले!',
+            'data'    => ['id' => $id, 'title' => $title],
+        ], 201);
+    }
+
+    /**
+     * Create new follow-up
+     */
+    public function createFollowUp(Request $request)
+    {
+        $workerId = $this->getWorkerId($request);
+        $citizenName = $request->input('citizen_name');
+        if (!$citizenName) {
+            return response()->json(['success' => false, 'message' => 'Citizen name is required'], 422);
+        }
+
+        $id = DB::table('worker_follow_ups')->insertGetId([
+            'worker_id'    => $workerId,
+            'citizen_name' => $citizenName,
+            'phone'        => $request->input('phone'),
+            'topic'        => $request->input('topic', 'General Inquiry'),
+            'next_date'    => $request->input('next_date', now()->addDays(1)->format('d M Y')),
+            'status'       => 'Pending',
+            'notes'        => $request->input('notes'),
+            'created_at'   => now(),
+            'updated_at'   => now(),
+        ]);
+
+        $this->logActivity($workerId, 'clock', "नवीन पाठपुरावा नोंदवला: {$citizenName}", '#FFF7ED', '#EA580C');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'पाठपुरावा यशस्वीरीत्या जोडला गेला!',
+            'data'    => ['id' => $id, 'citizen_name' => $citizenName],
+        ], 201);
+    }
+
+    /**
+     * Record voter visit log
+     */
+    public function recordVisitLog(Request $request)
+    {
+        $workerId = $this->getWorkerId($request);
+        $voterName = $request->input('name');
+        $phone = $request->input('phone');
+        $notes = $request->input('notes', '');
+        $status = $request->input('status', 'Supportive');
+
+        $contact = DB::table('worker_contacts')
+            ->where(function ($q) use ($voterName, $phone) {
+                if ($phone) $q->where('phone', $phone);
+                else $q->where('name', $voterName);
+            })->first();
+
+        if ($contact) {
+            DB::table('worker_contacts')->where('id', $contact->id)->update([
+                'contacted'  => true,
+                'status'     => $status,
+                'notes'      => $notes ? ($contact->notes . " | " . now()->format('d M') . ": " . $notes) : $contact->notes,
+                'updated_at' => now(),
+            ]);
+        } else {
+            DB::table('worker_contacts')->insert([
+                'worker_id'  => $workerId,
+                'name'       => $voterName,
+                'phone'      => $phone,
+                'ward'       => $request->input('ward', 'Ward 12'),
+                'status'     => $status,
+                'contacted'  => true,
+                'notes'      => $notes,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        $this->logActivity($workerId, 'users', "मतदार भेट नोंदवली: {$voterName} ({$status})", '#ECFDF5', '#059669');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'भेट यशस्वीरीत्या नोंदवली गेली!',
+        ]);
+    }
+
+    /**
+     * Instant check for duplicate mobile or voter ID
+     */
+    public function checkDuplicate(Request $request)
+    {
+        $phone = trim($request->input('phone', ''));
+        $voterId = trim($request->input('voter_id', ''));
+
+        $isDuplicate = false;
+        $matches = [];
+
+        if ($phone && strlen($phone) >= 10) {
+            $existingContact = DB::table('worker_contacts')->where('phone', $phone)->first();
+            if ($existingContact) {
+                $isDuplicate = true;
+                $matches[] = "मोबाईल क्र. '{$phone}' आधीच '{$existingContact->name}' यांच्या नावे संपर्कात नोंदवला आहे.";
+            }
+
+            $existingSurvey = DB::table('worker_survey_responses')->where('phone', $phone)->first();
+            if ($existingSurvey) {
+                $isDuplicate = true;
+                $matches[] = "मोबाईल क्र. '{$phone}' आधीच सर्व्हेमध्ये '{$existingSurvey->citizen_name}' यांच्या नावे नोंदवला आहे.";
+            }
+        }
+
+        if ($voterId) {
+            $existingVoter = DB::table('worker_survey_responses')->where('voter_id', $voterId)->first();
+            if ($existingVoter) {
+                $isDuplicate = true;
+                $matches[] = "मतदार ओळखपत्र (EPIC) '{$voterId}' आधीच '{$existingVoter->citizen_name}' यांच्या सर्व्हेमध्ये नोंदवले आहे.";
+            }
+
+            if (\Illuminate\Support\Facades\Schema::hasTable('worker_survey_family_members')) {
+                $existingMember = DB::table('worker_survey_family_members')->where('voter_id_no', $voterId)->first();
+                if ($existingMember) {
+                    $isDuplicate = true;
+                    $matches[] = "मतदार ओळखपत्र (EPIC) '{$voterId}' आधीच कुटुंब सदस्य '{$existingMember->full_name}' यांच्या नावे नोंदवले आहे.";
+                }
+            }
+        }
+
+        return response()->json([
+            'success'      => true,
+            'is_duplicate' => $isDuplicate,
+            'matches'      => $matches,
+            'message'      => $isDuplicate ? 'सावध राहा! ड्युप्लिकेट नोंद आढळली.' : 'कोणतीही ड्युप्लिकेट नोंद आढळली नाही.',
+        ]);
+    }
+
+    /**
+     * Return 6-level geographic hierarchy
+     */
+    public function getGeographyHierarchy(Request $request)
+    {
+        $types = DB::table('geography_types')->orderBy('level_order', 'asc')->get();
+        $geographies = DB::table('geographies')->orderBy('id', 'asc')->get();
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'types'       => $types,
+                'geographies' => $geographies,
+                'hierarchy_levels' => [
+                    ['level' => 1, 'name_en' => 'State', 'name_mr' => 'राज्य', 'sample' => 'महाराष्ट्र (Maharashtra)'],
+                    ['level' => 2, 'name_en' => 'District', 'name_mr' => 'जिल्हा', 'sample' => 'सांगली (Sangli)'],
+                    ['level' => 3, 'name_en' => 'Assembly', 'name_mr' => 'विधानसभा', 'sample' => '२८२ सांगली विधानसभा (Sangli Assembly)'],
+                    ['level' => 4, 'name_en' => 'Taluka', 'name_mr' => 'तालुका / प्रभाग', 'sample' => 'मिरज / प्रभाग १२ (Miraj / Ward 12)'],
+                    ['level' => 5, 'name_en' => 'Village / Ward', 'name_mr' => 'गाव / शहर परिसर', 'sample' => 'सांगली शहर परिसर (Sangli City)'],
+                    ['level' => 6, 'name_en' => 'Booth / Part', 'name_mr' => 'बूथ / भाग', 'sample' => 'बूथ क्र. १ ते १४ (Booth 1 - 14)'],
+                ]
+            ],
+        ]);
+    }
+
+    /**
      * Helper to log activity
      */
     protected function logActivity(int $workerId, string $type, string $title, string $bgColor, string $color)
