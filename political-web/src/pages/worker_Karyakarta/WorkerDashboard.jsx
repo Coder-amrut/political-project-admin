@@ -168,7 +168,21 @@ export default function WorkerDashboard() {
   const [voterData, setVoterData] = useState([]);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Dashboard');
-  const [language, setLanguage] = useState('mr'); // Default Marathi, toggleable to English / Hindi
+  const [language, setLanguage] = useState(() => {
+    try {
+      return localStorage.getItem('karyakarta_lang') || 'en';
+    } catch {
+      return 'en';
+    }
+  }); // Default English (Primary), toggleable to Marathi / Hindi
+  const changeLanguage = (lang) => {
+    setLanguage(lang);
+    try {
+      localStorage.setItem('karyakarta_lang', lang);
+    } catch (e) {
+      console.warn('localStorage error:', e);
+    }
+  };
   const [loading, setLoading] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -250,6 +264,7 @@ export default function WorkerDashboard() {
 
   const [contactTab, setContactTab] = useState('contacts');
   const [contactSearchQuery, setContactSearchQuery] = useState('');
+  const [contactSentimentFilter, setContactSentimentFilter] = useState('All');
   const [isSchedulingMeeting, setIsSchedulingMeeting] = useState(false);
   const [meetingsList, setMeetingsList] = useState([]);
   const [newMeeting, setNewMeeting] = useState({ title: '', time: '', location: '', attendees: '', type: 'Virtual' });
@@ -1394,32 +1409,44 @@ export default function WorkerDashboard() {
   // Helper to render content based on active tab
   const renderContent = () => {
     if (activeTab === 'Dashboard') {
+      const pendingComplaintsCount = complaintsData.filter((c) => c.status === 'Pending').length;
+      const pendingTasksCount = tasksList.filter((t) => !t.completed).length;
+
       return (
-        <>
+        <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1400px', margin: '0 auto', paddingBottom: '2rem' }}>
           {/* Executive Subheader / Context Bar */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <div style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>🚩 {isMr ? 'कार्यकर्ता व बूथ डॅशबोर्ड' : 'Karyakarta Field Dashboard'}</span>
+              <div style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span>🚩 {isMr ? 'कार्यकर्ता व बूथ डॅशबोर्ड' : 'Karyakarta Field Overview Dashboard'}</span>
                 <span style={{ fontSize: '11px', background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '2px 8px', borderRadius: '12px', fontWeight: '700' }}>
-                  {isMr ? 'थेट माहिती' : 'Live Sync'}
+                  {isMr ? 'थेट माहिती' : 'Live DB Sync'}
+                </span>
+                <span style={{ fontSize: '11px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '2px 8px', borderRadius: '12px', fontWeight: '700' }}>
+                  🇮🇳 {profileData.assignedWard ? `${isMr ? 'प्रभाग' : 'Ward'} ${profileData.assignedWard}` : 'Sangli Central'}
                 </span>
               </div>
-              <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-                {isMr ? 'तुमच्या प्रभागातील मतदार संपर्क, उपस्थिती आणि दैनंदिन कार्य प्रगती.' : 'Voter outreach, attendance status, and daily operations progress.'}
+              <div style={{ fontSize: '13.5px', color: '#64748b', marginTop: '4px' }}>
+                {isMr ? 'तुमच्या प्रभागातील मतदार संपर्क, उपस्थिती आणि दैनंदिन कार्य प्रगती.' : 'Real-time monitoring of booth voter coverage, field tasks, attendance, and civic grievances.'}
               </div>
             </div>
-            {user?.roles?.some((r) => r === 'ADMIN' || r === 'OFFICER') && (
-              <BackButton fallbackPath="/admin" text={isMr ? 'मुख्य प्रशासकीय डॅशबोर्ड' : 'Back to HQ'} />
-            )}
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <LiveClock isMr={isMr} variant="header" />
+              {user?.roles?.some((r) => r === 'ADMIN' || r === 'OFFICER') && (
+                <BackButton fallbackPath="/admin" text={isMr ? 'मुख्य प्रशासकीय डॅशबोर्ड' : 'Back to HQ'} />
+              )}
+            </div>
           </div>
 
           {/* 4 Crisp SaaS Metric Cards Matching Officer/Admin Design */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '16px', marginBottom: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
             {/* 1. Total Assigned */}
             <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderTop: '3.5px solid #3b82f6', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 6px rgba(15, 23, 42, 0.03)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>{t('totalAssigned')}</span>
+                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>
+                  {isMr ? 'एकूण नियुक्त मतदार' : 'Total Assigned Voters'}
+                </span>
                 <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Users size={18} />
                 </span>
@@ -1428,7 +1455,7 @@ export default function WorkerDashboard() {
                 {dashboardStats.totalAssigned.toLocaleString()}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
-                <span>{dashboardStats.contactRate ? `${dashboardStats.contactRate}% ${isMr ? 'संपर्क पूर्ण' : 'Contacted'}` : (isMr ? 'बूथ मतदार' : 'Voters')}</span>
+                <span>{dashboardStats.contactRate ? `${dashboardStats.contactRate}% ${isMr ? 'संपर्क पूर्ण' : 'Contact Rate'}` : (isMr ? 'बूथ मतदार' : 'Booth Network')}</span>
                 <span style={{ fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px', background: '#eff6ff', color: '#1d4ed8' }}>
                   {isMr ? 'नियुक्त' : 'Assigned'}
                 </span>
@@ -1438,7 +1465,9 @@ export default function WorkerDashboard() {
             {/* 2. Contacted */}
             <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderTop: '3.5px solid #10b981', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 6px rgba(15, 23, 42, 0.03)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>{t('contacted')}</span>
+                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>
+                  {isMr ? 'थेट संपर्क साधलेले' : 'Contacted Voters'}
+                </span>
                 <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <PhoneCall size={18} />
                 </span>
@@ -1447,7 +1476,7 @@ export default function WorkerDashboard() {
                 {dashboardStats.contacted.toLocaleString()}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
-                <span>{dashboardStats.supportiveRate ? `${dashboardStats.supportiveRate}% ${isMr ? 'अनुकूल संवाद' : 'Positive'}` : (isMr ? 'प्रत्यक्ष संपर्क' : 'Direct Call')}</span>
+                <span>{dashboardStats.supportiveRate ? `${dashboardStats.supportiveRate}% ${isMr ? 'अनुकूल प्रतिसाद' : 'Positive Response'}` : (isMr ? 'प्रत्यक्ष संवाद' : 'Doorstep & Calls')}</span>
                 <span style={{ fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px', background: '#ecfdf5', color: '#059669' }}>
                   {isMr ? 'संपर्कित' : 'Reached'}
                 </span>
@@ -1457,7 +1486,9 @@ export default function WorkerDashboard() {
             {/* 3. Completed Surveys */}
             <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderTop: '3.5px solid #f97316', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 6px rgba(15, 23, 42, 0.03)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>{isMr ? 'पूर्ण झालेले सर्व्हे' : 'Surveys Completed'}</span>
+                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>
+                  {isMr ? 'कुटुंब सर्वेक्षण नोंद' : 'Household Surveys Completed'}
+                </span>
                 <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <ClipboardCheck size={18} />
                 </span>
@@ -1466,7 +1497,7 @@ export default function WorkerDashboard() {
                 {dashboardStats.surveysCompleted.toLocaleString()}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
-                <span>{isMr ? 'कुटुंब सर्वेक्षण नोंद' : 'Household Surveys'}</span>
+                <span>{isMr ? `उद्दिष्ट: ${dashboardStats.surveysTarget || 100} कुटुंबे` : `Target: ${dashboardStats.surveysTarget || 100} Families`}</span>
                 <span style={{ fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px', background: '#fff7ed', color: '#ea580c' }}>
                   {isMr ? 'सक्रिय' : 'Active'}
                 </span>
@@ -1476,7 +1507,9 @@ export default function WorkerDashboard() {
             {/* 4. Supportive Voters */}
             <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderTop: '3.5px solid #8b5cf6', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 6px rgba(15, 23, 42, 0.03)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>{t('supportiveVoters')}</span>
+                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>
+                  {isMr ? 'अनुकूल मतदार आधार' : 'Supportive Voter Base'}
+                </span>
                 <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <BarChart2 size={18} />
                 </span>
@@ -1485,11 +1518,150 @@ export default function WorkerDashboard() {
                 {dashboardStats.supportive.toLocaleString()}
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
-                <span>{dashboardStats.totalAssigned > 0 ? `${Math.round((dashboardStats.supportive / dashboardStats.totalAssigned) * 100)}% ${isMr ? 'समर्थक दर' : 'Base'}` : (isMr ? 'सकारात्मक कल' : 'Sentiment')}</span>
+                <span>{dashboardStats.totalAssigned > 0 ? `${Math.round((dashboardStats.supportive / dashboardStats.totalAssigned) * 100)}% ${isMr ? 'समर्थक कल' : 'Base Sentiment'}` : (isMr ? 'सकारात्मक कल' : 'Positive Base')}</span>
                 <span style={{ fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px', background: '#faf5ff', color: '#7e22ce' }}>
                   {isMr ? 'अनुकूल' : 'Positive'}
                 </span>
               </div>
+            </div>
+          </div>
+
+          {/* Operational Cross-Module Status Strip */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
+            {/* Quick Grievance Pill */}
+            <div
+              onClick={() => setActiveTab('Complaints')}
+              style={{
+                cursor: 'pointer',
+                background: '#ffffff',
+                border: '1px solid #fed7aa',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                transition: 'all 0.15s ease',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#ea580c')}
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#fed7aa')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#fff7ed', color: '#ea580c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <AlertCircle size={17} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a' }}>
+                    {isMr ? 'नागरिकांच्या समस्या व विनंत्या' : 'Citizen Grievances Desk'}
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#c2410c' }}>
+                    {pendingComplaintsCount > 0 ? `${pendingComplaintsCount} ${isMr ? 'तक्रारी प्रलंबित' : 'Pending Resolution'}` : (isMr ? 'सर्व तक्रारी निकाली' : 'All Grievances Resolved')}
+                  </div>
+                </div>
+              </div>
+              <ChevronRight size={16} color="#94a3b8" />
+            </div>
+
+            {/* Quick Contacts Pill */}
+            <div
+              onClick={() => setActiveTab('Contact & Meetings')}
+              style={{
+                cursor: 'pointer',
+                background: '#ffffff',
+                border: '1px solid #bbf7d0',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                transition: 'all 0.15s ease',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#16a34a')}
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#bbf7d0')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#f0fdf4', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Calendar size={17} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a' }}>
+                    {isMr ? 'नागरिक संपर्क व बैठका' : 'Citizen Contacts & Meetings'}
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#15803d' }}>
+                    {votersList.length} {isMr ? 'मतदार नोंद • भेटींचे नियोजन' : 'Voters in Directory'}
+                  </div>
+                </div>
+              </div>
+              <ChevronRight size={16} color="#94a3b8" />
+            </div>
+
+            {/* Quick Tasks Pill */}
+            <div
+              onClick={() => setActiveTab('Tasks')}
+              style={{
+                cursor: 'pointer',
+                background: '#ffffff',
+                border: '1px solid #bfdbfe',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                transition: 'all 0.15s ease',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#2563eb')}
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#bfdbfe')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CheckSquare size={17} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a' }}>
+                    {isMr ? 'कार्ये व मतदार पाठपुरावा' : 'Field Tasks & Follow-ups'}
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#1d4ed8' }}>
+                    {pendingTasksCount} {isMr ? 'कार्ये अपूर्ण' : 'Pending Checklist Items'}
+                  </div>
+                </div>
+              </div>
+              <ChevronRight size={16} color="#94a3b8" />
+            </div>
+
+            {/* Quick Attendance Pill */}
+            <div
+              onClick={() => setActiveTab('Attendance')}
+              style={{
+                cursor: 'pointer',
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                transition: 'all 0.15s ease',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#64748b')}
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#e2e8f0')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#f8fafc', color: '#475569', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CalendarCheck size={17} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a' }}>
+                    {isMr ? 'उपस्थिती व सेल्फी पंच' : 'Geo Attendance Status'}
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: '#64748b' }}>
+                    {attendanceState === 'Punched In' ? (isMr ? '🟢 ड्युटी सुरू (हजर)' : '🟢 On Duty (Punched In)') : (isMr ? 'हजेरी नोंद आवश्यक' : 'Check-In Required')}
+                  </div>
+                </div>
+              </div>
+              <ChevronRight size={16} color="#94a3b8" />
             </div>
           </div>
 
@@ -1500,8 +1672,7 @@ export default function WorkerDashboard() {
               borderRadius: '14px',
               background: 'linear-gradient(135deg, #0f2b5c 0%, #000080 50%, #0a192f 100%)',
               color: '#ffffff',
-              padding: '22px 24px',
-              marginBottom: '20px',
+              padding: '24px 26px',
               overflow: 'hidden',
               boxShadow: '0 4px 14px rgba(0, 0, 128, 0.15)',
               display: 'flex',
@@ -1523,26 +1694,26 @@ export default function WorkerDashboard() {
               }}
             />
 
-            <div style={{ position: 'relative', zIndex: 2, maxWidth: '650px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                <span style={{ fontSize: '11px', fontWeight: '800', background: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: '10px', letterSpacing: '0.5px' }}>
-                  🇮🇳 {isMr ? 'बूथ कार्य संचालन कक्ष' : 'BOOTH FIELD COMMAND'}
+            <div style={{ position: 'relative', zIndex: 2, maxWidth: '680px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <span style={{ fontSize: '11px', fontWeight: '800', background: 'rgba(255, 255, 255, 0.18)', padding: '3px 9px', borderRadius: '10px', letterSpacing: '0.5px' }}>
+                  🇮🇳 {isMr ? 'बूथ कार्य संचालन कक्ष' : 'BOOTH FIELD COMMAND CENTER'}
                 </span>
                 <span style={{ fontSize: '12px', color: '#93c5fd' }}>
-                  • {profileData.assignedWard ? `${isMr ? 'प्रभाग' : 'Ward'} ${profileData.assignedWard}` : (isMr ? 'प्रभाग १२' : 'Ward 12')}
+                  • {profileData.assignedWard ? `${isMr ? 'प्रभाग' : 'Ward'} ${profileData.assignedWard}` : 'Sangli Central Ward'}
                 </span>
               </div>
-              <h2 style={{ fontSize: '20px', fontWeight: '800', margin: '0 0 6px 0', color: '#ffffff', lineHeight: 1.25 }}>
-                {isMr ? 'सशक्त समाज • उज्ज्वल भविष्य • अविरत जनसेवा' : 'Stronger Communities • Brighter Tomorrow'}
+              <h2 style={{ fontSize: '21px', fontWeight: '800', margin: '0 0 6px 0', color: '#ffffff', lineHeight: 1.25 }}>
+                {isMr ? 'सशक्त समाज • उज्ज्वल भविष्य • अविरत जनसेवा' : 'Stronger Communities • Brighter Tomorrow • Public Service'}
               </h2>
               <p style={{ margin: 0, fontSize: '13px', color: '#e2e8f0', lineHeight: 1.5 }}>
                 {isMr
                   ? 'प्रत्येक घरात पोहोचून नागरिकांच्या समस्यांचे निवारण करा, मतदारांशी थेट संवाद साधा आणि बूथवर पक्षाची बाजू भक्कम करा.'
-                  : 'Engage voters directly at their doorstep, log complaints, and empower your booth network.'}
+                  : 'Engage voters directly at their doorstep, log civic grievances with photos and GPS, and empower your grassroot booth network.'}
               </p>
             </div>
 
-            <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <div style={{ position: 'relative', zIndex: 2, display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
               <button
                 type="button"
                 onClick={() => setActiveTab('Survey')}
@@ -1566,7 +1737,7 @@ export default function WorkerDashboard() {
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('Attendance')}
+                onClick={() => setActiveTab('Complaints')}
                 style={{
                   background: 'rgba(255, 255, 255, 0.15)',
                   border: '1px solid rgba(255, 255, 255, 0.35)',
@@ -1581,8 +1752,28 @@ export default function WorkerDashboard() {
                   gap: '6px',
                 }}
               >
-                <CalendarCheck size={16} />
-                <span>{isMr ? 'हजेरी नोंदवा' : 'Check In'}</span>
+                <AlertCircle size={16} />
+                <span>{isMr ? 'तक्रार नोंदवा' : 'Log Grievance'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('Contact & Meetings')}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  border: '1px solid rgba(255, 255, 255, 0.35)',
+                  color: '#ffffff',
+                  padding: '9px 16px',
+                  borderRadius: '8px',
+                  fontWeight: '750',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Calendar size={16} />
+                <span>{isMr ? 'नागरिक संपर्क' : 'Voter Directory'}</span>
               </button>
             </div>
           </div>
@@ -1592,14 +1783,16 @@ export default function WorkerDashboard() {
             {/* Chart Section */}
             <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
               <div className="card-header">
-                <h2 className="card-title">{t('voterOutreachTrends')}</h2>
+                <h2 className="card-title">
+                  {isMr ? 'मतदार संपर्क कल' : 'Voter Outreach Trends'}
+                </h2>
                 <div className="chart-header">
                   <div className="chart-legend">
                     <div className="legend-dot"></div>
-                    <span>{t('contacted')}</span>
+                    <span>{isMr ? 'संपर्क साधलेले' : 'Contacted'}</span>
                   </div>
                   <select className="select-dropdown">
-                    <option>{t('last6Months')}</option>
+                    <option>{isMr ? 'गेले ६ महिने' : 'Last 6 Months'}</option>
                   </select>
                 </div>
               </div>
@@ -1620,8 +1813,12 @@ export default function WorkerDashboard() {
             {/* Activities List Section */}
             <div className="card">
               <div className="card-header">
-                <h2 className="card-title">{t('recentActivities')}</h2>
-                <button className="btn-outline">{t('viewAll')}</button>
+                <h2 className="card-title">
+                  {isMr ? 'अलीकडील घडामोडी' : 'Recent Field Activities'}
+                </h2>
+                <button className="btn-outline">
+                  {isMr ? 'सर्व पहा' : 'View All'}
+                </button>
               </div>
               <div className="activity-list">
                 {activities.map((item) => (
@@ -1638,7 +1835,7 @@ export default function WorkerDashboard() {
               </div>
             </div>
           </div>
-        </>
+        </div>
       );
     }
 
@@ -2155,49 +2352,67 @@ export default function WorkerDashboard() {
     }
 
     if (activeTab === 'Contact & Meetings') {
+      const supportiveCount = votersList.filter((c) => c.status === 'Supportive').length;
+      const undecidedCount = votersList.filter((c) => c.status === 'Undecided').length;
+      const needsInfoCount = votersList.filter((c) => c.status === 'Needs Info').length;
+
       return (
-        <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <div className="page-header" style={{ marginBottom: 0 }}>
+        <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1400px', margin: '0 auto', paddingBottom: '2rem' }}>
+          {/* Header */}
+          <div className="page-header" style={{ marginBottom: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <h1 className="page-title">{t('contactMeetings')}</h1>
-              <div className="page-subtitle">मतदार संपर्क यादी आणि मोहिमेच्या बैठकांचे नियोजन.</div>
+              <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Calendar size={26} color="#0284c7" />
+                <span>{isMr ? 'नागरिक संपर्क व बैठका' : 'Citizen Contacts & Outreach Meetings'}</span>
+              </h1>
+              <div className="page-subtitle">
+                {isMr ? 'मतदार संपर्क यादी, प्रत्यक्ष भेट नोंद आणि मोहिमेच्या बैठकांचे नियोजन.' : 'Voter directory, doorstep visit logging, voter sentiment tracking, and campaign meeting coordination.'}
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: '0.25rem', backgroundColor: 'white', padding: '0.25rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
+
+            {/* Sub-tab Navigation */}
+            <div style={{ display: 'flex', gap: '4px', backgroundColor: '#ffffff', padding: '4px', borderRadius: '10px', border: '1px solid #cbd5e1' }}>
               <button 
+                type="button"
                 onClick={() => setContactTab('contacts')}
                 style={{ 
-                  padding: '0.5rem 1.25rem', 
-                  borderRadius: 'var(--radius-sm)', 
+                  padding: '7px 18px', 
+                  borderRadius: '7px', 
                   border: 'none', 
-                  background: contactTab === 'contacts' ? 'var(--bg-light-blue)' : 'transparent', 
-                  color: contactTab === 'contacts' ? 'var(--primary)' : 'var(--text-secondary)', 
-                  fontWeight: 600, 
+                  background: contactTab === 'contacts' ? '#0284c7' : 'transparent', 
+                  color: contactTab === 'contacts' ? '#ffffff' : '#475569', 
+                  fontWeight: 700, 
+                  fontSize: '13px',
                   cursor: 'pointer',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.15s ease'
                 }}
               >
-                {t('myContacts')}
+                👥 {isMr ? 'मतदार संपर्क यादी' : 'Voter Directory'} ({votersList.length})
               </button>
               <button 
+                type="button"
                 onClick={() => setContactTab('meetings')}
                 style={{ 
-                  padding: '0.5rem 1.25rem', 
-                  borderRadius: 'var(--radius-sm)', 
+                  padding: '7px 18px', 
+                  borderRadius: '7px', 
                   border: 'none', 
-                  background: contactTab === 'meetings' ? 'var(--bg-light-blue)' : 'transparent', 
-                  color: contactTab === 'meetings' ? 'var(--primary)' : 'var(--text-secondary)', 
-                  fontWeight: 600, 
+                  background: contactTab === 'meetings' ? '#0284c7' : 'transparent', 
+                  color: contactTab === 'meetings' ? '#ffffff' : '#475569', 
+                  fontWeight: 700, 
+                  fontSize: '13px',
                   cursor: 'pointer',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.15s ease'
                 }}
               >
-                {t('upcomingMeetings')}
+                🗓️ {isMr ? 'आगामी बैठका' : 'Meetings & Gatherings'} ({meetingsList.length})
               </button>
             </div>
           </div>
 
           {contactTab === 'contacts' && (() => {
             const filteredContacts = votersList.filter((contact) => {
+              const matchesSentiment = contactSentimentFilter === 'All' || contact.status === contactSentimentFilter;
+              if (!matchesSentiment) return false;
               if (!contactSearchQuery.trim()) return true;
               const q = contactSearchQuery.toLowerCase();
               return (
@@ -2209,94 +2424,188 @@ export default function WorkerDashboard() {
             });
 
             return (
-              <div className="card">
-                <div className="card-header">
-                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap', width: '100%', justifyContent: 'space-between' }}>
-                    <h2 className="card-title">{t('myContacts')} ({filteredContacts.length}{filteredContacts.length !== votersList.length ? ` / ${votersList.length}` : ''})</h2>
-                    <div className="header-search" style={{ width: '280px', padding: '0.4rem 1rem', display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                      <Search size={14} color="#94a3b8" />
-                      <input 
-                        type="text" 
-                        placeholder="नाव, फोन किंवा प्रभाग शोधा..." 
-                        value={contactSearchQuery}
-                        onChange={(e) => setContactSearchQuery(e.target.value)}
-                        style={{ fontSize: '0.8rem', border: 'none', background: 'transparent', outline: 'none', width: '100%' }} 
-                      />
-                      {contactSearchQuery && (
-                        <button onClick={() => setContactSearchQuery('')} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '12px' }}>✕</button>
-                      )}
+              <>
+                {/* 4 Quick Stat Cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+                  <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderTop: '3.5px solid #0284c7', borderRadius: '12px', padding: '14px 18px' }}>
+                    <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '700' }}>
+                      {isMr ? 'एकूण नोंदवलेले मतदार' : 'Total Voters in Directory'}
+                    </div>
+                    <div style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a', marginTop: '4px' }}>
+                      {votersList.length}
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#ffffff', border: '1px solid #bbf7d0', borderTop: '3.5px solid #16a34a', borderRadius: '12px', padding: '14px 18px' }}>
+                    <div style={{ fontSize: '12px', color: '#15803d', fontWeight: '700' }}>
+                      {isMr ? 'अनुकूल मतदार (Supportive)' : 'Supportive Voters'}
+                    </div>
+                    <div style={{ fontSize: '24px', fontWeight: '900', color: '#15803d', marginTop: '4px' }}>
+                      {supportiveCount}
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#ffffff', border: '1px solid #fed7aa', borderTop: '3.5px solid #ea580c', borderRadius: '12px', padding: '14px 18px' }}>
+                    <div style={{ fontSize: '12px', color: '#c2410c', fontWeight: '700' }}>
+                      {isMr ? 'अनिर्णित मतदार (Undecided)' : 'Undecided / Swing'}
+                    </div>
+                    <div style={{ fontSize: '24px', fontWeight: '900', color: '#c2410c', marginTop: '4px' }}>
+                      {undecidedCount}
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#ffffff', border: '1px solid #fef08a', borderTop: '3.5px solid #ca8a04', borderRadius: '12px', padding: '14px 18px' }}>
+                    <div style={{ fontSize: '12px', color: '#a16207', fontWeight: '700' }}>
+                      {isMr ? 'माहिती / भेट आवश्यक (Needs Info)' : 'Needs Follow-Up'}
+                    </div>
+                    <div style={{ fontSize: '24px', fontWeight: '900', color: '#a16207', marginTop: '4px' }}>
+                      {needsInfoCount}
                     </div>
                   </div>
                 </div>
-                
-                <div style={{ overflowX: 'auto' }}>
-                  <table className="data-table">
-                    <thead>
-                      <tr>
-                        <th>मतदाराचे नाव</th>
-                        <th>मोबाईल नंबर</th>
-                        <th>बूथ / प्रभाग</th>
-                        <th>राजकीय कल / स्थिती</th>
-                        <th style={{ textAlign: 'right' }}>कृती (Actions)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredContacts.length > 0 ? (
-                        filteredContacts.map((contact, i) => (
-                          <tr key={contact.id || i}>
-                            <td>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--bg-light-blue)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: '0.75rem' }}>
-                                  {contact.name.charAt(0)}
+
+                {/* Filter and Search Bar */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: '#ffffff', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {['All', 'Supportive', 'Undecided', 'Needs Info'].map((filterVal) => (
+                      <button
+                        key={filterVal}
+                        type="button"
+                        onClick={() => setContactSentimentFilter(filterVal)}
+                        style={{
+                          padding: '6px 14px',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          border: 'none',
+                          background: contactSentimentFilter === filterVal ? '#0284c7' : '#f1f5f9',
+                          color: contactSentimentFilter === filterVal ? '#ffffff' : '#475569',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {filterVal === 'All' ? (isMr ? 'सर्व मतदार' : 'All Voters') : filterVal === 'Supportive' ? (isMr ? '🟢 अनुकूल' : '🟢 Supportive') : filterVal === 'Undecided' ? (isMr ? '⚪ अनिर्णित' : '⚪ Undecided') : (isMr ? '🟡 माहिती आवश्यक' : '🟡 Needs Info')}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div style={{ position: 'relative', width: '300px' }}>
+                    <Search size={14} color="#94a3b8" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+                    <input 
+                      type="text" 
+                      placeholder={isMr ? "नाव, फोन किंवा प्रभाग शोधा..." : "Search voters by name, phone, or ward..."}
+                      value={contactSearchQuery}
+                      onChange={(e) => setContactSearchQuery(e.target.value)}
+                      style={{ 
+                        width: '100%', 
+                        padding: '7px 24px 7px 30px', 
+                        borderRadius: '8px', 
+                        border: '1px solid #cbd5e1', 
+                        fontSize: '12px', 
+                        outline: 'none', 
+                        boxSizing: 'border-box' 
+                      }} 
+                    />
+                    {contactSearchQuery && (
+                      <button 
+                        type="button" 
+                        onClick={() => setContactSearchQuery('')} 
+                        style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '12px' }}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Table Container */}
+                <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                  <div style={{ overflowX: 'auto' }}>
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>{isMr ? 'मतदाराचे नाव' : 'Voter / Citizen Name'}</th>
+                          <th>{isMr ? 'मोबाईल नंबर' : 'Mobile Number'}</th>
+                          <th>{isMr ? 'बूथ / प्रभाग' : 'Booth / Ward'}</th>
+                          <th>{isMr ? 'राजकीय कल / स्थिती' : 'Political Sentiment'}</th>
+                          <th style={{ textAlign: 'right' }}>{isMr ? 'कृती' : 'Actions'}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredContacts.length > 0 ? (
+                          filteredContacts.map((contact, i) => (
+                            <tr key={contact.id || i}>
+                              <td>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                  <div style={{ width: '34px', height: '34px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem' }}>
+                                    {contact.name.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <div style={{ fontWeight: 700, color: '#0f172a' }}>{contact.name}</div>
+                                    <div style={{ fontSize: '11px', color: '#64748b' }}>
+                                      {contact.contacted ? (isMr ? '✓ संपर्क पूर्ण' : '✓ Contacted') : (isMr ? 'संपर्क बाकी' : 'Pending Contact')}
+                                    </div>
+                                  </div>
                                 </div>
-                                <span style={{ fontWeight: 600 }}>{contact.name}</span>
-                              </div>
-                            </td>
-                            <td style={{ color: 'var(--text-secondary)' }}>📞 {contact.phone}</td>
-                            <td>{contact.ward}</td>
-                            <td>
-                              <span className={`badge-status ${contact.status === 'Supportive' ? 'status-completed' : contact.status === 'Undecided' ? 'status-pending' : 'status-progress'}`}>
-                                {contact.status === 'Supportive' ? '🟢 अनुकूल' : contact.status === 'Needs Info' ? '🟡 माहिती आवश्यक' : '⚪ अनिर्णित'}
-                              </span>
-                            </td>
-                            <td>
-                              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                                <button
-                                  className="icon-btn"
-                                  title={isMr ? "मतदार प्रत्यक्ष भेट नोंदवा" : "Log Visit"}
-                                  style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' }}
-                                  onClick={() => {
-                                    setActiveVisitContact(contact);
-                                    setVisitFormData({
-                                      name: contact.name,
-                                      phone: contact.phone || '',
-                                      status: contact.status || 'Supportive',
-                                      notes: '',
-                                      location: currentCoords?.address || '',
-                                    });
-                                  }}
-                                >
-                                  <CalendarCheck size={16} />
-                                </button>
-                                <button className="icon-btn icon-btn-primary" title="Call Voter" onClick={() => alert(`Calling ${contact.name} (${contact.phone})...`)}>
-                                  <PhoneCall size={16} color="var(--primary)" />
-                                </button>
-                                <button className="icon-btn icon-btn-success" title="WhatsApp Message" onClick={() => alert(`Opening WhatsApp chat for ${contact.phone}...`)}>
-                                  <MessageCircle size={16} color="var(--success)" />
-                                </button>
-                              </div>
+                              </td>
+                              <td style={{ color: '#334155', fontWeight: 600 }}>📞 {contact.phone}</td>
+                              <td>
+                                <span style={{ background: '#f8fafc', padding: '3px 8px', borderRadius: '6px', fontSize: '11.5px', border: '1px solid #e2e8f0', color: '#475569', fontWeight: 600 }}>
+                                  {contact.ward}
+                                </span>
+                              </td>
+                              <td>
+                                <span className={`badge-status ${contact.status === 'Supportive' ? 'status-completed' : contact.status === 'Undecided' ? 'status-pending' : 'status-progress'}`}>
+                                  {contact.status === 'Supportive' ? (isMr ? '🟢 अनुकूल' : '🟢 Supportive') : contact.status === 'Needs Info' ? (isMr ? '🟡 माहिती आवश्यक' : '🟡 Needs Info') : contact.status === 'Opposed' ? (isMr ? '🔴 प्रतिकूल' : '🔴 Opposed') : (isMr ? '⚪ अनिर्णित' : '⚪ Undecided')}
+                                </span>
+                              </td>
+                              <td>
+                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                  <button
+                                    className="icon-btn"
+                                    title={isMr ? "मतदार प्रत्यक्ष भेट नोंदवा" : "Record Doorstep Visit Log"}
+                                    style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' }}
+                                    onClick={() => {
+                                      setActiveVisitContact(contact);
+                                      setVisitFormData({
+                                        name: contact.name,
+                                        phone: contact.phone || '',
+                                        status: contact.status || 'Supportive',
+                                        notes: '',
+                                        location: currentCoords?.address || '',
+                                      });
+                                    }}
+                                  >
+                                    <CalendarCheck size={16} />
+                                  </button>
+                                  <button 
+                                    className="icon-btn icon-btn-primary" 
+                                    title={isMr ? "कॉल करा" : "Call Voter"} 
+                                    onClick={() => alert(`Calling ${contact.name} (${contact.phone})...`)}
+                                  >
+                                    <PhoneCall size={16} color="var(--primary)" />
+                                  </button>
+                                  <button 
+                                    className="icon-btn icon-btn-success" 
+                                    title={isMr ? "व्हॉट्सॲप संवाद" : "WhatsApp Chat"} 
+                                    onClick={() => alert(`Opening WhatsApp chat for ${contact.phone}...`)}
+                                  >
+                                    <MessageCircle size={16} color="var(--success)" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan="5" style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                              {isMr ? 'कोणताही मतदार संपर्क आढळला नाही.' : 'No voter contacts found matching criteria.'}
                             </td>
                           </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="5" style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b' }}>
-                            कोणताही मतदार संपर्क आढळला नाही (No voter contacts found)
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 {/* Visit Log Recording Modal */}
@@ -2312,34 +2621,41 @@ export default function WorkerDashboard() {
                     justifyContent: 'center',
                     padding: '16px'
                   }}>
-                    <div style={{ background: '#ffffff', borderRadius: '16px', maxWidth: '480px', width: '100%', padding: '22px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #cbd5e1' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px' }}>
-                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ background: '#ffffff', borderRadius: '16px', maxWidth: '500px', width: '100%', padding: '24px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #cbd5e1' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+                        <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span>🤝</span>
-                          <span>{isMr ? 'मतदार प्रत्यक्ष भेट नोंद (Visit Log)' : 'Record Voter Visit'}</span>
+                          <span>{isMr ? 'मतदार प्रत्यक्ष भेट नोंद (Visit Log)' : 'Record Doorstep Voter Visit Log'}</span>
                         </h3>
                         <button type="button" onClick={() => setActiveVisitContact(null)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px', color: '#94a3b8' }}>✕</button>
                       </div>
 
                       <form onSubmit={handleSaveVisitLog} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                        <div style={{ background: '#f8fafc', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                          <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '700' }}>{isMr ? 'मतदाराचे नाव' : 'Voter Name'}</div>
-                          <div style={{ fontSize: '14px', fontWeight: '800', color: '#0f172a' }}>{activeVisitContact.name} ({activeVisitContact.phone || 'मोबाईल नाही'})</div>
+                        <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                          <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '700' }}>
+                            {isMr ? 'मतदाराची माहिती' : 'Voter Information'}
+                          </div>
+                          <div style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>
+                            {activeVisitContact.name} ({activeVisitContact.phone || (isMr ? 'फोन नाही' : 'No Phone')})
+                          </div>
+                          <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
+                            {activeVisitContact.ward}
+                          </div>
                         </div>
 
                         <div>
                           <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                            {isMr ? 'राजकीय कल / मतदाराची भावना' : 'Voter Sentiment / Response'}
+                            {isMr ? 'राजकीय कल / मतदाराची भावना *' : 'Voter Political Sentiment / Response *'}
                           </label>
                           <select 
                             className="form-input" 
                             value={visitFormData.status} 
                             onChange={(e) => setVisitFormData({ ...visitFormData, status: e.target.value })}
                           >
-                            <option value="Supportive">🟢 अनुकूल / पाठीराखा (Supportive)</option>
-                            <option value="Undecided">⚪ अनिर्णित / विचार करत आहेत (Undecided)</option>
-                            <option value="Needs Info">🟡 माहिती / भेट आवश्यक (Needs Info)</option>
-                            <option value="Opposed">🔴 प्रतिकूल (Opposed)</option>
+                            <option value="Supportive">🟢 {isMr ? 'अनुकूल / पाठीराखा (Supportive)' : 'Supportive (In Favor)'}</option>
+                            <option value="Undecided">⚪ {isMr ? 'अनिर्णित / विचार करत आहेत (Undecided)' : 'Undecided / Neutral'}</option>
+                            <option value="Needs Info">🟡 {isMr ? 'माहिती / भेट आवश्यक (Needs Info)' : 'Needs Info / Follow-Up Visit'}</option>
+                            <option value="Opposed">🔴 {isMr ? 'प्रतिकूल (Opposed)' : 'Opposed (Leaning Elsewhere)'}</option>
                           </select>
                         </div>
 
@@ -2351,22 +2667,22 @@ export default function WorkerDashboard() {
                             rows="3"
                             required
                             className="form-input"
-                            placeholder={isMr ? "उदा. पाणी पुरवठ्याची समस्या मांडली, उमेदवाराला मत देण्याचे आश्वासन दिले..." : "Enter visit notes..."}
+                            placeholder={isMr ? "उदा. पाणी पुरवठ्याची समस्या मांडली, उमेदवाराला मत देण्याचे आश्वासन दिले..." : "Enter key voter issues, discussions, commitments..."}
                             value={visitFormData.notes}
                             onChange={(e) => setVisitFormData({ ...visitFormData, notes: e.target.value })}
                           />
                         </div>
 
-                        <div style={{ fontSize: '11.5px', color: '#475569', background: '#ecfdf5', padding: '8px 12px', borderRadius: '8px', border: '1px solid #a7f3d0', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <MapPin size={14} color="#059669" />
-                          <span>📍 {currentCoords?.address || (isMr ? 'सांगली शहर प्रभाग (GPS आपोआप जोडले जाईल)' : 'GPS will be tagged')}</span>
+                        <div style={{ fontSize: '11.5px', color: '#0369a1', background: '#e0f2fe', padding: '10px 12px', borderRadius: '8px', border: '1px solid #bae6fd', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <MapPin size={15} color="#0284c7" />
+                          <span>📍 {currentCoords?.address || (isMr ? 'सांगली प्रभाग (GPS स्थान आपोआप जोडले जाईल)' : 'GPS Coordinates will be tagged automatically')}</span>
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
                           <button type="button" className="btn-outline" onClick={() => setActiveVisitContact(null)}>
                             {t('cancel')}
                           </button>
-                          <button type="submit" className="btn-success" style={{ fontWeight: 750, padding: '8px 18px' }}>
+                          <button type="submit" className="btn-success" style={{ fontWeight: 750, padding: '8px 20px' }}>
                             ✓ {isMr ? 'भेट जतन करा' : 'Save Visit Log'}
                           </button>
                         </div>
@@ -2374,82 +2690,119 @@ export default function WorkerDashboard() {
                     </div>
                   </div>
                 )}
-              </div>
+              </>
             );
           })()}
 
           {contactTab === 'meetings' && (
             <div className="card">
               <div className="card-header">
-                <h2 className="card-title">{isSchedulingMeeting ? t('scheduleMeeting') : t('upcomingMeetings')}</h2>
+                <div>
+                  <h2 className="card-title">
+                    {isSchedulingMeeting ? (isMr ? 'नवीन बैठक निश्चित करा' : 'Schedule New Campaign Meeting') : (isMr ? 'आगामी बैठका व संवाद' : 'Upcoming Campaign Meetings')}
+                  </h2>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                    {isMr ? 'कार्यकर्ता व मतदार बैठकांचे नियोजन करा.' : 'Plan, coordinate, and review local booth gathering sessions.'}
+                  </div>
+                </div>
                 {!isSchedulingMeeting && (
-                  <button className="btn-primary" onClick={() => setIsSchedulingMeeting(true)}>
+                  <button className="btn-primary" onClick={() => setIsSchedulingMeeting(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Plus size={16} />
-                    <span>{t('scheduleMeeting')}</span>
+                    <span>{isMr ? '+ नवीन बैठक निश्चित करा' : '+ Schedule Meeting'}</span>
                   </button>
                 )}
               </div>
               
               {isSchedulingMeeting ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '600px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: '650px', marginTop: '10px' }}>
                   <div className="info-group">
-                    <label className="info-label">बैठकीचा विषय (Title)</label>
-                    <input type="text" className="form-input" placeholder="उदा. बूथ क्र. २ मतदार बैठक" value={newMeeting.title} onChange={(e) => setNewMeeting({...newMeeting, title: e.target.value})} />
+                    <label className="info-label">{isMr ? 'बैठकीचा विषय *' : 'Meeting Title *'}</label>
+                    <input 
+                      type="text" 
+                      className="form-input" 
+                      placeholder={isMr ? "उदा. बूथ क्र. २ मतदार बैठक" : "e.g., Booth 2 Citizens Consultation"} 
+                      value={newMeeting.title} 
+                      onChange={(e) => setNewMeeting({...newMeeting, title: e.target.value})} 
+                    />
                   </div>
                   <div className="info-row">
                     <div className="info-group">
-                      <label className="info-label">तारीख व वेळ</label>
-                      <input type="text" className="form-input" placeholder="उदा. उद्या, सायं ५:००" value={newMeeting.time} onChange={(e) => setNewMeeting({...newMeeting, time: e.target.value})} />
+                      <label className="info-label">{isMr ? 'तारीख व वेळ *' : 'Date & Time *'}</label>
+                      <input 
+                        type="text" 
+                        className="form-input" 
+                        placeholder={isMr ? "उदा. उद्या, सायं ५:००" : "e.g., Tomorrow, 5:00 PM"} 
+                        value={newMeeting.time} 
+                        onChange={(e) => setNewMeeting({...newMeeting, time: e.target.value})} 
+                      />
                     </div>
                     <div className="info-group">
-                      <label className="info-label">बैठकीचा प्रकार</label>
+                      <label className="info-label">{isMr ? 'बैठकीचा प्रकार' : 'Meeting Format'}</label>
                       <select className="form-input" value={newMeeting.type} onChange={(e) => setNewMeeting({...newMeeting, type: e.target.value})}>
-                        <option value="In-person">प्रत्यक्ष (In-person)</option>
-                        <option value="Virtual">व्हर्च्युअल (Virtual)</option>
+                        <option value="In-person">{isMr ? 'प्रत्यक्ष भेट (In-person)' : 'In-person Gathering'}</option>
+                        <option value="Virtual">{isMr ? 'व्हर्च्युअल / ऑनलाइन (Virtual)' : 'Virtual / Video Call'}</option>
                       </select>
                     </div>
                   </div>
                   <div className="info-row">
                     <div className="info-group">
-                      <label className="info-label">ठिकाण / लिंक</label>
-                      <input type="text" className="form-input" placeholder="पत्ता किंवा लिंक" value={newMeeting.location} onChange={(e) => setNewMeeting({...newMeeting, location: e.target.value})} />
+                      <label className="info-label">{isMr ? 'ठिकाण / पत्ता / लिंक' : 'Location or Meeting Link'}</label>
+                      <input 
+                        type="text" 
+                        className="form-input" 
+                        placeholder={isMr ? "पत्ता किंवा Google Meet लिंक" : "Address or video link"} 
+                        value={newMeeting.location} 
+                        onChange={(e) => setNewMeeting({...newMeeting, location: e.target.value})} 
+                      />
                     </div>
                     <div className="info-group">
-                      <label className="info-label">अपेक्षित उपस्थिती</label>
-                      <input type="text" className="form-input" placeholder="उदा. १० व्यक्ती" value={newMeeting.attendees} onChange={(e) => setNewMeeting({...newMeeting, attendees: e.target.value})} />
+                      <label className="info-label">{isMr ? 'अपेक्षित उपस्थिती' : 'Expected Attendees'}</label>
+                      <input 
+                        type="text" 
+                        className="form-input" 
+                        placeholder={isMr ? "उदा. १५ मतदार" : "e.g., 15 Citizens"} 
+                        value={newMeeting.attendees} 
+                        onChange={(e) => setNewMeeting({...newMeeting, attendees: e.target.value})} 
+                      />
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                    <button className="btn-outline" onClick={() => setIsSchedulingMeeting(false)}>{t('cancel')}</button>
-                    <button className="btn-success" onClick={handleScheduleMeeting}>{t('scheduleMeeting')}</button>
+                    <button className="btn-outline" onClick={() => setIsSchedulingMeeting(false)}>
+                      {t('cancel')}
+                    </button>
+                    <button className="btn-success" onClick={handleScheduleMeeting}>
+                      ✓ {isMr ? 'बैठक सेव्ह करा' : 'Save Meeting'}
+                    </button>
                   </div>
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem', marginTop: '12px' }}>
                   {meetingsList.map((meeting, i) => (
-                    <div key={i} style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div key={i} style={{ border: '1px solid #e2e8f0', borderRadius: '12px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px', background: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div style={{ padding: '0.5rem', backgroundColor: meeting.type === 'Virtual' ? '#E0E7FF' : '#FEF3C7', color: meeting.type === 'Virtual' ? 'var(--primary)' : 'var(--warning)', borderRadius: 'var(--radius-sm)' }}>
+                        <div style={{ padding: '8px', backgroundColor: meeting.type === 'Virtual' ? '#E0E7FF' : '#FEF3C7', color: meeting.type === 'Virtual' ? '#2563eb' : '#d97706', borderRadius: '8px' }}>
                           {meeting.type === 'Virtual' ? <Video size={20} /> : <Users size={20} />}
                         </div>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-secondary)', backgroundColor: 'var(--bg-main)', padding: '0.25rem 0.5rem', borderRadius: '9999px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', backgroundColor: '#f1f5f9', padding: '3px 8px', borderRadius: '9999px' }}>
                           {meeting.type}
                         </span>
                       </div>
                       
                       <div>
-                        <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{meeting.title}</h3>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '0.25rem' }}>
-                          <Clock size={14} /> {meeting.time}
+                        <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', marginBottom: '6px' }}>{meeting.title}</h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '12.5px', marginBottom: '4px' }}>
+                          <Clock size={14} color="#0284c7" /> {meeting.time}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-                          <MapPin size={14} /> {meeting.location}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '12.5px' }}>
+                          <MapPin size={14} color="#ea580c" /> {meeting.location}
                         </div>
                       </div>
                       
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
-                        <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', fontWeight: 500 }}>👥 {meeting.attendees}</span>
-                        <button style={{ color: 'var(--primary)', fontWeight: 600, fontSize: '0.875rem', background: 'transparent', border: 'none', cursor: 'pointer' }}>तपशील</button>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
+                        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>👥 {meeting.attendees}</span>
+                        <span style={{ color: '#0284c7', fontWeight: 700, fontSize: '12px' }}>
+                          {isMr ? 'नियोजित' : 'Scheduled'}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -4325,16 +4678,16 @@ export default function WorkerDashboard() {
       const resolvedCount = complaintsData.filter((c) => c.status === 'Resolved' || c.status === 'Action Taken').length;
 
       return (
-        <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1400px', margin: '0 auto', paddingBottom: '2rem' }}>
           {/* Header */}
           <div className="page-header" style={{ marginBottom: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div>
-              <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <AlertCircle size={28} color="#ea580c" />
-                <span>{isMr ? 'नागरिकांच्या समस्या व विनंत्या' : 'Citizen Grievances & Requests'}</span>
+                <span>{isMr ? 'नागरिकांच्या समस्या व विनंत्या' : 'Citizen Grievances & Service Requests'}</span>
               </h1>
               <div className="page-subtitle">
-                {isMr ? 'प्रभागातील नागरिकांनी मांडलेल्या समस्यांची नोंद करा, फोटो जोडा आणि निवारणाचा पाठपुरावा करा.' : 'Log citizen grievances, capture geotagged photos, and track issue resolution.'}
+                {isMr ? 'प्रभागातील नागरिकांनी मांडलेल्या समस्यांची नोंद करा, फोटो जोडा आणि जलद निवारणाचा पाठपुरावा करा.' : 'Register citizen civic issues, capture geotagged field photos, and monitor fast resolution.'}
               </div>
             </div>
 
@@ -4342,33 +4695,41 @@ export default function WorkerDashboard() {
               type="button"
               className="btn-primary"
               onClick={() => setIsAddingComplaint(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', fontWeight: 750 }}
+              style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', fontWeight: 750, fontSize: '13px' }}
             >
               <Plus size={18} />
-              <span>{isMr ? '+ नवीन तक्रार / विनंती नोंदवा' : '+ Register New Grievance'}</span>
+              <span>{isMr ? '+ नवीन तक्रार नोंदवा' : '+ Register New Grievance'}</span>
             </button>
           </div>
 
           {/* Quick Metric Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px' }}>
-            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderTop: '3.5px solid #64748b', borderRadius: '12px', padding: '14px 18px' }}>
-              <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '700' }}>{isMr ? 'एकूण समस्या' : 'Total Grievances'}</div>
-              <div style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a', marginTop: '4px' }}>{totalCount}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderTop: '3.5px solid #64748b', borderRadius: '12px', padding: '14px 18px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+              <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '700' }}>
+                {isMr ? 'एकूण समस्या (Total)' : 'Total Grievances Logged'}
+              </div>
+              <div style={{ fontSize: '26px', fontWeight: '900', color: '#0f172a', marginTop: '4px' }}>{totalCount}</div>
             </div>
 
-            <div style={{ background: '#ffffff', border: '1px solid #fed7aa', borderTop: '3.5px solid #ea580c', borderRadius: '12px', padding: '14px 18px' }}>
-              <div style={{ fontSize: '12px', color: '#c2410c', fontWeight: '700' }}>{isMr ? 'प्रलंबित (Pending)' : 'Pending'}</div>
-              <div style={{ fontSize: '24px', fontWeight: '900', color: '#c2410c', marginTop: '4px' }}>{pendingCount}</div>
+            <div style={{ background: '#ffffff', border: '1px solid #fed7aa', borderTop: '3.5px solid #ea580c', borderRadius: '12px', padding: '14px 18px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+              <div style={{ fontSize: '12px', color: '#c2410c', fontWeight: '700' }}>
+                {isMr ? 'प्रलंबित समस्या (Pending)' : 'Pending Resolution'}
+              </div>
+              <div style={{ fontSize: '26px', fontWeight: '900', color: '#c2410c', marginTop: '4px' }}>{pendingCount}</div>
             </div>
 
-            <div style={{ background: '#ffffff', border: '1px solid #bfdbfe', borderTop: '3.5px solid #2563eb', borderRadius: '12px', padding: '14px 18px' }}>
-              <div style={{ fontSize: '12px', color: '#1d4ed8', fontWeight: '700' }}>{isMr ? 'कार्यवाही सुरू (In Progress)' : 'In Progress'}</div>
-              <div style={{ fontSize: '24px', fontWeight: '900', color: '#1d4ed8', marginTop: '4px' }}>{inProgressCount}</div>
+            <div style={{ background: '#ffffff', border: '1px solid #bfdbfe', borderTop: '3.5px solid #2563eb', borderRadius: '12px', padding: '14px 18px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+              <div style={{ fontSize: '12px', color: '#1d4ed8', fontWeight: '700' }}>
+                {isMr ? 'कार्यवाही सुरू (In Progress)' : 'Under Action (In Progress)'}
+              </div>
+              <div style={{ fontSize: '26px', fontWeight: '900', color: '#1d4ed8', marginTop: '4px' }}>{inProgressCount}</div>
             </div>
 
-            <div style={{ background: '#ffffff', border: '1px solid #bbf7d0', borderTop: '3.5px solid #16a34a', borderRadius: '12px', padding: '14px 18px' }}>
-              <div style={{ fontSize: '12px', color: '#15803d', fontWeight: '700' }}>{isMr ? 'सोडवलेल्या (Resolved)' : 'Resolved'}</div>
-              <div style={{ fontSize: '24px', fontWeight: '900', color: '#15803d', marginTop: '4px' }}>{resolvedCount}</div>
+            <div style={{ background: '#ffffff', border: '1px solid #bbf7d0', borderTop: '3.5px solid #16a34a', borderRadius: '12px', padding: '14px 18px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+              <div style={{ fontSize: '12px', color: '#15803d', fontWeight: '700' }}>
+                {isMr ? 'सोडवलेल्या समस्या (Resolved)' : 'Resolved & Closed'}
+              </div>
+              <div style={{ fontSize: '26px', fontWeight: '900', color: '#15803d', marginTop: '4px' }}>{resolvedCount}</div>
             </div>
           </div>
 
@@ -4392,16 +4753,16 @@ export default function WorkerDashboard() {
                     transition: 'all 0.15s ease'
                   }}
                 >
-                  {st === 'All' ? (isMr ? 'सर्व समस्या' : 'All') : st === 'Pending' ? (isMr ? 'प्रलंबित' : 'Pending') : st === 'In Progress' ? (isMr ? 'कार्यवाही सुरू' : 'In Progress') : (isMr ? 'सोडवलेल्या' : 'Resolved')}
+                  {st === 'All' ? (isMr ? 'सर्व समस्या' : 'All Grievances') : st === 'Pending' ? (isMr ? '⏳ प्रलंबित' : '⏳ Pending') : st === 'In Progress' ? (isMr ? '🔄 कार्यवाही सुरू' : '🔄 In Progress') : (isMr ? '✓ सोडवलेल्या' : '✓ Resolved')}
                 </button>
               ))}
             </div>
 
-            <div style={{ position: 'relative', width: '280px' }}>
+            <div style={{ position: 'relative', width: '300px' }}>
               <Search size={14} color="#94a3b8" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
               <input
                 type="text"
-                placeholder={isMr ? "नागरिकाचे नाव, फोन किंवा विषय शोधा..." : "Search complaints..."}
+                placeholder={isMr ? "नागरिकाचे नाव, फोन किंवा विषय शोधा..." : "Search by code, citizen name, phone, or issue..."}
                 value={complaintSearchQuery}
                 onChange={(e) => setComplaintSearchQuery(e.target.value)}
                 style={{
@@ -4414,6 +4775,15 @@ export default function WorkerDashboard() {
                   boxSizing: 'border-box'
                 }}
               />
+              {complaintSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setComplaintSearchQuery('')}
+                  style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '12px' }}
+                >
+                  ✕
+                </button>
+              )}
             </div>
           </div>
 
@@ -4423,13 +4793,13 @@ export default function WorkerDashboard() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>{isMr ? 'तक्रार क्र.' : 'Code'}</th>
-                    <th>{isMr ? 'नागरिकाचे नाव व फोन' : 'Citizen & Phone'}</th>
-                    <th>{isMr ? 'विषय / वर्ग' : 'Category'}</th>
+                    <th>{isMr ? 'तक्रार क्र.' : 'Grievance Code'}</th>
+                    <th>{isMr ? 'नागरिकाचे नाव व फोन' : 'Citizen Name & Contact'}</th>
+                    <th>{isMr ? 'समस्येचा वर्ग' : 'Issue Category'}</th>
                     <th>{isMr ? 'तपशील व स्थान' : 'Description & Location'}</th>
-                    <th>{isMr ? 'नोंद तारीख' : 'Date'}</th>
-                    <th>{isMr ? 'स्थिती (Status)' : 'Status'}</th>
-                    <th style={{ textAlign: 'right' }}>{isMr ? 'कृती' : 'Action'}</th>
+                    <th>{isMr ? 'नोंद तारीख' : 'Reported Date'}</th>
+                    <th>{isMr ? 'स्थिती' : 'Resolution Status'}</th>
+                    <th style={{ textAlign: 'right' }}>{isMr ? 'कृती' : 'Actions'}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -4437,7 +4807,7 @@ export default function WorkerDashboard() {
                     filteredComplaints.map((c) => (
                       <tr key={c.id || c.complaint_code}>
                         <td>
-                          <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#0f172a', fontSize: '12px', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>
+                          <span style={{ fontFamily: 'monospace', fontWeight: 800, color: '#0f172a', fontSize: '12px', background: '#f1f5f9', padding: '3px 7px', borderRadius: '5px', border: '1px solid #e2e8f0' }}>
                             {c.complaint_code || `GRV-${c.id}`}
                           </span>
                         </td>
@@ -4467,7 +4837,7 @@ export default function WorkerDashboard() {
                           )}
                         </td>
                         <td style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap' }}>
-                          {c.date_reported || 'आज'}
+                          {c.date_reported || (isMr ? 'आज' : 'Today')}
                         </td>
                         <td>
                           <select
@@ -4484,9 +4854,9 @@ export default function WorkerDashboard() {
                               color: c.status === 'Resolved' ? '#15803d' : c.status === 'In Progress' ? '#1d4ed8' : '#c2410c'
                             }}
                           >
-                            <option value="Pending">⏳ प्रलंबित (Pending)</option>
-                            <option value="In Progress">🔄 कार्यवाही सुरू (In Progress)</option>
-                            <option value="Resolved">✓ सोडवली (Resolved)</option>
+                            <option value="Pending">{isMr ? '⏳ प्रलंबित (Pending)' : '⏳ Pending'}</option>
+                            <option value="In Progress">{isMr ? '🔄 कार्यवाही सुरू (In Progress)' : '🔄 In Progress'}</option>
+                            <option value="Resolved">{isMr ? '✓ सोडवली (Resolved)' : '✓ Resolved'}</option>
                           </select>
                         </td>
                         <td style={{ textAlign: 'right' }}>
@@ -4494,7 +4864,7 @@ export default function WorkerDashboard() {
                             <button
                               type="button"
                               className="icon-btn icon-btn-success"
-                              title="WhatsApp Chat"
+                              title={isMr ? "व्हॉट्सॲप संवाद" : "WhatsApp Chat"}
                               onClick={() => alert(`Opening WhatsApp chat for ${c.phone}...`)}
                             >
                               <MessageCircle size={15} color="#16a34a" />
@@ -4506,7 +4876,7 @@ export default function WorkerDashboard() {
                   ) : (
                     <tr>
                       <td colSpan="7" style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                        {isMr ? 'कोणतीही तक्रार आढळली नाही' : 'No grievances found.'}
+                        {isMr ? 'कोणतीही तक्रार आढळली नाही.' : 'No grievances found matching criteria.'}
                       </td>
                     </tr>
                   )}
@@ -4542,7 +4912,7 @@ export default function WorkerDashboard() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
                   <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <AlertCircle size={22} color="#ea580c" />
-                    <span>{isMr ? 'नवीन नागरिक समस्या / विनंती नोंदवा' : 'Register New Grievance'}</span>
+                    <span>{isMr ? 'नवीन नागरिक समस्या / विनंती नोंदवा' : 'Register New Grievance or Citizen Request'}</span>
                   </h3>
                   <button type="button" onClick={() => setIsAddingComplaint(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px', color: '#94a3b8' }}>✕</button>
                 </div>
@@ -4565,13 +4935,13 @@ export default function WorkerDashboard() {
 
                     <div>
                       <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                        {isMr ? 'मोबाईल नंबर' : 'Phone Number'}
+                        {isMr ? 'मोबाईल नंबर' : 'Phone / Mobile Number'}
                       </label>
                       <input
                         type="tel"
                         maxLength="10"
                         className="form-input"
-                        placeholder="९८XXXXXXXX"
+                        placeholder="98XXXXXXXX"
                         value={complaintFormData.phone}
                         onChange={(e) => {
                           const val = e.target.value.replace(/\D/g, '');
@@ -4595,35 +4965,35 @@ export default function WorkerDashboard() {
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
                     <div>
                       <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                        {isMr ? 'समस्येचा वर्ग (Category) *' : 'Category *'}
+                        {isMr ? 'समस्येचा वर्ग (Category) *' : 'Grievance Category *'}
                       </label>
                       <select
                         className="form-input"
                         value={complaintFormData.category}
                         onChange={(e) => setComplaintFormData({ ...complaintFormData, category: e.target.value })}
                       >
-                        <option value="पाणी पुरवठा (Water Supply)">💧 पाणी पुरवठा (Water Supply)</option>
-                        <option value="रस्ते व गटार (Roads & Drainage)">🛣️ रस्ते व गटार (Roads & Drainage)</option>
-                        <option value="वीज व पथदिवे (Street Lights)">💡 वीज व पथदिवे (Street Lights)</option>
-                        <option value="कचरा व स्वच्छता (Sanitation)">🧹 कचरा व स्वच्छता (Sanitation)</option>
-                        <option value="आरोग्य व रुग्णालय (Healthcare)">🏥 आरोग्य व रुग्णालय (Healthcare)</option>
-                        <option value="शासकीय योजना / पेन्शन (Schemes)">📄 शासकीय योजना / पेन्शन (Schemes)</option>
-                        <option value="इतर समस्या (Others)">📌 इतर समस्या (Others)</option>
+                        <option value="पाणी पुरवठा (Water Supply)">💧 {isMr ? 'पाणी पुरवठा (Water Supply)' : 'Water Supply & Drinking Water'}</option>
+                        <option value="रस्ते व गटार (Roads & Drainage)">🛣️ {isMr ? 'रस्ते व गटार (Roads & Drainage)' : 'Roads & Drainage'}</option>
+                        <option value="वीज व पथदिवे (Street Lights)">💡 {isMr ? 'वीज व पथदिवे (Street Lights)' : 'Street Lights & Electricity'}</option>
+                        <option value="कचरा व स्वच्छता (Sanitation)">🧹 {isMr ? 'कचरा व स्वच्छता (Sanitation)' : 'Garbage & Sanitation'}</option>
+                        <option value="आरोग्य व रुग्णालय (Healthcare)">🏥 {isMr ? 'आरोग्य व रुग्णालय (Healthcare)' : 'Healthcare & Hospital Aid'}</option>
+                        <option value="शासकीय योजना / पेन्शन (Schemes)">📄 {isMr ? 'शासकीय योजना / पेन्शन (Schemes)' : 'Government Welfare Schemes / Pension'}</option>
+                        <option value="इतर समस्या (Others)">📌 {isMr ? 'इतर समस्या (Others)' : 'Other Civic Grievances'}</option>
                       </select>
                     </div>
 
                     <div>
                       <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                        {isMr ? 'तातडीची पातळी (Urgency)' : 'Urgency Level'}
+                        {isMr ? 'तातडीची पातळी (Urgency)' : 'Priority / Urgency Level'}
                       </label>
                       <select
                         className="form-input"
                         value={complaintFormData.urgency}
                         onChange={(e) => setComplaintFormData({ ...complaintFormData, urgency: e.target.value })}
                       >
-                        <option value="तातडीचे (Urgent)">🔴 तातडीचे (Urgent - 24 hours)</option>
-                        <option value="मध्यम (Medium)">🟡 मध्यम (Medium - 3 days)</option>
-                        <option value="सामान्य (Normal)">🟢 सामान्य (Normal)</option>
+                        <option value="तातडीचे (Urgent)">🔴 {isMr ? 'तातडीचे (Urgent - 24 hours)' : 'Urgent (Within 24 Hours)'}</option>
+                        <option value="मध्यम (Medium)">🟡 {isMr ? 'मध्यम (Medium - 3 days)' : 'Medium (Within 3 Days)'}</option>
+                        <option value="सामान्य (Normal)">🟢 {isMr ? 'सामान्य (Normal)' : 'Normal Priority'}</option>
                       </select>
                     </div>
                   </div>
@@ -4636,7 +5006,7 @@ export default function WorkerDashboard() {
                       rows="3"
                       required
                       className="form-input"
-                      placeholder={isMr ? "समस्येचे सविस्तर कारण व मागणी येथे लिहा..." : "Describe the grievance details..."}
+                      placeholder={isMr ? "समस्येचे सविस्तर कारण व मागणी येथे लिहा..." : "Describe the grievance details, specific street, landmark, and citizen request..."}
                       value={complaintFormData.desc}
                       onChange={(e) => setComplaintFormData({ ...complaintFormData, desc: e.target.value })}
                     />
@@ -4645,7 +5015,7 @@ export default function WorkerDashboard() {
                   {/* Photo / Document Upload Section */}
                   <div>
                     <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                      📷 {isMr ? 'समस्येचा फोटो / कागदपत्र जोडा' : 'Attach Photo or Document'}
+                      📷 {isMr ? 'समस्येचा फोटो / कागदपत्र जोडा' : 'Attach Field Photo or Document'}
                     </label>
                     <input
                       type="file"
@@ -4659,7 +5029,7 @@ export default function WorkerDashboard() {
                       }}
                     />
                     <span style={{ fontSize: '11px', color: '#64748b' }}>
-                      {isMr ? 'खराब रस्ता, तुंबलेली गटार किंवा अर्जाचा फोटो जोडा.' : 'Attach site photo or application document.'}
+                      {isMr ? 'खराब रस्ता, तुंबलेली गटार किंवा अर्जाचा फोटो जोडा.' : 'Attach site photo, damaged spot, or application letter for quick resolution.'}
                     </span>
                   </div>
 
@@ -4667,7 +5037,7 @@ export default function WorkerDashboard() {
                   <div style={{ fontSize: '12px', color: '#0369a1', background: '#e0f2fe', padding: '10px 14px', borderRadius: '8px', border: '1px solid #bae6fd', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <MapPin size={16} color="#0284c7" />
                     <span>
-                      📍 {isMr ? 'GPS स्थान' : 'GPS Location'}: <strong>{currentCoords?.address || 'स्थान आपोआप टॅग होईल'}</strong>
+                      📍 {isMr ? 'GPS स्थान' : 'GPS Location'}: <strong>{currentCoords?.address || (isMr ? 'स्थान आपोआप टॅग होईल' : 'GPS will tag automatically on submission')}</strong>
                     </span>
                   </div>
 
@@ -4676,7 +5046,7 @@ export default function WorkerDashboard() {
                       {t('cancel')}
                     </button>
                     <button type="submit" className="btn-success" disabled={submittingComplaint} style={{ fontWeight: 750, padding: '9px 22px' }}>
-                      {submittingComplaint ? (isMr ? 'नोंद होत आहे...' : 'Saving...') : (isMr ? '✓ तक्रार नोंदवा' : 'Register Grievance')}
+                      {submittingComplaint ? (isMr ? 'नोंद होत आहे...' : 'Saving...') : (isMr ? '✓ तक्रार नोंदवा' : '✓ Register Grievance')}
                     </button>
                   </div>
                 </form>
@@ -5769,7 +6139,7 @@ export default function WorkerDashboard() {
               </span>
             </div>
 
-            {/* Language Switcher */}
+            {/* Language Switcher (English Primary) */}
             <div
               style={{
                 display: 'flex',
@@ -5782,25 +6152,9 @@ export default function WorkerDashboard() {
             >
               <button
                 type="button"
-                onClick={() => setLanguage('mr')}
+                onClick={() => changeLanguage('en')}
                 style={{
-                  padding: '3px 8px',
-                  borderRadius: '5px',
-                  border: 'none',
-                  fontSize: '11px',
-                  fontWeight: '750',
-                  cursor: 'pointer',
-                  background: language === 'mr' ? '#c2410c' : 'transparent',
-                  color: language === 'mr' ? '#ffffff' : '#475569',
-                }}
-              >
-                मराठी
-              </button>
-              <button
-                type="button"
-                onClick={() => setLanguage('en')}
-                style={{
-                  padding: '3px 8px',
+                  padding: '3px 9px',
                   borderRadius: '5px',
                   border: 'none',
                   fontSize: '11px',
@@ -5811,6 +6165,22 @@ export default function WorkerDashboard() {
                 }}
               >
                 English
+              </button>
+              <button
+                type="button"
+                onClick={() => changeLanguage('mr')}
+                style={{
+                  padding: '3px 9px',
+                  borderRadius: '5px',
+                  border: 'none',
+                  fontSize: '11px',
+                  fontWeight: '750',
+                  cursor: 'pointer',
+                  background: language === 'mr' ? '#c2410c' : 'transparent',
+                  color: language === 'mr' ? '#ffffff' : '#475569',
+                }}
+              >
+                मराठी
               </button>
             </div>
 
