@@ -60,7 +60,8 @@ import {
   Compass,
   ShieldCheck,
   Wifi,
-  WifiOff
+  WifiOff,
+  ChevronRight
 } from 'lucide-react';
 import { 
   BarChart, 
