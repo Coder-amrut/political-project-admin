@@ -5630,7 +5630,7 @@ export default function WorkerDashboard() {
                 }}
                 title={isCollapsed ? (isMr ? 'विस्तृत करा' : 'Expand Sidebar') : (isMr ? 'संक्षिप्त करा' : 'Collapse Sidebar')}
               >
-                {isCollapsed ? <ArrowRight size={14} /> : <ArrowLeft size={14} />}
+                {isCollapsed ? <MoreVertical size={15} /> : <ArrowLeft size={14} />}
               </button>
 
               {/* Mobile Drawer Close Button */}
@@ -5984,13 +5984,20 @@ export default function WorkerDashboard() {
         >
           {/* Left: Mobile Menu Toggle + BackButton & Current Tab Title */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+            {/* 3-Dot Sidebar Toggle Button (Shows according to device changes / collapsed) */}
             <button
               type="button"
-              className="mobile-menu-btn"
-              onClick={() => setSidebarOpen(true)}
-              title={isMr ? 'मेनू उघडा' : 'Open Menu'}
+              className={`sidebar-dots-btn ${!isCollapsed ? 'desktop-hide' : ''}`}
+              onClick={() => {
+                if (typeof window !== 'undefined' && window.innerWidth <= 992) {
+                  setSidebarOpen(!isSidebarOpen);
+                } else {
+                  setIsCollapsed(!isCollapsed);
+                }
+              }}
+              title={isMr ? 'साइडबार मेनू (३ डॉट्स)' : 'Toggle Sidebar Menu (3 Dots)'}
             >
-              <Menu size={20} />
+              <MoreVertical size={20} />
             </button>
 
             {user?.roles?.some((r) => r === 'ADMIN' || r === 'OFFICER') ? (
@@ -6257,9 +6264,10 @@ export default function WorkerDashboard() {
             type="button"
             className="worker-bottom-nav-item"
             onClick={() => setSidebarOpen(true)}
+            title={isMr ? 'अधिक मेनू (३ डॉट्स)' : 'More Menu (3 Dots)'}
           >
-            <span className="icon"><Menu size={18} /></span>
-            <span>{isMr ? 'मेनू' : 'Menu'}</span>
+            <span className="icon"><MoreVertical size={19} /></span>
+            <span>{isMr ? 'अधिक (⋮)' : 'More (⋮)'}</span>
           </button>
         </nav>
       </main>
