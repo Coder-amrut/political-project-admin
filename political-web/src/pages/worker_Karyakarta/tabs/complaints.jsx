@@ -244,148 +244,347 @@ export default function ComplaintsTab({
         </div>
       </div>
 
-      {/* New Complaint Registration Modal with Photo & GPS */}
+      {/* New Complaint Registration Modal matching screenshot */}
       {isAddingComplaint && (
-        <div className="responsive-modal-overlay">
-          <div className="responsive-modal-content" style={{ maxWidth: '620px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <AlertCircle size={22} color="#ea580c" />
-                <span>{isMr ? 'नवीन नागरिक समस्या / विनंती नोंदवा' : 'Register New Grievance or Citizen Request'}</span>
-              </h3>
-              <button type="button" onClick={() => setIsAddingComplaint(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px', color: '#94a3b8' }}>✕</button>
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '16px',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsAddingComplaint(false);
+          }}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '16px',
+              maxWidth: '460px',
+              width: '100%',
+              padding: '22px 24px',
+              boxShadow: '0 20px 45px rgba(0, 0, 0, 0.25)',
+              maxHeight: '92vh',
+              overflowY: 'auto',
+              boxSizing: 'border-box',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                borderBottom: '1px solid #e2e8f0',
+                paddingBottom: '12px',
+                marginBottom: '16px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div
+                  style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    border: '2px solid #ea580c',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#ea580c',
+                    fontWeight: 900,
+                    fontSize: '14px',
+                    lineHeight: 1,
+                    flexShrink: 0,
+                  }}
+                >
+                  !
+                </div>
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: '17px',
+                    fontWeight: 850,
+                    color: '#0f172a',
+                    lineHeight: 1.25,
+                  }}
+                >
+                  {isMr ? 'नवीन समस्या किंवा विनंती नोंदवा' : 'Register New Grievance or Citizen Request'}
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsAddingComplaint(false)}
+                style={{
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontSize: '19px',
+                  color: '#64748b',
+                  padding: '2px 6px',
+                  lineHeight: 1,
+                }}
+              >
+                ✕
+              </button>
             </div>
 
+            {/* Form */}
             <form onSubmit={handleComplaintSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                    {isMr ? 'नागरिकाचे पूर्ण नाव *' : 'Citizen Full Name *'}
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    className="form-input"
-                    placeholder={isMr ? "उदा. रमेश बापू पाटील" : "Enter citizen name"}
-                    value={complaintFormData.name}
-                    onChange={(e) => setComplaintFormData({ ...complaintFormData, name: e.target.value })}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                    {isMr ? 'मोबाईल नंबर' : 'Phone / Mobile Number'}
-                  </label>
-                  <input
-                    type="tel"
-                    maxLength="10"
-                    className="form-input"
-                    placeholder="98XXXXXXXX"
-                    value={complaintFormData.phone}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '');
-                      setComplaintFormData({ ...complaintFormData, phone: val });
-                      if (val.length >= 10) {
-                        checkDuplicateField('phone', val, setComplaintDuplicateWarning);
-                      } else {
-                        setComplaintDuplicateWarning(null);
-                      }
-                    }}
-                  />
-                  {complaintDuplicateWarning && (
-                    <div style={{ marginTop: '5px', padding: '6px 10px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '6px', color: '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      <AlertTriangle size={13} style={{ flexShrink: 0 }} />
-                      <span>⚠️ {complaintDuplicateWarning}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                    {isMr ? 'समस्येचा वर्ग (Category) *' : 'Grievance Category *'}
-                  </label>
-                  <select
-                    className="form-input"
-                    value={complaintFormData.category}
-                    onChange={(e) => setComplaintFormData({ ...complaintFormData, category: e.target.value })}
-                  >
-                    <option value="पाणी पुरवठा (Water Supply)">💧 {isMr ? 'पाणी पुरवठा (Water Supply)' : 'Water Supply & Drinking Water'}</option>
-                    <option value="रस्ते व गटार (Roads & Drainage)">🛣️ {isMr ? 'रस्ते व गटार (Roads & Drainage)' : 'Roads & Drainage'}</option>
-                    <option value="वीज व पथदिवे (Street Lights)">💡 {isMr ? 'वीज व पथदिवे (Street Lights)' : 'Street Lights & Electricity'}</option>
-                    <option value="कचरा व स्वच्छता (Sanitation)">🧹 {isMr ? 'कचरा व स्वच्छता (Sanitation)' : 'Garbage & Sanitation'}</option>
-                    <option value="आरोग्य व रुग्णालय (Healthcare)">🏥 {isMr ? 'आरोग्य व रुग्णालय (Healthcare)' : 'Healthcare & Hospital Aid'}</option>
-                    <option value="शासकीय योजना / पेन्शन (Schemes)">📄 {isMr ? 'शासकीय योजना / पेन्शन (Schemes)' : 'Government Welfare Schemes / Pension'}</option>
-                    <option value="इतर समस्या (Others)">📌 {isMr ? 'इतर समस्या (Others)' : 'Other Civic Grievances'}</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                    {isMr ? 'तातडीची पातळी (Urgency)' : 'Priority / Urgency Level'}
-                  </label>
-                  <select
-                    className="form-input"
-                    value={complaintFormData.urgency}
-                    onChange={(e) => setComplaintFormData({ ...complaintFormData, urgency: e.target.value })}
-                  >
-                    <option value="तातडीचे (Urgent)">🔴 {isMr ? 'तातडीचे (Urgent - 24 hours)' : 'Urgent (Within 24 Hours)'}</option>
-                    <option value="मध्यम (Medium)">🟡 {isMr ? 'मध्यम (Medium - 3 days)' : 'Medium (Within 3 Days)'}</option>
-                    <option value="सामान्य (Normal)">🟢 {isMr ? 'सामान्य (Normal)' : 'Normal Priority'}</option>
-                  </select>
-                </div>
-              </div>
-
+              {/* Field 1: Citizen Full Name */}
               <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 750, color: '#1e293b', marginBottom: '4px' }}>
+                  {isMr ? 'नागरिकाचे पूर्ण नाव *' : 'Citizen Full Name *'}
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder={isMr ? "नागरिकाचे नाव प्रविष्ट करा" : "Enter citizen name"}
+                  value={complaintFormData.name}
+                  onChange={(e) => setComplaintFormData({ ...complaintFormData, name: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1.5px solid #cbd5e1',
+                    fontSize: '13px',
+                    color: '#0f172a',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              {/* Field 2: Phone / Mobile Number */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 750, color: '#1e293b', marginBottom: '4px' }}>
+                  {isMr ? 'फोन / मोबाईल नंबर' : 'Phone / Mobile Number'}
+                </label>
+                <input
+                  type="tel"
+                  maxLength="10"
+                  placeholder="98XXXXXXXX"
+                  value={complaintFormData.phone}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '');
+                    setComplaintFormData({ ...complaintFormData, phone: val });
+                    if (val.length >= 10) {
+                      checkDuplicateField('phone', val, setComplaintDuplicateWarning);
+                    } else {
+                      setComplaintDuplicateWarning(null);
+                    }
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1.5px solid #cbd5e1',
+                    fontSize: '13px',
+                    color: '#0f172a',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+                {complaintDuplicateWarning && (
+                  <div style={{ marginTop: '5px', padding: '6px 10px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '6px', color: '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <AlertTriangle size={13} style={{ flexShrink: 0 }} />
+                    <span>⚠️ {complaintDuplicateWarning}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Field 3: Grievance Category */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 750, color: '#1e293b', marginBottom: '4px' }}>
+                  {isMr ? 'समस्येचा वर्ग *' : 'Grievance Category *'}
+                </label>
+                <select
+                  value={complaintFormData.category}
+                  onChange={(e) => setComplaintFormData({ ...complaintFormData, category: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    border: '1.5px solid #cbd5e1',
+                    fontSize: '13px',
+                    color: '#0f172a',
+                    background: '#ffffff',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <option value="पाणी पुरवठा (Water Supply)">💧 {isMr ? 'पाणी पुरवठा व पिण्याचे पाणी' : 'Water Supply & Drinking Water'}</option>
+                  <option value="रस्ते व गटार (Roads & Drainage)">🛣️ {isMr ? 'रस्ते व गटार' : 'Roads & Drainage'}</option>
+                  <option value="वीज व पथदिवे (Street Lights)">💡 {isMr ? 'वीज व पथदिवे' : 'Street Lights & Electricity'}</option>
+                  <option value="कचरा व स्वच्छता (Sanitation)">🧹 {isMr ? 'कचरा व स्वच्छता' : 'Garbage & Sanitation'}</option>
+                  <option value="आरोग्य व रुग्णालय (Healthcare)">🏥 {isMr ? 'आरोग्य व वैद्यकीय मदत' : 'Healthcare & Hospital Aid'}</option>
+                  <option value="शासकीय योजना / पेन्शन (Schemes)">📄 {isMr ? 'शासकीय योजना / पेन्शन' : 'Government Welfare Schemes / Pension'}</option>
+                  <option value="इतर समस्या (Others)">📌 {isMr ? 'इतर नागरी समस्या' : 'Other Civic Grievances'}</option>
+                </select>
+              </div>
+
+              {/* Field 4: Priority / Urgency Level */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 750, color: '#1e293b', marginBottom: '4px' }}>
+                  {isMr ? 'तातडीची पातळी' : 'Priority / Urgency Level'}
+                </label>
+                <select
+                  value={complaintFormData.urgency}
+                  onChange={(e) => setComplaintFormData({ ...complaintFormData, urgency: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    borderRadius: '6px',
+                    border: '1.5px solid #cbd5e1',
+                    fontSize: '13px',
+                    color: '#0f172a',
+                    background: '#ffffff',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                >
+                  <option value="मध्यम (Medium)">🟡 {isMr ? 'मध्यम (३ दिवसांत)' : 'Medium (Within 3 Days)'}</option>
+                  <option value="तातडीचे (Urgent)">🔴 {isMr ? 'तातडीचे (२४ तासांत)' : 'Urgent (Within 24 Hours)'}</option>
+                  <option value="सामान्य (Normal)">🟢 {isMr ? 'सामान्य पातळी' : 'Normal Priority'}</option>
+                </select>
+              </div>
+
+              {/* Field 5: Detailed Description */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 750, color: '#1e293b', marginBottom: '4px' }}>
                   {isMr ? 'समस्येचे सविस्तर वर्णन *' : 'Detailed Description *'}
                 </label>
                 <textarea
                   rows="3"
                   required
-                  className="form-input"
-                  placeholder={isMr ? "समस्येचे सविस्तर कारण व मागणी येथे लिहा..." : "Describe the grievance details, specific street, landmark, and citizen request..."}
+                  placeholder={isMr ? "समस्येचा तपशील, विशिष्ट गल्ली/रस्ता, महत्त्वाचे ठिकाण लिहा..." : "Describe the grievance details, specific street, landmark, and citizen"}
                   value={complaintFormData.desc}
                   onChange={(e) => setComplaintFormData({ ...complaintFormData, desc: e.target.value })}
-                />
-              </div>
-
-              {/* Photo / Document Upload Section */}
-              <div>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
-                  📷 {isMr ? 'समस्येचा फोटो / कागदपत्र जोडा' : 'Attach Field Photo or Document'}
-                </label>
-                <input
-                  type="file"
-                  accept="image/*,.pdf,.doc,.docx"
-                  className="form-input"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setComplaintFormData({ ...complaintFormData, photo: file.name });
-                    }
+                  style={{
+                    width: '100%',
+                    minHeight: '75px',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1.5px solid #cbd5e1',
+                    fontSize: '13px',
+                    color: '#0f172a',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                    fontFamily: 'inherit',
+                    resize: 'vertical',
                   }}
                 />
-                <span style={{ fontSize: '11px', color: '#64748b' }}>
-                  {isMr ? 'खराब रस्ता, तुंबलेली गटार किंवा अर्जाचा फोटो जोडा.' : 'Attach site photo, damaged spot, or application letter for quick resolution.'}
-                </span>
               </div>
 
-              {/* Auto Geotag Strip */}
-              <div style={{ fontSize: '12px', color: '#0369a1', background: '#e0f2fe', padding: '10px 14px', borderRadius: '8px', border: '1px solid #bae6fd', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <MapPin size={16} color="#0284c7" />
+              {/* Field 6: Attach Field Photo or Document */}
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 750, color: '#1e293b', marginBottom: '4px' }}>
+                  📷 {isMr ? 'समस्येचा फोटो / कागदपत्र जोडा' : 'Attach Field Photo or Document'}
+                </label>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <input
+                    type="file"
+                    accept="image/*,.pdf,.doc,.docx"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setComplaintFormData({ ...complaintFormData, photo: file.name });
+                      }
+                    }}
+                    style={{
+                      fontSize: '12px',
+                      color: '#475569',
+                      width: '100%',
+                    }}
+                  />
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>Attach</span>
+                </div>
+                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>
+                  {isMr ? 'स्थळाचा फोटो, खराब भाग किंवा अर्जाचा फोटो जोडा.' : 'site photo, damaged spot, or application letter for quick resolution.'}
+                </div>
+              </div>
+
+              {/* Field 7: GPS Location Strip */}
+              <div
+                style={{
+                  background: '#e0f2fe',
+                  border: '1px solid #bae6fd',
+                  borderRadius: '8px',
+                  padding: '10px 14px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '12px',
+                  color: '#0369a1',
+                }}
+              >
+                <MapPin size={15} color="#0284c7" style={{ flexShrink: 0 }} />
                 <span>
                   📍 {isMr ? 'GPS स्थान' : 'GPS Location'}: <strong>{currentCoords?.address || (isMr ? 'स्थान आपोआप टॅग होईल' : 'GPS will tag automatically on submission')}</strong>
                 </span>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
-                <button type="button" className="btn-outline" onClick={() => setIsAddingComplaint(false)} disabled={submittingComplaint}>
-                  {t('cancel')}
+              {/* Bottom Buttons Row */}
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginTop: '10px',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsAddingComplaint(false)}
+                  disabled={submittingComplaint}
+                  style={{
+                    padding: '9px 24px',
+                    borderRadius: '6px',
+                    border: '1.5px solid #94a3b8',
+                    background: '#f1f5f9',
+                    color: '#1e293b',
+                    fontSize: '13.5px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    minWidth: '95px',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {isMr ? 'रद्द करा (Cancel)' : 'Cancel'}
                 </button>
-                <button type="submit" className="btn-success" disabled={submittingComplaint} style={{ fontWeight: 750, padding: '9px 22px' }}>
-                  {submittingComplaint ? (isMr ? 'नोंद होत आहे...' : 'Saving...') : (isMr ? '✓ तक्रार नोंदवा' : '✓ Register Grievance')}
+
+                <button
+                  type="submit"
+                  disabled={submittingComplaint}
+                  style={{
+                    padding: '9px 24px',
+                    borderRadius: '6px',
+                    border: '1.5px solid #475569',
+                    background: '#f1f5f9',
+                    color: '#0f172a',
+                    fontSize: '13.5px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <span>✓</span>
+                  <span>
+                    {submittingComplaint
+                      ? (isMr ? 'नोंद होत आहे...' : 'Registering...')
+                      : (isMr ? 'तक्रार नोंदवा (Register Grievance)' : 'Register Grievance')}
+                  </span>
                 </button>
               </div>
             </form>
