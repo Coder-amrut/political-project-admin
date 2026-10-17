@@ -18,7 +18,8 @@ import {
   List,
   Phone,
   UserCheck,
-  ExternalLink
+  ExternalLink,
+  Bell
 } from 'lucide-react';
 
 export default function ContactsTab({
@@ -735,20 +736,7 @@ export default function ContactsTab({
 
       {/* Meetings Tab Content - Styled exactly like mockup, strictly without attendee count/avatars */}
       {contactTab === 'meetings' && (() => {
-        const displayMeetings = (meetingsList && meetingsList.length > 0) ? meetingsList : [
-          {
-            id: 'm1',
-            type: 'In-person',
-            categoryBadge: isMr ? '👥 प्रत्यक्ष बैठक (In-person)' : '👥 In-person Meeting',
-            badgeBg: '#ea580c',
-            cardBorder: '#fed7aa',
-            title: isMr ? 'नवीन स्वयंसेवक प्रशिक्षण शिबिर' : 'New Volunteer Training Camp',
-            time: isMr ? '१२ ऑक्टोबर २०२६ • दुपारी ०२:०० वाजता' : '12 Oct 2026 • 02:00 PM',
-            timeIcon: 'clock',
-            location: isMr ? 'समाज मंदिर सभागृह, गावभाग सांगली' : 'Samaj Mandir Hall, Gavbhag Sangli',
-            actionType: 'map',
-            actionLabel: isMr ? 'नकाशा / दिशा' : 'Map / Directions',
-          },
+        const rawMeetings = (meetingsList && meetingsList.length > 0) ? meetingsList : [
           {
             id: 'm2',
             type: 'Virtual',
@@ -765,6 +753,23 @@ export default function ContactsTab({
             actionType: 'join',
             actionLabel: isMr ? 'Google Meet जॉईन करा' : 'Join Google Meet',
             link: 'https://meet.google.com/pqr-stuv-wxy',
+            isWithin24Hours: true,
+            hoursRemaining: 15,
+          },
+          {
+            id: 'm1',
+            type: 'In-person',
+            categoryBadge: isMr ? '👥 प्रत्यक्ष बैठक (In-person)' : '👥 In-person Meeting',
+            badgeBg: '#ea580c',
+            cardBorder: '#fed7aa',
+            title: isMr ? 'नवीन स्वयंसेवक प्रशिक्षण शिबिर' : 'New Volunteer Training Camp',
+            time: isMr ? '१२ ऑक्टोबर २०२६ • दुपारी ०२:०० वाजता' : '12 Oct 2026 • 02:00 PM',
+            timeIcon: 'clock',
+            location: isMr ? 'समाज मंदिर सभागृह, गावभाग सांगली' : 'Samaj Mandir Hall, Gavbhag Sangli',
+            actionType: 'map',
+            actionLabel: isMr ? 'नकाशा / दिशा' : 'Map / Directions',
+            isWithin24Hours: false,
+            hoursRemaining: 72,
           },
           {
             id: 'm3',
@@ -780,8 +785,25 @@ export default function ContactsTab({
             combinedMeta: true,
             actionType: 'map',
             actionLabel: isMr ? 'नकाशा / दिशा' : 'Map / Directions',
+            isWithin24Hours: false,
+            hoursRemaining: 168,
           }
         ];
+
+        // Sort: The closest/nearest upcoming meeting is shown first (आधी)
+        const sortedMeetings = [...rawMeetings].sort((a, b) => {
+          const getScore = (m) => {
+            if (m.isWithin24Hours) return 1;
+            if (m.hoursRemaining !== undefined) return m.hoursRemaining;
+            if (m.time && (m.time.includes('उद्या') || m.time.toLowerCase().includes('tomorrow') || m.time.includes('आज') || m.time.toLowerCase().includes('today'))) return 2;
+            if (m.scheduled_at) {
+              const diff = new Date(m.scheduled_at).getTime() - Date.now();
+              if (diff > 0) return diff;
+            }
+            return 1000;
+          };
+          return getScore(a) - getScore(b);
+        });
 
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -847,13 +869,24 @@ export default function ContactsTab({
               </a>
             </div>
 
-            {/* Meetings Cards */}
+            {/* Meetings Cards (Sorted Nearest First) */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {displayMeetings.map((meeting, index) => {
+              {sortedMeetings.map((meeting, index) => {
                 const isVirtual = meeting.type === 'Virtual' || (meeting.actionType === 'join');
                 const isBooth = meeting.type === 'Booth';
+                const isWithin24Hours = meeting.isWithin24Hours || (
+                  meeting.time && (
+                    meeting.time.includes('उद्या') ||
+                    meeting.time.toLowerCase().includes('tomorrow') ||
+                    meeting.time.includes('आज') ||
+                    meeting.time.toLowerCase().includes('today')
+                  )
+                );
 
-                const borderColor = meeting.cardBorder || (isVirtual ? '#bfdbfe' : isBooth ? '#bbf7d0' : '#fed7aa');
+                const borderColor = isWithin24Hours
+                  ? '#f59e0b'
+                  : (meeting.cardBorder || (isVirtual ? '#bfdbfe' : isBooth ? '#bbf7d0' : '#fed7aa'));
+
                 const badgeBg = meeting.badgeBg || (isVirtual ? '#2563eb' : isBooth ? '#16a34a' : '#ea580c');
                 const categoryBadge = meeting.categoryBadge || (
                   isVirtual
@@ -871,31 +904,58 @@ export default function ContactsTab({
                       border: `1.5px solid ${borderColor}`,
                       borderRadius: '18px',
                       padding: '16px 18px',
-                      boxShadow: '0 3px 12px rgba(15, 23, 42, 0.04)',
+                      boxShadow: isWithin24Hours
+                        ? '0 6px 20px rgba(217, 119, 6, 0.12), 0 0 0 1px #fcd34d'
+                        : '0 3px 12px rgba(15, 23, 42, 0.04)',
                       display: 'flex',
                       flexDirection: 'column',
-                      gap: '10px',
+                      gap: '12px',
                       transition: 'all 0.2s ease',
+                      position: 'relative',
                     }}
                   >
                     {/* Card Badges Row */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          background: badgeBg,
-                          color: '#ffffff',
-                          padding: '4px 14px',
-                          borderRadius: '9999px',
-                          fontSize: '12px',
-                          fontWeight: 750,
-                          letterSpacing: '0.2px',
-                        }}
-                      >
-                        {categoryBadge}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: badgeBg,
+                            color: '#ffffff',
+                            padding: '4px 14px',
+                            borderRadius: '9999px',
+                            fontSize: '12px',
+                            fontWeight: 750,
+                            letterSpacing: '0.2px',
+                          }}
+                        >
+                          {categoryBadge}
+                        </span>
+
+                        {/* 24-Hour Reminder Badge */}
+                        {isWithin24Hours && (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              background: '#fef2f2',
+                              border: '1.5px solid #fecaca',
+                              color: '#dc2626',
+                              padding: '3px 10px',
+                              borderRadius: '9999px',
+                              fontSize: '11px',
+                              fontWeight: 850,
+                              letterSpacing: '0.2px',
+                            }}
+                          >
+                            <Bell size={12} color="#dc2626" />
+                            <span>{isMr ? '🔔 आठवण: २४ तासांत!' : '🔔 Reminder: < 24 hrs'}</span>
+                          </span>
+                        )}
+                      </div>
 
                       {meeting.statusBadge && (
                         <span
@@ -915,6 +975,79 @@ export default function ContactsTab({
                         </span>
                       )}
                     </div>
+
+                    {/* 24-Hour Urgent Reminder Box */}
+                    {isWithin24Hours && (
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          flexWrap: 'wrap',
+                          gap: '10px',
+                          background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+                          border: '1.5px solid #fcd34d',
+                          borderRadius: '12px',
+                          padding: '10px 14px',
+                          color: '#92400e',
+                          boxShadow: '0 2px 6px rgba(217, 119, 6, 0.08)',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '10px',
+                              background: '#d97706',
+                              color: '#ffffff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                            }}
+                          >
+                            <Bell size={17} />
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 850, fontSize: '13px', color: '#92400e' }}>
+                              {isMr ? 'महत्त्वाची आठवण: ही बैठक पुढील २४ तासांत सुरू होत आहे!' : 'Urgent Reminder: This meeting starts within 24 hours!'}
+                            </div>
+                            <div style={{ fontSize: '11.5px', color: '#b45309', fontWeight: 600, marginTop: '1px' }}>
+                              {isMr ? 'वेळ व लिंकची खात्री करा आणि सदस्यांना पूर्वकल्पना द्या.' : 'Confirm time and link to ensure prompt attendance.'}
+                            </div>
+                          </div>
+                        </div>
+
+                        <a
+                          href={`https://api.whatsapp.com/send?text=${encodeURIComponent(
+                            (isMr
+                              ? `🔔 *बैठक आठवण (Meeting Reminder)*: उद्या आपली '${meeting.title}' बैठक नियोजित आहे.\n⏰ वेळ: ${meeting.time}\n📍 स्थान/लिंक: ${meeting.link || meeting.location}\nकृपया वेळेवर उपस्थित राहावे.`
+                              : `🔔 *Meeting Reminder*: Meeting '${meeting.title}' is scheduled within 24 hours.\n⏰ Time: ${meeting.time}\n📍 Location: ${meeting.link || meeting.location}\nPlease attend on time.`)
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title={isMr ? 'WhatsApp वर आठवण मेसेज पाठवा' : 'Send WhatsApp Reminder'}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: '#16a34a',
+                            color: '#ffffff',
+                            padding: '6px 12px',
+                            borderRadius: '8px',
+                            fontSize: '11.5px',
+                            fontWeight: 800,
+                            textDecoration: 'none',
+                            boxShadow: '0 2px 6px rgba(22, 163, 74, 0.25)',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <span>💬</span>
+                          <span>{isMr ? 'WhatsApp आठवण पाठवा' : 'Send WhatsApp Reminder'}</span>
+                        </a>
+                      </div>
+                    )}
 
                     {/* Card Title */}
                     <h3
