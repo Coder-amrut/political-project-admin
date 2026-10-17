@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
 
     try {
       const currentUser = await authService.getCurrentUser();
-      setUser(currentUser);
+      setUser(currentUser?.user || currentUser);
     } catch (error) {
       console.warn('Authentication token expired or invalid:', error.message);
       removeToken();
@@ -103,8 +103,9 @@ export function AuthProvider({ children }) {
     }
     try {
       const currentUser = await authService.getCurrentUser();
-      setUser(currentUser);
-      return currentUser;
+      const normalizedUser = currentUser?.user || currentUser;
+      setUser(normalizedUser);
+      return normalizedUser;
     } catch (error) {
       removeToken();
       setUser(null);

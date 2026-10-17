@@ -5377,6 +5377,98 @@ export default function WorkerDashboard() {
     );
   };
 
+  const navSections = [
+    {
+      id: 'core_ops',
+      title_mr: 'मुख्य नियंत्रण व उपस्थिती',
+      title_en: 'COMMAND & ATTENDANCE',
+      items: [
+        {
+          id: 'Dashboard',
+          label_mr: 'अधिकारी डॅशबोर्ड',
+          label_en: 'Field Overview Dashboard',
+          icon: LayoutDashboard,
+          badge: isMr ? 'थेट डेटा' : 'Live DB',
+          badgeTheme: 'live',
+        },
+        {
+          id: 'Attendance',
+          label_mr: 'डिजिटल उपस्थिती व सेल्फी पंच',
+          label_en: 'Geo Attendance Desk',
+          icon: CalendarCheck,
+          badge: attendanceState === 'Punched In' ? (isMr ? 'हजर' : 'Punched In') : isMr ? 'GPS थेट' : 'GPS Live',
+          badgeTheme: attendanceState === 'Punched In' ? 'live' : 'blue',
+        },
+        {
+          id: 'Tasks',
+          label_mr: 'नेमलेली कार्ये व जबाबदाऱ्या',
+          label_en: 'Assigned Tasks',
+          icon: ClipboardList,
+          badge: tasksList?.filter((t) => !t.completed)?.length > 0 ? `${tasksList.filter((t) => !t.completed).length} ${isMr ? 'बाकी' : 'Pending'}` : null,
+          badgeTheme: 'amber',
+        },
+        {
+          id: 'Hierarchy',
+          label_mr: 'संघटन व पदरचना (Hierarchy)',
+          label_en: 'Field Hierarchy',
+          icon: Users,
+        },
+        {
+          id: 'User Profile',
+          label_mr: 'अधिकारी प्रोफाइल व माहिती',
+          label_en: 'Officer Profile',
+          icon: User,
+          badge: isMr ? 'सक्रिय' : 'Active',
+          badgeTheme: 'amber',
+        },
+      ],
+    },
+    {
+      id: 'voter_engagement',
+      title_mr: 'मतदार संपर्क व सर्वेक्षण',
+      title_en: 'VOTER ENGAGEMENT & SURVEYS',
+      items: [
+        {
+          id: 'Survey',
+          label_mr: 'कुटुंब व मतदार सर्वेक्षण',
+          label_en: 'Household Survey Desk',
+          icon: ClipboardCheck,
+          badge: surveysList.length > 0 ? `${surveysList.length} ${isMr ? 'फॉर्म' : 'Forms'}` : (isMr ? 'थेट' : 'Live'),
+          badgeTheme: 'purple',
+        },
+        {
+          id: 'Contact & Meetings',
+          label_mr: 'नागरिक संपर्क व बैठका',
+          label_en: 'Citizen Connect & Meetings',
+          icon: Calendar,
+        },
+        {
+          id: 'Complaints',
+          label_mr: 'नागरिकांच्या समस्या व तक्रारी',
+          label_en: 'Citizen Grievances',
+          icon: AlertCircle,
+          badge: complaintsData?.filter((c) => c.status === 'Pending')?.length > 0 ? `${complaintsData.filter((c) => c.status === 'Pending').length} ${isMr ? 'नवीन' : 'Pending'}` : null,
+          badgeTheme: 'live',
+        },
+      ],
+    },
+    {
+      id: 'election_voting',
+      title_mr: 'निवडणूक व मतदान कक्ष',
+      title_en: 'ELECTION & VOTING',
+      items: [
+        {
+          id: 'Voting',
+          label_mr: 'डेमो EVM मतदान यंत्र',
+          label_en: 'Digital EVM Voting Machine',
+          icon: CheckSquare,
+          badge: isMr ? 'EVM थेट' : 'Live EVM',
+          badgeTheme: 'live',
+        },
+      ],
+    },
+  ];
+
   const allItems = navSections.flatMap((s) => s.items);
   const currentNav = allItems.find((item) => item.id === activeTab) || allItems[0];
 
