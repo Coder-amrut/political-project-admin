@@ -869,8 +869,19 @@ export default function ContactsTab({
               </a>
             </div>
 
-            {/* Meetings Cards (Sorted Nearest First) */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {/* Meetings Cards Container */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
+                padding: '16px',
+                borderRadius: '24px',
+                border: '1.5px solid #e2e8f0',
+                boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.02)',
+              }}
+            >
               {sortedMeetings.map((meeting, index) => {
                 const isVirtual = meeting.type === 'Virtual' || (meeting.actionType === 'join');
                 const isBooth = meeting.type === 'Booth';
@@ -883,9 +894,30 @@ export default function ContactsTab({
                   )
                 );
 
+                // Colorful card backgrounds based on meeting category
+                const cardBg = isWithin24Hours
+                  ? 'linear-gradient(145deg, #eff6ff 0%, #fef3c7 45%, #ffffff 100%)'
+                  : isVirtual
+                  ? 'linear-gradient(145deg, #eff6ff 0%, #dbeafe 35%, #ffffff 100%)'
+                  : isBooth
+                  ? 'linear-gradient(145deg, #f0fdf4 0%, #dcfce7 35%, #ffffff 100%)'
+                  : 'linear-gradient(145deg, #fff7ed 0%, #ffedd5 35%, #ffffff 100%)';
+
                 const borderColor = isWithin24Hours
                   ? '#f59e0b'
-                  : (meeting.cardBorder || (isVirtual ? '#bfdbfe' : isBooth ? '#bbf7d0' : '#fed7aa'));
+                  : isVirtual
+                  ? '#93c5fd'
+                  : isBooth
+                  ? '#86efac'
+                  : '#fdba74';
+
+                const cardShadow = isWithin24Hours
+                  ? '0 8px 24px rgba(245, 158, 11, 0.18), 0 0 0 1.5px #fcd34d'
+                  : isVirtual
+                  ? '0 6px 20px rgba(37, 99, 235, 0.12)'
+                  : isBooth
+                  ? '0 6px 20px rgba(22, 163, 74, 0.12)'
+                  : '0 6px 20px rgba(234, 88, 12, 0.12)';
 
                 const badgeBg = meeting.badgeBg || (isVirtual ? '#2563eb' : isBooth ? '#16a34a' : '#ea580c');
                 const categoryBadge = meeting.categoryBadge || (
@@ -900,13 +932,11 @@ export default function ContactsTab({
                   <div
                     key={meeting.id || index}
                     style={{
-                      background: '#ffffff',
+                      background: cardBg,
                       border: `1.5px solid ${borderColor}`,
-                      borderRadius: '18px',
-                      padding: '16px 18px',
-                      boxShadow: isWithin24Hours
-                        ? '0 6px 20px rgba(217, 119, 6, 0.12), 0 0 0 1px #fcd34d'
-                        : '0 3px 12px rgba(15, 23, 42, 0.04)',
+                      borderRadius: '20px',
+                      padding: '18px 20px',
+                      boxShadow: cardShadow,
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '12px',
@@ -1053,7 +1083,7 @@ export default function ContactsTab({
                     <h3
                       style={{
                         margin: 0,
-                        fontSize: '16.5px',
+                        fontSize: '17px',
                         fontWeight: 850,
                         color: '#0f172a',
                         lineHeight: 1.35,
@@ -1067,63 +1097,77 @@ export default function ContactsTab({
                       {meeting.showVideoEmoji && <span style={{ fontSize: '15px' }}>📹</span>}
                     </h3>
 
-                    {/* Meeting Details (Time & Location) */}
-                    {meeting.combinedMeta ? (
-                      /* Compact Row for Booth style: Location • Time */
-                      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '14px', color: '#475569', fontSize: '13px', fontWeight: 650 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <MapPin size={15} color="#ea580c" />
-                          <span>{meeting.location}</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <Clock size={15} color="#0284c7" />
-                          <span>{meeting.time}</span>
-                        </div>
-                      </div>
-                    ) : (
-                      /* 2 Row Format: Clock/Calendar & Location/Virtual */
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#334155', fontSize: '13px', fontWeight: 650 }}>
-                          {meeting.timeIcon === 'calendar' ? (
-                            <Calendar size={15} color="#0284c7" />
-                          ) : (
-                            <Clock size={15} color="#0284c7" />
-                          )}
-                          <span>{meeting.time}</span>
-                        </div>
-
-                        {meeting.locationIcon === 'virtual' || isVirtual ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', background: '#f8fafc', padding: '6px 10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#1d4ed8', fontSize: '12.5px', fontWeight: 800 }}>
-                              <Video size={15} color="#2563eb" />
-                              <span>Google Meet:</span>
-                            </div>
-                            <a
-                              href={meeting.link || 'https://meet.google.com/pqr-stuv-wxy'}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{
-                                fontSize: '12.5px',
-                                color: '#2563eb',
-                                fontWeight: 750,
-                                textDecoration: 'none',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                              }}
-                            >
-                              <span>{meeting.link ? meeting.link.replace(/^https?:\/\//, '') : 'meet.google.com/pqr-stuv-wxy'}</span>
-                              <ExternalLink size={12} />
-                            </a>
-                          </div>
-                        ) : (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>
+                    {/* Meeting Details in frosted glass container */}
+                    <div
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.84)',
+                        backdropFilter: 'blur(8px)',
+                        borderRadius: '14px',
+                        padding: '12px 14px',
+                        border: '1px solid rgba(255, 255, 255, 0.95)',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                      }}
+                    >
+                      {meeting.combinedMeta ? (
+                        /* Compact Row for Booth style: Location • Time */
+                        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '14px', color: '#475569', fontSize: '13px', fontWeight: 650 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <MapPin size={15} color="#ea580c" />
                             <span>{meeting.location}</span>
                           </div>
-                        )}
-                      </div>
-                    )}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <Clock size={15} color="#0284c7" />
+                            <span>{meeting.time}</span>
+                          </div>
+                        </div>
+                      ) : (
+                        /* 2 Row Format: Clock/Calendar & Location/Virtual */
+                        <>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#334155', fontSize: '13px', fontWeight: 650 }}>
+                            {meeting.timeIcon === 'calendar' ? (
+                              <Calendar size={15} color="#0284c7" />
+                            ) : (
+                              <Clock size={15} color="#0284c7" />
+                            )}
+                            <span>{meeting.time}</span>
+                          </div>
+
+                          {meeting.locationIcon === 'virtual' || isVirtual ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', background: '#eff6ff', padding: '6px 12px', borderRadius: '10px', border: '1px solid #bfdbfe' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#1d4ed8', fontSize: '12.5px', fontWeight: 800 }}>
+                                <Video size={15} color="#2563eb" />
+                                <span>Google Meet:</span>
+                              </div>
+                              <a
+                                href={meeting.link || 'https://meet.google.com/pqr-stuv-wxy'}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  fontSize: '12.5px',
+                                  color: '#2563eb',
+                                  fontWeight: 750,
+                                  textDecoration: 'none',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                <span>{meeting.link ? meeting.link.replace(/^https?:\/\//, '') : 'meet.google.com/pqr-stuv-wxy'}</span>
+                                <ExternalLink size={12} />
+                              </a>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>
+                              <MapPin size={15} color="#ea580c" />
+                              <span>{meeting.location}</span>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
 
                     {/* Bottom Action Row (NO "उपस्थित कार्यकर्ते" / NO attendee avatars as requested!) */}
                     <div
@@ -1132,7 +1176,7 @@ export default function ContactsTab({
                         justifyContent: 'flex-end',
                         alignItems: 'center',
                         paddingTop: '10px',
-                        borderTop: '1px solid #f8fafc',
+                        borderTop: '1px solid rgba(15, 23, 42, 0.07)',
                         marginTop: '2px',
                         gap: '8px',
                         flexWrap: 'wrap',
