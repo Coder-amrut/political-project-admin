@@ -8,6 +8,7 @@ import {
   LogOut,
   UserCheck,
   CheckCircle2,
+  CalendarCheck,
   X,
   AlertTriangle,
   ChevronLeft,
@@ -43,17 +44,67 @@ export default function AttendanceTab({
 
   return (
     <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      {/* Header with Title and IST Live Clock */}
-      <div className="page-header" style={{ marginBottom: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 className="page-title">{isMr ? 'डिजिटल उपस्थिती' : 'Attendance'}</h1>
-            <span className="karyakarta-badge karyakarta-badge-live">
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#059669', display: 'inline-block' }}></span>
-              {isMr ? 'लाईव्ह' : 'Live'}
-            </span>
+      {/* 1. TOP ATTENDANCE & LIVE HEADER */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '16px',
+          width: '100%',
+          padding: '4px 2px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div
+            style={{
+              width: '52px',
+              height: '52px',
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 8px 18px rgba(37, 99, 235, 0.25)',
+              flexShrink: 0,
+            }}
+          >
+            <CalendarCheck size={28} color="#ffffff" strokeWidth={2.2} />
           </div>
-
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <h1 style={{ margin: 0, fontSize: '24px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.4px', lineHeight: 1.15 }}>
+                {isMr ? 'डिजिटल उपस्थिती' : 'Attendance'}
+              </h1>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '4px 12px',
+                  borderRadius: '20px',
+                  background: '#ecfdf5',
+                  border: '1.5px solid #a7f3d0',
+                  color: '#059669',
+                  fontSize: '12px',
+                  fontWeight: '800',
+                  boxShadow: '0 2px 6px rgba(5, 150, 105, 0.12)',
+                  letterSpacing: '0.4px',
+                }}
+              >
+                <span style={{ position: 'relative', display: 'flex', height: '8px', width: '8px' }}>
+                  <span style={{ position: 'absolute', display: 'inline-flex', height: '100%', width: '100%', borderRadius: '50%', background: '#10b981', opacity: 0.75, animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite' }} />
+                  <span style={{ position: 'relative', display: 'inline-flex', borderRadius: '50%', height: '8px', width: '8px', background: '#059669' }} />
+                </span>
+                <span>{isMr ? 'लाईव्ह' : 'Live'}</span>
+              </span>
+            </div>
+            <div style={{ fontSize: '12.5px', color: '#64748b', fontWeight: '600', marginTop: '3px' }}>
+              {isMr ? 'थेट बायोमेट्रिक व जिओ-फेन्स हजेरी कक्ष' : 'Live Biometric & Geo-Fenced Attendance Desk'}
+            </div>
+          </div>
         </div>
 
         {/* Live IST Clock Card */}
@@ -64,14 +115,15 @@ export default function AttendanceTab({
               alignItems: 'center',
               gap: '12px',
               background: '#ffffff',
-              border: '1px solid #e2e8f0',
-              borderRadius: '12px',
-              padding: '8px 16px',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+              border: '1.5px solid #e2e8f0',
+              borderRadius: '16px',
+              padding: '9px 18px',
+              boxShadow: '0 2px 10px rgba(15, 23, 42, 0.05)',
+              flexShrink: 0,
             }}
           >
-            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fff7ed', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ea580c' }}>
-              <Clock size={18} />
+            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#fff7ed', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ea580c', flexShrink: 0, border: '1px solid #ffedd5' }}>
+              <Clock size={20} strokeWidth={2.2} />
             </div>
             <LiveClock isMr={isMr} variant="card" />
           </div>
@@ -89,59 +141,122 @@ export default function AttendanceTab({
         {/* Admin Policy Notice */}
         <div
           style={{
-            padding: '12px 16px',
-            borderRadius: '12px',
+            padding: '16px 20px',
+            borderRadius: '16px',
             backgroundColor: attendancePolicy?.is_location_required ? '#ecfdf5' : '#f0f9ff',
-            border: attendancePolicy?.is_location_required ? '1px solid #a7f3d0' : '1px solid #bae6fd',
+            border: attendancePolicy?.is_location_required ? '1.5px solid #86efac' : '1.5px solid #bae6fd',
             color: attendancePolicy?.is_location_required ? '#065f46' : '#0369a1',
-            fontSize: '12.5px',
+            fontSize: '13px',
             lineHeight: '1.5',
             display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
+            alignItems: 'flex-start',
+            gap: '14px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
           }}
         >
-          <ShieldCheck size={22} style={{ flexShrink: 0 }} />
-          <div>
-            <strong style={{ display: 'block', fontSize: '12.5px' }}>
-              {attendancePolicy?.is_location_required ? (isMr ? '📍 अ‍ॅडमिन उपस्थिती धोरण (अनिवार्य स्थान)' : 'Admin Designated Location Enforced') : (isMr ? '🌐 लवचिक उपस्थिती धोरण' : 'Flexible Attendance Policy')}
-            </strong>
-            <span>
-              {attendancePolicy?.is_location_required
-                ? `${attendancePolicy.location_name || 'सांगली कार्यालय'} (${attendancePolicy.address || 'सांगली'}) • जिओफेन्स मर्यादा: ${attendancePolicy.radius_meters || 500} मीटर`
-                : (isMr ? 'आपण कार्यक्षेत्रातून कोणत्याही ठिकाणाहून हजेरी नोंदवू शकता (Anywhere Attendance Allowed).' : 'You can punch attendance from any field location.')}
-            </span>
+          {/* Prominent Red Location Pin Symbol */}
+          <div
+            style={{
+              width: '46px',
+              height: '46px',
+              borderRadius: '14px',
+              background: attendancePolicy?.is_location_required ? '#fee2e2' : '#e0f2fe',
+              color: attendancePolicy?.is_location_required ? '#ef4444' : '#0284c7',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              border: attendancePolicy?.is_location_required ? '1.5px solid #fca5a5' : '1.5px solid #bae6fd',
+              boxShadow: '0 4px 10px rgba(239, 68, 68, 0.15)',
+            }}
+            title={isMr ? 'स्थान चिन्ह (Location Pin)' : 'Location Pin'}
+          >
+            <MapPin size={26} strokeWidth={2.4} />
+          </div>
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '15px' }}>📍</span>
+              <strong style={{ fontSize: '14px', fontWeight: '850', color: attendancePolicy?.is_location_required ? '#065f46' : '#0369a1' }}>
+                {attendancePolicy?.is_location_required
+                  ? (isMr ? 'अ‍ॅडमिन उपस्थिती धोरण (अनिवार्य स्थान)' : 'Admin Designated Location Enforced')
+                  : (isMr ? 'लवचिक उपस्थिती धोरण' : 'Flexible Attendance Policy')}
+              </strong>
+            </div>
+
+            <div style={{ marginTop: '5px', fontSize: '12.8px', fontWeight: '600', color: attendancePolicy?.is_location_required ? '#166534' : '#0284c7', display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+              <span style={{ color: '#ef4444', fontSize: '15px', flexShrink: 0, marginTop: '-1px' }}>📍</span>
+              <span>
+                {attendancePolicy?.is_location_required
+                  ? (
+                    <>
+                      <strong style={{ color: '#0f172a' }}>{attendancePolicy.location_name || 'Shambhara Footi Road मध्यवर्ती कार्यालय (Live HQ)'}</strong>
+                      {' '}
+                      <span style={{ opacity: 0.9 }}>
+                        ({attendancePolicy.address || 'Shambhara Footi Road, Viya Nagar, सांगली, मिरज, सांगली जिल्हा, महाराष्ट्र, 416416, भारत'})
+                      </span>
+                      {' • '}
+                      <span style={{ fontWeight: '800', color: '#047857' }}>
+                        {isMr ? `जिओफेन्स मर्यादा: ${attendancePolicy.radius_meters || 500} मीटर` : `Geofence Limit: ${attendancePolicy.radius_meters || 500}m`}
+                      </span>
+                    </>
+                  )
+                  : (isMr
+                    ? 'आपण कार्यक्षेत्रातून कोणत्याही ठिकाणाहून हजेरी नोंदवू शकता (Anywhere Attendance Allowed).'
+                    : 'You can punch attendance from any field location.')}
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Current Detected Coordinates Strip */}
         <div
           style={{
-            padding: '12px 16px',
-            borderRadius: '12px',
+            padding: '16px 20px',
+            borderRadius: '16px',
             backgroundColor: '#ffffff',
-            border: '1px solid #e2e8f0',
+            border: '1.5px solid #e2e8f0',
             fontSize: '12.5px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            gap: '10px',
+            gap: '14px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
-            <MapPin size={20} color="#2563eb" style={{ flexShrink: 0 }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', overflow: 'hidden' }}>
+            <div
+              style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: '14px',
+                background: '#eff6ff',
+                color: '#2563eb',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                border: '1.5px solid #bfdbfe',
+                boxShadow: '0 4px 10px rgba(37, 99, 235, 0.12)',
+              }}
+              title="GPS Location Pin"
+            >
+              <MapPin size={26} strokeWidth={2.4} />
+            </div>
+
             <div style={{ overflow: 'hidden' }}>
-              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '700' }}>
-                {isMr ? 'सध्याचे GPS स्थान (Current Location)' : 'Current GPS Location'}
+              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span>📍</span>
+                <span>{isMr ? 'सध्याचे GPS स्थान (Current Location)' : 'Current GPS Location'}</span>
               </div>
-              <div style={{ fontWeight: '700', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '300px' }} title={currentCoords?.address || 'स्थान मिळवत आहे...'}>
+              <div style={{ fontWeight: '800', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '320px', marginTop: '2px', fontSize: '13.5px' }} title={currentCoords?.address || 'स्थान मिळवत आहे...'}>
                 {locationDetecting
                   ? (isMr ? '🔄 GPS स्थान शोधत आहे...' : 'Detecting GPS...')
                   : currentCoords?.address
                     ? currentCoords.address
                     : currentCoords?.latitude
                       ? `Lat: ${currentCoords.latitude}, Lng: ${currentCoords.longitude}`
-                      : (isMr ? 'स्थान उपलब्ध नाही (Detect Location वर क्लिक करा)' : 'GPS not detected yet')}
+                      : (isMr ? 'स्थान उपलब्ध नाही (रिफ्रेश GPS वर क्लिक करा)' : 'GPS not detected yet')}
               </div>
             </div>
           </div>
@@ -151,11 +266,11 @@ export default function AttendanceTab({
             className="karyakarta-btn karyakarta-btn-secondary"
             onClick={detectCurrentLocation}
             disabled={locationDetecting}
-            title="रिफ्रेश स्थान"
-            style={{ padding: '6px 12px', fontSize: '11.5px', whiteSpace: 'nowrap' }}
+            title={isMr ? 'रिफ्रेश स्थान' : 'Refresh GPS'}
+            style={{ padding: '9px 16px', fontSize: '12px', whiteSpace: 'nowrap', borderRadius: '12px', fontWeight: '750' }}
           >
-            <RefreshCw size={13} className={locationDetecting ? 'animate-spin' : ''} />
-            <span>{isMr ? 'रिफ्रेश GPS' : 'Refresh'}</span>
+            <RefreshCw size={14} className={locationDetecting ? 'animate-spin' : ''} />
+            <span>{isMr ? 'रिफ्रेश GPS' : 'Refresh GPS'}</span>
           </button>
         </div>
       </div>
