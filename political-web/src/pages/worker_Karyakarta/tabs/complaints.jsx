@@ -72,45 +72,19 @@ export default function ComplaintsTab({
         </button>
       </div>
 
-      {/* Quick Metric Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
-        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderTop: '3.5px solid #64748b', borderRadius: '12px', padding: '14px 18px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '700' }}>
-            {isMr ? 'एकूण समस्या (Total)' : 'Total Grievances Logged'}
-          </div>
-          <div style={{ fontSize: '26px', fontWeight: '900', color: '#0f172a', marginTop: '4px' }}>{totalCount}</div>
-        </div>
-
-        <div style={{ background: '#ffffff', border: '1px solid #fed7aa', borderTop: '3.5px solid #ea580c', borderRadius: '12px', padding: '14px 18px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-          <div style={{ fontSize: '12px', color: '#c2410c', fontWeight: '700' }}>
-            {isMr ? 'प्रलंबित समस्या (Pending)' : 'Pending Resolution'}
-          </div>
-          <div style={{ fontSize: '26px', fontWeight: '900', color: '#c2410c', marginTop: '4px' }}>{pendingCount}</div>
-        </div>
-
-        <div style={{ background: '#ffffff', border: '1px solid #bfdbfe', borderTop: '3.5px solid #2563eb', borderRadius: '12px', padding: '14px 18px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-          <div style={{ fontSize: '12px', color: '#1d4ed8', fontWeight: '700' }}>
-            {isMr ? 'कार्यवाही सुरू (In Progress)' : 'Under Action (In Progress)'}
-          </div>
-          <div style={{ fontSize: '26px', fontWeight: '900', color: '#1d4ed8', marginTop: '4px' }}>{inProgressCount}</div>
-        </div>
-
-        <div style={{ background: '#ffffff', border: '1px solid #bbf7d0', borderTop: '3.5px solid #16a34a', borderRadius: '12px', padding: '14px 18px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-          <div style={{ fontSize: '12px', color: '#15803d', fontWeight: '700' }}>
-            {isMr ? 'सोडवलेल्या समस्या (Resolved)' : 'Resolved & Closed'}
-          </div>
-          <div style={{ fontSize: '26px', fontWeight: '900', color: '#15803d', marginTop: '4px' }}>{resolvedCount}</div>
-        </div>
-      </div>
-
       {/* Search & Filter Bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: '#ffffff', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: '#ffffff', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {['All', 'Pending', 'In Progress', 'Resolved'].map((st) => (
+          {[
+            { key: 'All', label: isMr ? 'सर्व समस्या' : 'All Grievances', count: totalCount },
+            { key: 'Pending', label: isMr ? '⏳ प्रलंबित' : '⏳ Pending', count: pendingCount },
+            { key: 'In Progress', label: isMr ? '🔄 कार्यवाही सुरू' : '🔄 In Progress', count: inProgressCount },
+            { key: 'Resolved', label: isMr ? '✓ सोडवलेल्या' : '✓ Resolved', count: resolvedCount },
+          ].map((st) => (
             <button
-              key={st}
+              key={st.key}
               type="button"
-              onClick={() => setComplaintFilter(st)}
+              onClick={() => setComplaintFilter(st.key)}
               style={{
                 padding: '6px 14px',
                 borderRadius: '8px',
@@ -118,12 +92,27 @@ export default function ComplaintsTab({
                 fontWeight: 700,
                 cursor: 'pointer',
                 border: 'none',
-                background: complaintFilter === st ? '#ea580c' : '#f1f5f9',
-                color: complaintFilter === st ? '#ffffff' : '#475569',
+                background: complaintFilter === st.key ? '#ea580c' : '#f1f5f9',
+                color: complaintFilter === st.key ? '#ffffff' : '#475569',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
                 transition: 'all 0.15s ease'
               }}
             >
-              {st === 'All' ? (isMr ? 'सर्व समस्या' : 'All Grievances') : st === 'Pending' ? (isMr ? '⏳ प्रलंबित' : '⏳ Pending') : st === 'In Progress' ? (isMr ? '🔄 कार्यवाही सुरू' : '🔄 In Progress') : (isMr ? '✓ सोडवलेल्या' : '✓ Resolved')}
+              <span>{st.label}</span>
+              <span
+                style={{
+                  fontSize: '11px',
+                  padding: '1px 6px',
+                  borderRadius: '6px',
+                  background: complaintFilter === st.key ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+                  color: complaintFilter === st.key ? '#ffffff' : '#475569',
+                  fontWeight: 800,
+                }}
+              >
+                {st.count}
+              </span>
             </button>
           ))}
         </div>
