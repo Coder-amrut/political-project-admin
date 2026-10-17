@@ -668,115 +668,45 @@ export default function ContactsTab({
           <div className="card-header">
             <div>
               <h2 className="card-title">
-                {isSchedulingMeeting ? (isMr ? 'नवीन बैठक निश्चित करा' : 'Schedule New Campaign Meeting') : (isMr ? 'आगामी बैठका व संवाद' : 'Upcoming Campaign Meetings')}
+                {isMr ? 'आगामी बैठका व संवाद' : 'Upcoming Campaign Meetings'}
               </h2>
               <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                {isMr ? 'अधिकारी व मतदार बैठकांचे नियोजन करा.' : 'Plan, coordinate, and review local booth gathering sessions.'}
+                {isMr ? 'अधिकारी व मतदार बैठकांची यादी.' : 'Review local booth gathering sessions.'}
               </div>
             </div>
-            {!isSchedulingMeeting && (
-              <button className="btn-primary" onClick={() => setIsSchedulingMeeting(true)} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Plus size={16} />
-                <span>{isMr ? '+ नवीन बैठक निश्चित करा' : '+ Schedule Meeting'}</span>
-              </button>
-            )}
           </div>
 
-          {isSchedulingMeeting ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: '650px', marginTop: '10px' }}>
-              <div className="info-group">
-                <label className="info-label">{isMr ? 'बैठकीचा विषय *' : 'Meeting Title *'}</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder={isMr ? "उदा. बूथ क्र. २ मतदार बैठक" : "e.g., Booth 2 Citizens Consultation"}
-                  value={newMeeting.title}
-                  onChange={(e) => setNewMeeting({ ...newMeeting, title: e.target.value })}
-                />
-              </div>
-              <div className="info-row">
-                <div className="info-group">
-                  <label className="info-label">{isMr ? 'तारीख व वेळ *' : 'Date & Time *'}</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder={isMr ? "उदा. उद्या, सायं ५:००" : "e.g., Tomorrow, 5:00 PM"}
-                    value={newMeeting.time}
-                    onChange={(e) => setNewMeeting({ ...newMeeting, time: e.target.value })}
-                  />
-                </div>
-                <div className="info-group">
-                  <label className="info-label">{isMr ? 'बैठकीचा प्रकार' : 'Meeting Format'}</label>
-                  <select className="form-input" value={newMeeting.type} onChange={(e) => setNewMeeting({ ...newMeeting, type: e.target.value })}>
-                    <option value="In-person">{isMr ? 'प्रत्यक्ष भेट (In-person)' : 'In-person Gathering'}</option>
-                    <option value="Virtual">{isMr ? 'व्हर्च्युअल / ऑनलाइन (Virtual)' : 'Virtual / Video Call'}</option>
-                  </select>
-                </div>
-              </div>
-              <div className="info-row">
-                <div className="info-group">
-                  <label className="info-label">{isMr ? 'ठिकाण / पत्ता / लिंक' : 'Location or Meeting Link'}</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder={isMr ? "पत्ता किंवा Google Meet लिंक" : "Address or video link"}
-                    value={newMeeting.location}
-                    onChange={(e) => setNewMeeting({ ...newMeeting, location: e.target.value })}
-                  />
-                </div>
-                <div className="info-group">
-                  <label className="info-label">{isMr ? 'अपेक्षित उपस्थिती' : 'Expected Attendees'}</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder={isMr ? "उदा. १५ मतदार" : "e.g., 15 Citizens"}
-                    value={newMeeting.attendees}
-                    onChange={(e) => setNewMeeting({ ...newMeeting, attendees: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button className="btn-outline" onClick={() => setIsSchedulingMeeting(false)}>
-                  {t('cancel')}
-                </button>
-                <button className="btn-success" onClick={handleScheduleMeeting}>
-                  ✓ {isMr ? 'बैठक सेव्ह करा' : 'Save Meeting'}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem', marginTop: '12px' }}>
-              {meetingsList.map((meeting, i) => (
-                <div key={i} style={{ border: '1px solid #e2e8f0', borderRadius: '12px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px', background: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ padding: '8px', backgroundColor: meeting.type === 'Virtual' ? '#E0E7FF' : '#FEF3C7', color: meeting.type === 'Virtual' ? '#2563eb' : '#d97706', borderRadius: '8px' }}>
-                      {meeting.type === 'Virtual' ? <Video size={20} /> : <Users size={20} />}
-                    </div>
-                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', backgroundColor: '#f1f5f9', padding: '3px 8px', borderRadius: '9999px' }}>
-                      {meeting.type}
-                    </span>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem', marginTop: '12px' }}>
+            {meetingsList.map((meeting, i) => (
+              <div key={i} style={{ border: '1px solid #e2e8f0', borderRadius: '12px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px', background: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ padding: '8px', backgroundColor: meeting.type === 'Virtual' ? '#E0E7FF' : '#FEF3C7', color: meeting.type === 'Virtual' ? '#2563eb' : '#d97706', borderRadius: '8px' }}>
+                    {meeting.type === 'Virtual' ? <Video size={20} /> : <Users size={20} />}
                   </div>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', backgroundColor: '#f1f5f9', padding: '3px 8px', borderRadius: '9999px' }}>
+                    {meeting.type}
+                  </span>
+                </div>
 
-                  <div>
-                    <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', marginBottom: '6px' }}>{meeting.title}</h3>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '12.5px', marginBottom: '4px' }}>
-                      <Clock size={14} color="#0284c7" /> {meeting.time}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '12.5px' }}>
-                      <MapPin size={14} color="#ea580c" /> {meeting.location}
-                    </div>
+                <div>
+                  <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', marginBottom: '6px' }}>{meeting.title}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '12.5px', marginBottom: '4px' }}>
+                    <Clock size={14} color="#0284c7" /> {meeting.time}
                   </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
-                    <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>👥 {meeting.attendees}</span>
-                    <span style={{ color: '#0284c7', fontWeight: 700, fontSize: '12px' }}>
-                      {isMr ? 'नियोजित' : 'Scheduled'}
-                    </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '12.5px' }}>
+                    <MapPin size={14} color="#ea580c" /> {meeting.location}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
+                  <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>👥 {meeting.attendees}</span>
+                  <span style={{ color: '#0284c7', fontWeight: 700, fontSize: '12px' }}>
+                    {isMr ? 'नियोजित' : 'Scheduled'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
