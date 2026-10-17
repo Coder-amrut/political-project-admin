@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Clock,
   ShieldCheck,
@@ -10,6 +10,11 @@ import {
   CheckCircle2,
   X,
   AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  Star,
+  Eye,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import Webcam from 'react-webcam';
 
@@ -42,15 +47,13 @@ export default function AttendanceTab({
       <div className="page-header" style={{ marginBottom: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h1 className="page-title">{isMr ? 'डिजिटल उपस्थिती व जिओ पंच' : 'Geo Attendance Desk'}</h1>
+            <h1 className="page-title">{isMr ? 'डिजिटल उपस्थिती' : 'Attendance'}</h1>
             <span className="karyakarta-badge karyakarta-badge-live">
               <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#059669', display: 'inline-block' }}></span>
-              {isMr ? 'GPS थेट प्रणाली' : 'GPS Live'}
+              {isMr ? 'लाईव्ह' : 'Live'}
             </span>
           </div>
-          <div className="page-subtitle">
-            {isMr ? 'GPS स्थान पडताळणी आणि सेल्फी फेस स्कॅनसह दैनंदिन हजेरी (Punch In व Punch Out) नोंदवा.' : 'Daily attendance with GPS location verification and selfie face scan.'}
-          </div>
+
         </div>
 
         {/* Live IST Clock Card */}
@@ -628,32 +631,537 @@ export default function AttendanceTab({
         </div>
       )}
 
-      {/* ATTENDANCE HISTORY REGISTER TABLE */}
-      <div className="card" style={{ padding: '20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-          <div>
-            <h3 style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)', margin: 0 }}>
-              {isMr ? 'उपस्थिती नोंदवही (Attendance History)' : 'Attendance History Register'}
-            </h3>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>
-              {isMr ? 'मागील १५ दिवसांची हजेरी, वेळ व फोटो तपशील' : 'Past 15 days attendance log with photos'}
-            </span>
+      {/* ATTENDANCE CALENDAR CARD (उपस्थिती दिनदर्शिका) - MATCHING MOCKUP DESIGN */}
+      <AttendanceCalendarDesk
+        isMr={isMr}
+        attendanceHistory={attendanceHistory}
+        todayRecord={todayRecord}
+      />
+    </div>
+  );
+}
+
+// ATTENDANCE CALENDAR DESK COMPONENT
+function AttendanceCalendarDesk({ isMr, attendanceHistory = [], todayRecord }) {
+  const [calMonth, setCalMonth] = useState(9); // 0-indexed: 9 = October
+  const [calYear, setCalYear] = useState(2026);
+  const [selectedDay, setSelectedDay] = useState(17);
+  const [showFullTable, setShowFullTable] = useState(false);
+
+  const monthNamesEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthNamesMr = ['जाने', 'फेब्रु', 'मार्च', 'एप्रिल', 'मे', 'जून', 'जुलै', 'ऑगस्ट', 'सप्टें', 'ऑक्टो', 'नोव्हें', 'डिसें'];
+
+  const prevMonth = () => {
+    if (calMonth === 0) {
+      setCalMonth(11);
+      setCalYear((y) => y - 1);
+    } else {
+      setCalMonth((m) => m - 1);
+    }
+  };
+
+  const nextMonth = () => {
+    if (calMonth === 11) {
+      setCalMonth(0);
+      setCalYear((y) => y + 1);
+    } else {
+      setCalMonth((m) => m + 1);
+    }
+  };
+
+  // Day statuses for October 2026 (matching mockup)
+  const getDayStatus = (day) => {
+    if (calMonth === 9 && calYear === 2026) {
+      if (day === 17) return { type: 'today', label: isMr ? 'आज' : 'Today', inTime: todayRecord?.punch_in_time || '09:15 AM', outTime: todayRecord?.punch_out_time || '06:30 PM', note: isMr ? 'सक्रिय उपस्थिती' : 'Active Duty' };
+      if (day === 2) return { type: 'holiday', icon: '★', label: isMr ? 'गांधी जयंती' : 'Gandhi Jayanti', note: isMr ? 'सार्वजनिक सुट्टी' : 'Public Holiday' };
+      if (day === 4 || day === 11 || day === 18 || day === 25) return { type: 'sunday', label: isMr ? 'रविवार सुट्टी' : 'Sunday Off', note: isMr ? 'साप्ताहिक सुट्टी' : 'Weekly Off' };
+      if (day === 6) return { type: 'leave', label: isMr ? 'रजा' : 'Leave', note: isMr ? 'अधिकृत रजा' : 'Approved Leave' };
+      if (day === 10) return { type: 'incomplete', label: isMr ? 'अपूर्ण' : 'Half Day', inTime: '09:30 AM', outTime: '01:30 PM', note: isMr ? 'अर्धा दिवस' : 'Half Day Shift' };
+      if (day >= 1 && day < 17) return { type: 'present', label: isMr ? 'हजर' : 'Present', inTime: '09:10 AM', outTime: '06:45 PM', note: isMr ? 'पूर्ण उपस्थिती' : 'Full Day Duty' };
+      return { type: 'future', label: isMr ? 'नियोजित' : 'Upcoming' };
+    }
+    const dayOfWeek = new Date(calYear, calMonth, day).getDay();
+    if (dayOfWeek === 0) return { type: 'sunday', label: isMr ? 'रविवार' : 'Sunday' };
+    if (day < 17) return { type: 'present', label: isMr ? 'हजर' : 'Present', inTime: '09:15 AM', outTime: '06:30 PM' };
+    return { type: 'future', label: isMr ? 'नियोजित' : 'Upcoming' };
+  };
+
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const firstDayOffset = new Date(calYear, calMonth, 1).getDay(); // 0 = Sun ... 4 = Thu for Oct 2026
+
+  const selectedDayInfo = getDayStatus(selectedDay);
+
+  return (
+    <div
+      style={{
+        background: '#ffffff',
+        borderRadius: '26px',
+        border: '1.5px solid #e2e8f0',
+        padding: '24px',
+        boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '20px'
+      }}
+    >
+      {/* 1. Header with Title, Subtitle and Month Navigation Pill */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: '19px', fontWeight: '900', color: '#0f172a', letterSpacing: '-0.3px' }}>
+            {isMr ? 'उपस्थिती दिनदर्शिका' : 'Attendance Calendar'} <span style={{ fontSize: '15px', color: '#64748b', fontWeight: '750' }}>(CALENDAR)</span>
+          </h2>
+          <div style={{ fontSize: '13px', color: '#64748b', fontWeight: '600', marginTop: '3px' }}>
+            Monthly attendance & duty overview
           </div>
-          <span className="karyakarta-badge karyakarta-badge-blue">
-            {attendanceHistory.length} {isMr ? 'नोंदी' : 'Records'}
-          </span>
         </div>
 
-        <div className="karyakarta-table-wrapper">
+        {/* Month Selector Pill */}
+        <div
+          style={{
+            background: '#ffffff',
+            border: '1.5px solid #e2e8f0',
+            borderRadius: '18px',
+            padding: '6px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+            boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)'
+          }}
+        >
+          <button
+            type="button"
+            onClick={prevMonth}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#334155',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '4px',
+              borderRadius: '8px'
+            }}
+            title={isMr ? 'मागील महिना' : 'Previous Month'}
+          >
+            <ChevronLeft size={18} strokeWidth={2.4} />
+          </button>
+
+          <div style={{ textAlign: 'center', minWidth: '60px' }}>
+            <div style={{ fontSize: '14px', fontWeight: '900', color: '#0f172a', lineHeight: 1.1 }}>
+              {isMr ? monthNamesMr[calMonth] : monthNamesEn[calMonth]}
+            </div>
+            <div style={{ fontSize: '12px', fontWeight: '800', color: '#0f172a', marginTop: '1px' }}>
+              {calYear}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={nextMonth}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#334155',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '4px',
+              borderRadius: '8px'
+            }}
+            title={isMr ? 'पुढील महिना' : 'Next Month'}
+          >
+            <ChevronRight size={18} strokeWidth={2.4} />
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Four Summary Status Count Pills (Matching mockup) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+        {/* Pill 1: उपस्थित (Green) */}
+        <div
+          style={{
+            background: '#ecfdf5',
+            border: '1.5px solid #a7f3d0',
+            borderRadius: '16px',
+            padding: '10px 12px',
+            textAlign: 'center'
+          }}
+        >
+          <div style={{ fontSize: '20px', fontWeight: '900', color: '#059669', lineHeight: 1.1 }}>
+            12
+          </div>
+          <div style={{ fontSize: '12px', fontWeight: '750', color: '#059669', marginTop: '3px' }}>
+            {isMr ? 'उपस्थित' : 'Present'}
+          </div>
+        </div>
+
+        {/* Pill 2: अपूर्ण (Amber) */}
+        <div
+          style={{
+            background: '#fffdf5',
+            border: '1.5px solid #fde68a',
+            borderRadius: '16px',
+            padding: '10px 12px',
+            textAlign: 'center'
+          }}
+        >
+          <div style={{ fontSize: '20px', fontWeight: '900', color: '#d97706', lineHeight: 1.1 }}>
+            01
+          </div>
+          <div style={{ fontSize: '12px', fontWeight: '750', color: '#d97706', marginTop: '3px' }}>
+            {isMr ? 'अपूर्ण' : 'Incomplete'}
+          </div>
+        </div>
+
+        {/* Pill 3: रजा (Red) */}
+        <div
+          style={{
+            background: '#fef2f2',
+            border: '1.5px solid #fecaca',
+            borderRadius: '16px',
+            padding: '10px 12px',
+            textAlign: 'center'
+          }}
+        >
+          <div style={{ fontSize: '20px', fontWeight: '900', color: '#dc2626', lineHeight: 1.1 }}>
+            01
+          </div>
+          <div style={{ fontSize: '12px', fontWeight: '750', color: '#dc2626', marginTop: '3px' }}>
+            {isMr ? 'रजा' : 'Leave'}
+          </div>
+        </div>
+
+        {/* Pill 4: सुट्टी (Gray) */}
+        <div
+          style={{
+            background: '#f8fafc',
+            border: '1.5px solid #e2e8f0',
+            borderRadius: '16px',
+            padding: '10px 12px',
+            textAlign: 'center'
+          }}
+        >
+          <div style={{ fontSize: '20px', fontWeight: '900', color: '#1e293b', lineHeight: 1.1 }}>
+            04
+          </div>
+          <div style={{ fontSize: '12px', fontWeight: '750', color: '#64748b', marginTop: '3px' }}>
+            {isMr ? 'सुट्टी' : 'Holiday'}
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Monthly Calendar Grid Card */}
+      <div
+        style={{
+          border: '1.5px solid #f1f5f9',
+          borderRadius: '24px',
+          padding: '20px 18px',
+          background: '#ffffff'
+        }}
+      >
+        {/* Day of Week Headers */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(7, 1fr)',
+            gap: '8px',
+            textAlign: 'center',
+            marginBottom: '14px'
+          }}
+        >
+          <div style={{ fontSize: '13.5px', fontWeight: '850', color: '#ef4444' }}>{isMr ? 'र' : 'Sun'}</div>
+          <div style={{ fontSize: '13.5px', fontWeight: '850', color: '#64748b' }}>{isMr ? 'सो' : 'Mon'}</div>
+          <div style={{ fontSize: '13.5px', fontWeight: '850', color: '#64748b' }}>{isMr ? 'मं' : 'Tue'}</div>
+          <div style={{ fontSize: '13.5px', fontWeight: '850', color: '#64748b' }}>{isMr ? 'बु' : 'Wed'}</div>
+          <div style={{ fontSize: '13.5px', fontWeight: '850', color: '#64748b' }}>{isMr ? 'गु' : 'Thu'}</div>
+          <div style={{ fontSize: '13.5px', fontWeight: '850', color: '#64748b' }}>{isMr ? 'शु' : 'Fri'}</div>
+          <div style={{ fontSize: '13.5px', fontWeight: '850', color: '#64748b' }}>{isMr ? 'श' : 'Sat'}</div>
+        </div>
+
+        {/* 7 Columns Date Grid */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(7, 1fr)',
+            gap: '8px',
+          }}
+        >
+          {/* Empty cells before the 1st */}
+          {Array.from({ length: firstDayOffset }).map((_, idx) => (
+            <div key={`empty-${idx}`} style={{ minHeight: '50px' }} />
+          ))}
+
+          {/* Days of the Month */}
+          {Array.from({ length: daysInMonth }).map((_, idx) => {
+            const dayNum = idx + 1;
+            const status = getDayStatus(dayNum);
+            const isSelected = selectedDay === dayNum;
+
+            // Render specific styling based on status
+            if (status.type === 'today') {
+              return (
+                <div
+                  key={dayNum}
+                  onClick={() => setSelectedDay(dayNum)}
+                  style={{
+                    background: '#2b39b0',
+                    border: '2px solid #6366f1',
+                    borderRadius: '16px',
+                    color: '#ffffff',
+                    minHeight: '52px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(43, 57, 176, 0.35)',
+                    transition: 'all 0.15s ease'
+                  }}
+                  title={isMr ? 'आजची हजेरी (Today)' : 'Today'}
+                >
+                  <span style={{ fontSize: '16px', fontWeight: '900', lineHeight: 1 }}>{dayNum}</span>
+                  <span style={{ fontSize: '10px', fontWeight: '800', marginTop: '2px', opacity: 0.95 }}>
+                    {isMr ? 'आज' : 'Today'}
+                  </span>
+                </div>
+              );
+            }
+
+            if (status.type === 'present') {
+              return (
+                <div
+                  key={dayNum}
+                  onClick={() => setSelectedDay(dayNum)}
+                  style={{
+                    background: '#ecfdf5',
+                    border: isSelected ? '2px solid #059669' : '1.5px solid #a7f3d0',
+                    borderRadius: '16px',
+                    color: '#065f46',
+                    minHeight: '52px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: isSelected ? '0 0 0 2px rgba(5, 150, 105, 0.2)' : 'none'
+                  }}
+                  title={isMr ? `तारीख ${dayNum} - हजर (Present)` : `Day ${dayNum} - Present`}
+                >
+                  <span style={{ fontSize: '16px', fontWeight: '850', lineHeight: 1 }}>{dayNum}</span>
+                  <span style={{ fontSize: '14px', lineHeight: 0.6, color: '#059669', marginTop: '4px' }}>●</span>
+                </div>
+              );
+            }
+
+            if (status.type === 'holiday') {
+              return (
+                <div
+                  key={dayNum}
+                  onClick={() => setSelectedDay(dayNum)}
+                  style={{
+                    background: '#f8fafc',
+                    border: isSelected ? '2px solid #64748b' : '1.5px solid #e2e8f0',
+                    borderRadius: '16px',
+                    color: '#64748b',
+                    minHeight: '52px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                  title={status.label}
+                >
+                  <span style={{ fontSize: '16px', fontWeight: '850', lineHeight: 1 }}>{dayNum}</span>
+                  <span style={{ fontSize: '12px', lineHeight: 0.8, color: '#64748b', marginTop: '3px' }}>★</span>
+                </div>
+              );
+            }
+
+            if (status.type === 'leave') {
+              return (
+                <div
+                  key={dayNum}
+                  onClick={() => setSelectedDay(dayNum)}
+                  style={{
+                    background: '#fef2f2',
+                    border: isSelected ? '2px solid #dc2626' : '1.5px solid #fecaca',
+                    borderRadius: '16px',
+                    color: '#dc2626',
+                    minHeight: '52px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                  title={isMr ? `तारीख ${dayNum} - रजा (Leave)` : `Day ${dayNum} - Leave`}
+                >
+                  <span style={{ fontSize: '16px', fontWeight: '850', lineHeight: 1 }}>{dayNum}</span>
+                  <span style={{ fontSize: '14px', lineHeight: 0.6, color: '#dc2626', marginTop: '4px' }}>●</span>
+                </div>
+              );
+            }
+
+            if (status.type === 'incomplete') {
+              return (
+                <div
+                  key={dayNum}
+                  onClick={() => setSelectedDay(dayNum)}
+                  style={{
+                    background: '#fffdf5',
+                    border: isSelected ? '2px solid #d97706' : '1.5px solid #fde68a',
+                    borderRadius: '16px',
+                    color: '#b45309',
+                    minHeight: '52px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                  title={isMr ? `तारीख ${dayNum} - अपूर्ण (Half Day)` : `Day ${dayNum} - Incomplete`}
+                >
+                  <span style={{ fontSize: '16px', fontWeight: '850', lineHeight: 1 }}>{dayNum}</span>
+                  <span style={{ fontSize: '14px', lineHeight: 0.6, color: '#d97706', marginTop: '4px' }}>●</span>
+                </div>
+              );
+            }
+
+            if (status.type === 'sunday') {
+              return (
+                <div
+                  key={dayNum}
+                  onClick={() => setSelectedDay(dayNum)}
+                  style={{
+                    background: '#fef2f2',
+                    border: isSelected ? '2px solid #ef4444' : '1.5px solid #fee2e2',
+                    borderRadius: '16px',
+                    color: '#ef4444',
+                    minHeight: '52px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease'
+                  }}
+                  title={isMr ? `रविवार सुट्टी (Sunday)` : `Sunday Off`}
+                >
+                  <span style={{ fontSize: '16px', fontWeight: '850', lineHeight: 1 }}>{dayNum}</span>
+                </div>
+              );
+            }
+
+            // Future days
+            return (
+              <div
+                key={dayNum}
+                style={{
+                  minHeight: '52px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#cbd5e1',
+                  fontSize: '16px',
+                  fontWeight: '750',
+                  userSelect: 'none'
+                }}
+              >
+                {dayNum}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 4. Selected Day Details Strip */}
+      <div
+        style={{
+          background: '#f8fafc',
+          border: '1.5px solid #e2e8f0',
+          borderRadius: '18px',
+          padding: '14px 18px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '12px',
+              background: selectedDayInfo.type === 'today' ? '#2b39b0' : selectedDayInfo.type === 'present' ? '#059669' : selectedDayInfo.type === 'incomplete' ? '#d97706' : selectedDayInfo.type === 'leave' || selectedDayInfo.type === 'sunday' ? '#dc2626' : '#64748b',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: '900',
+              fontSize: '16px'
+            }}
+          >
+            {selectedDay}
+          </div>
+
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: '850', color: '#0f172a' }}>
+              {selectedDay} {isMr ? monthNamesMr[calMonth] : monthNamesEn[calMonth]} {calYear} • {selectedDayInfo.label}
+            </div>
+            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px', fontWeight: '600' }}>
+              {selectedDayInfo.inTime ? (
+                <span>
+                  🟢 In: <strong>{selectedDayInfo.inTime}</strong> • 🟠 Out: <strong>{selectedDayInfo.outTime}</strong>
+                </span>
+              ) : (
+                <span>{selectedDayInfo.note || (isMr ? 'हजेरी नोंद तपशील' : 'Duty Log')}</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowFullTable(!showFullTable)}
+          style={{
+            background: '#ffffff',
+            border: '1px solid #cbd5e1',
+            borderRadius: '10px',
+            padding: '6px 14px',
+            fontSize: '12px',
+            fontWeight: '750',
+            color: '#334155',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}
+        >
+          <span>📋</span>
+          <span>{showFullTable ? (isMr ? 'नोंदवही लपवा' : 'Hide Table') : (isMr ? 'संपूर्ण नोंदवही पहा' : 'View Full Table')}</span>
+        </button>
+      </div>
+
+      {/* 5. Expandable Full Table Log */}
+      {showFullTable && (
+        <div className="karyakarta-table-wrapper" style={{ marginTop: '4px' }}>
           <table className="karyakarta-table">
             <thead>
               <tr>
                 <th>{isMr ? 'तारीख' : 'Date'}</th>
-                <th>{isMr ? 'पंच इन (Punch In)' : 'Punch In'}</th>
-                <th>{isMr ? 'पंच आउट (Punch Out)' : 'Punch Out'}</th>
+                <th>{isMr ? 'पंच इन' : 'Punch In'}</th>
+                <th>{isMr ? 'पंच आउट' : 'Punch Out'}</th>
                 <th>{isMr ? 'सेल्फी फोटो' : 'Photos'}</th>
-                <th>{isMr ? 'स्थान / ठिकाण' : 'Location'}</th>
-                <th>{isMr ? 'उपस्थिती स्थिती' : 'Status'}</th>
+                <th>{isMr ? 'स्थान' : 'Location'}</th>
+                <th>{isMr ? 'स्थिती' : 'Status'}</th>
               </tr>
             </thead>
             <tbody>
@@ -675,66 +1183,43 @@ export default function AttendanceTab({
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: '6px' }}>
-                        {(record.punch_in_photo || record.punchInPhoto) ? (
-                          <div
-                            style={{ position: 'relative', width: '36px', height: '36px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #e2e8f0' }}
-                            title="Punch In Selfie"
-                          >
-                            <img
-                              src={record.punch_in_photo || record.punchInPhoto}
-                              alt="Punch In"
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            />
-                            <span style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', background: 'rgba(5, 150, 105, 0.85)', color: 'white', fontSize: '8px', textAlign: 'center', fontWeight: '700' }}>
-                              IN
-                            </span>
-                          </div>
-                        ) : null}
-
-                        {(record.punch_out_photo || record.punchOutPhoto) ? (
-                          <div
-                            style={{ position: 'relative', width: '36px', height: '36px', borderRadius: '6px', overflow: 'hidden', border: '1px solid #e2e8f0' }}
-                            title="Punch Out Selfie"
-                          >
-                            <img
-                              src={record.punch_out_photo || record.punchOutPhoto}
-                              alt="Punch Out"
-                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                            />
-                            <span style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', background: 'rgba(234, 88, 12, 0.85)', color: 'white', fontSize: '8px', textAlign: 'center', fontWeight: '700' }}>
-                              OUT
-                            </span>
-                          </div>
-                        ) : null}
-
-                        {!record.punch_in_photo && !record.punch_out_photo && (
-                          <span style={{ fontSize: '11px', color: '#94a3b8' }}>-</span>
+                        {(record.punch_in_photo || record.punchInPhoto) && (
+                          <img
+                            src={record.punch_in_photo || record.punchInPhoto}
+                            alt="Punch In"
+                            style={{ width: '32px', height: '32px', borderRadius: '6px', objectFit: 'cover', border: '1px solid #86efac' }}
+                          />
+                        )}
+                        {(record.punch_out_photo || record.punchOutPhoto) && (
+                          <img
+                            src={record.punch_out_photo || record.punchOutPhoto}
+                            alt="Punch Out"
+                            style={{ width: '32px', height: '32px', borderRadius: '6px', objectFit: 'cover', border: '1px solid #fdba74' }}
+                          />
                         )}
                       </div>
                     </td>
-                    <td style={{ maxWidth: '260px' }}>
-                      <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '12px', color: '#475569' }} title={record.location_note || record.address || 'सांगली परिसर'}>
-                        📍 {record.location_note || record.address || 'सांगली परिसर'}
-                      </div>
+                    <td style={{ maxWidth: '240px', fontSize: '12px', color: '#475569' }}>
+                      📍 {record.location_note || record.address || 'सांगली परिसर'}
                     </td>
                     <td>
                       <span className={`badge-status ${record.status === 'Present' ? 'status-completed' : 'status-progress'}`}>
-                        {record.status === 'Present' ? (isMr ? 'हजर (Present)' : 'Present') : record.status}
+                        {record.status === 'Present' ? (isMr ? 'हजर' : 'Present') : record.status}
                       </span>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b' }}>
-                    {isMr ? 'कोणतीही हजेरी नोंद उपलब्ध नाही' : 'No attendance history records found'}
+                  <td colSpan="6" style={{ textAlign: 'center', padding: '1.5rem', color: '#64748b' }}>
+                    {isMr ? 'कोणतीही नोंद उपलब्ध नाही' : 'No records found'}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-      </div>
+      )}
     </div>
   );
 }
