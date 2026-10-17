@@ -601,10 +601,46 @@
   }
 }
 
+/* Responsive Header Polish */
+.lang-short-text {
+  display: none;
+}
+.lang-full-text {
+  display: inline;
+}
+
+@media (max-width: 1250px) {
+  .live-clock-date {
+    display: none !important;
+  }
+  .header-sub-divider,
+  .header-sub-text {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .lang-short-text {
+    display: inline !important;
+  }
+  .lang-full-text {
+    display: none !important;
+  }
+}
+
+@media (max-width: 850px) {
+  .header-online-text {
+    display: none !important;
+  }
+}
+
 @media (max-width: 768px) {
   .worker-header {
     height: 56px;
     padding: 0 12px;
+  }
+  .live-clock-header {
+    display: none !important;
   }
 }
 

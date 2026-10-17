@@ -120,24 +120,28 @@ const LiveClock = React.memo(function LiveClock({ isMr, variant = 'header' }) {
       <div
         className="live-clock-header"
         style={{
-          display: 'flex',
+          display: 'inline-flex',
           alignItems: 'center',
-          gap: '7px',
-          padding: '5px 10px',
+          gap: '6px',
+          padding: '5px 9px',
           borderRadius: '8px',
           background: '#f8fafc',
           border: '1px solid #e2e8f0',
           fontSize: '11.5px',
           color: '#334155',
           fontWeight: '600',
+          whiteSpace: 'nowrap',
+          flexShrink: 0,
         }}
         title={isMr ? 'भारतीय प्रमाणवेळ (IST)' : 'Indian Standard Time'}
       >
-        <span>🇮🇳</span>
-        <span style={{ fontFamily: 'monospace', fontWeight: '750', color: '#0f172a' }}>
+        <span style={{ fontSize: '13px', lineHeight: 1 }}>⏱️</span>
+        <span style={{ fontFamily: 'monospace', fontWeight: '800', color: '#0f172a', whiteSpace: 'nowrap' }}>
           {formatted.time}
         </span>
-        <span className="live-clock-date" style={{ color: '#94a3b8', fontSize: '11px' }}>({formatted.date})</span>
+        <span className="live-clock-date" style={{ color: '#64748b', fontSize: '11px', whiteSpace: 'nowrap' }}>
+          ({formatted.date})
+        </span>
       </div>
     );
   }
@@ -6006,27 +6010,27 @@ export default function WorkerDashboard() {
               <BackButton fallbackPath="/" text={isMr ? 'मुख्य' : 'Home'} />
             )}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-              <span style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', whiteSpace: 'nowrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, overflow: 'hidden' }}>
+              <span style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '220px' }}>
                 {isMr ? currentNav?.label_mr || activeTab : currentNav?.label_en || activeTab}
               </span>
-              <span style={{ color: '#cbd5e1' }}>•</span>
-              <span style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span className="header-sub-divider" style={{ color: '#cbd5e1' }}>•</span>
+              <span className="header-sub-text" style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {isMr ? 'बूथ कार्य संचलन' : 'Field Operations'}
               </span>
             </div>
           </div>
 
           {/* Right: Network Status, Sync Button, Clock, Attendance Pill, Language Toggle, Profile */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, marginLeft: 'auto' }}>
             {/* Live Network & Offline Sync Status Widget */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
               <div
                 style={{
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  padding: '5px 10px',
+                  padding: '5px 9px',
                   borderRadius: '8px',
                   fontSize: '11.5px',
                   fontWeight: '700',
@@ -6034,14 +6038,16 @@ export default function WorkerDashboard() {
                   border: isOnline ? '1px solid #a7f3d0' : '1px solid #fed7aa',
                   color: isOnline ? '#059669' : '#ea580c',
                   transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
                 }}
                 title={isOnline ? (isMr ? 'इंटरनेट जोडणी सक्रिय (Online)' : 'Connected to server') : (isMr ? 'ऑफलाइन मोड: माहिती डिव्हाइसवर साठवली जात आहे' : 'Offline mode: saving locally')}
               >
-                {isOnline ? <Wifi size={13} /> : <WifiOff size={13} />}
-                <span>
+                {isOnline ? <Wifi size={13} style={{ flexShrink: 0 }} /> : <WifiOff size={13} style={{ flexShrink: 0 }} />}
+                <span className="header-online-text" style={{ whiteSpace: 'nowrap' }}>
                   {isOnline
-                    ? (isMr ? 'ऑनलाइन (Online)' : 'Online')
-                    : (isMr ? 'ऑफलाइन (Offline)' : 'Offline')}
+                    ? (isMr ? 'ऑनलाइन' : 'Online')
+                    : (isMr ? 'ऑफलाइन' : 'Offline')}
                 </span>
               </div>
 
@@ -6052,10 +6058,10 @@ export default function WorkerDashboard() {
                   onClick={() => handleSyncQueue(false)}
                   disabled={isSyncing}
                   style={{
-                    display: 'flex',
+                    display: 'inline-flex',
                     alignItems: 'center',
                     gap: '6px',
-                    padding: '5px 10px',
+                    padding: '5px 9px',
                     borderRadius: '8px',
                     fontSize: '11.5px',
                     fontWeight: '800',
@@ -6064,14 +6070,16 @@ export default function WorkerDashboard() {
                     color: '#b45309',
                     cursor: isSyncing ? 'wait' : 'pointer',
                     boxShadow: '0 1px 3px rgba(180, 83, 9, 0.1)',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
                   }}
                   title={isMr ? 'प्रलंबित ऑफलाइन नोंदी डेटाबेसमध्ये पाठवा' : 'Sync pending offline records'}
                 >
-                  <RefreshCw size={12} style={{ animation: isSyncing ? 'spin 1s linear infinite' : 'none' }} />
-                  <span>
+                  <RefreshCw size={12} style={{ animation: isSyncing ? 'spin 1s linear infinite' : 'none', flexShrink: 0 }} />
+                  <span style={{ whiteSpace: 'nowrap' }}>
                     {isSyncing
-                      ? (isMr ? 'सिंक होत आहे...' : 'Syncing...')
-                      : (isMr ? `⚡ ${offlineQueueCount} सिंक करा` : `⚡ Sync (${offlineQueueCount})`)}
+                      ? (isMr ? 'सिंक...' : 'Syncing...')
+                      : (isMr ? `⚡ ${offlineQueueCount} सिंक` : `⚡ Sync (${offlineQueueCount})`)}
                   </span>
                 </button>
               )}
@@ -6084,7 +6092,7 @@ export default function WorkerDashboard() {
             <div
               onClick={() => setActiveTab('Attendance')}
               style={{
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
                 padding: '5px 10px',
@@ -6093,8 +6101,10 @@ export default function WorkerDashboard() {
                 fontWeight: '700',
                 cursor: 'pointer',
                 background: attendanceState === 'Punched In' ? '#ecfdf5' : attendanceState === 'Completed' ? '#f0fdf4' : '#fff7ed',
-                border: attendanceState === 'Punched In' ? '1px solid #a7f3d0' : attendanceState === 'Completed' ? '1px solid #bbf7d0' : '1px solid #fed7aa',
+                border: attendanceState === 'Punched In' ? '1px solid #a7f3d0' : attendanceState === 'Completed' ? '#bbf7d0' : '1px solid #fed7aa',
                 color: attendanceState === 'Punched In' ? '#059669' : attendanceState === 'Completed' ? '#15803d' : '#ea580c',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
               title={isMr ? 'हजेरी तपशील पहा' : 'View Attendance Details'}
             >
@@ -6104,33 +6114,36 @@ export default function WorkerDashboard() {
                   height: '6px',
                   borderRadius: '3px',
                   background: attendanceState === 'Punched In' ? '#10b981' : attendanceState === 'Completed' ? '#22c55e' : '#f97316',
+                  flexShrink: 0,
                 }}
               />
-              <span>
+              <span style={{ whiteSpace: 'nowrap' }}>
                 {attendanceState === 'Punched In'
-                  ? (isMr ? 'हजर (Punched In)' : 'Punched In')
+                  ? (isMr ? 'हजर (In)' : 'Punched In')
                   : attendanceState === 'Completed'
-                    ? (isMr ? 'काम पूर्ण' : 'Completed')
-                    : (isMr ? 'उपस्थिती बाकी' : 'Not Checked In')}
+                    ? (isMr ? 'पूर्ण' : 'Completed')
+                    : (isMr ? 'हजेरी बाकी' : 'Not Checked In')}
               </span>
             </div>
 
-            {/* Language Switcher (English Primary) */}
+            {/* Language Switcher (Compact & Responsive) */}
             <div
               style={{
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
                 background: '#ffffff',
                 border: '1px solid #cbd5e1',
                 borderRadius: '7px',
                 padding: '2px',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
             >
               <button
                 type="button"
                 onClick={() => changeLanguage('en')}
                 style={{
-                  padding: '3px 9px',
+                  padding: '3px 8px',
                   borderRadius: '5px',
                   border: 'none',
                   fontSize: '11px',
@@ -6138,15 +6151,17 @@ export default function WorkerDashboard() {
                   cursor: 'pointer',
                   background: language === 'en' ? '#c2410c' : 'transparent',
                   color: language === 'en' ? '#ffffff' : '#475569',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                English
+                <span className="lang-full-text">English</span>
+                <span className="lang-short-text">EN</span>
               </button>
               <button
                 type="button"
                 onClick={() => changeLanguage('mr')}
                 style={{
-                  padding: '3px 9px',
+                  padding: '3px 8px',
                   borderRadius: '5px',
                   border: 'none',
                   fontSize: '11px',
@@ -6154,9 +6169,11 @@ export default function WorkerDashboard() {
                   cursor: 'pointer',
                   background: language === 'mr' ? '#c2410c' : 'transparent',
                   color: language === 'mr' ? '#ffffff' : '#475569',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                मराठी
+                <span className="lang-full-text">मराठी</span>
+                <span className="lang-short-text">MR</span>
               </button>
             </div>
 
@@ -6173,6 +6190,7 @@ export default function WorkerDashboard() {
                 justifyContent: 'center',
                 fontWeight: '800',
                 fontSize: '13px',
+                flexShrink: 0,
               }}
               title={profileData.fullName}
             >
