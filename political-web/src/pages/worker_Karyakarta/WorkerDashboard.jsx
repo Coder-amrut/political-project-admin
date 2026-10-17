@@ -5506,12 +5506,6 @@ export default function WorkerDashboard() {
           label_en: 'Field Hierarchy',
           icon: Users,
         },
-        {
-          id: 'User Profile',
-          label_mr: 'अधिकारी प्रोफाइल व माहिती',
-          label_en: 'Officer Profile',
-          icon: User,
-        },
       ],
     },
     {
@@ -5554,7 +5548,14 @@ export default function WorkerDashboard() {
     },
   ];
 
-  const allItems = navSections.flatMap((s) => s.items);
+  const profileNavItem = {
+    id: 'User Profile',
+    label_mr: 'अधिकृत अधिकारी प्रोफाइल व ओळखपत्र',
+    label_en: 'Official Officer Profile & ID',
+    icon: User,
+  };
+
+  const allItems = [...navSections.flatMap((s) => s.items), profileNavItem];
   const currentNav = allItems.find((item) => item.id === activeTab) || allItems[0];
 
   // Search Filtering for Navigation
@@ -6051,54 +6052,83 @@ export default function WorkerDashboard() {
             gap: '8px',
           }}
         >
+          {/* Clickable Profile & ID Card Trigger */}
           <div
+            onClick={() => {
+              setActiveTab('User Profile');
+              if (typeof window !== 'undefined' && window.innerWidth <= 992) {
+                setSidebarOpen(false);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            title={isMr ? 'अधिकृत अधिकारी प्रोफाइल व ओळखपत्र उघडा' : 'View Official Officer Profile & ID Card'}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              padding: isCollapsed ? '4px 0' : '8px 10px',
+              padding: isCollapsed ? '6px 0' : '8px 10px',
               borderRadius: '9px',
-              background: '#ffffff',
-              border: '1.5px solid #bae6fd',
-              justifyContent: isCollapsed ? 'center' : 'flex-start',
-              boxShadow: '0 2px 6px rgba(2, 132, 199, 0.05)',
+              background: activeTab === 'User Profile' ? '#e0f2fe' : '#ffffff',
+              border: activeTab === 'User Profile' ? '1.5px solid #0284c7' : '1.5px solid #bae6fd',
+              justifyContent: isCollapsed ? 'center' : 'space-between',
+              boxShadow: activeTab === 'User Profile' ? '0 2px 8px rgba(2, 132, 199, 0.15)' : '0 2px 6px rgba(2, 132, 199, 0.05)',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseOver={(e) => {
+              if (activeTab !== 'User Profile') {
+                e.currentTarget.style.background = '#f0f9ff';
+                e.currentTarget.style.borderColor = '#0284c7';
+              }
+            }}
+            onMouseOut={(e) => {
+              if (activeTab !== 'User Profile') {
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.borderColor = '#bae6fd';
+              }
             }}
           >
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '13px',
-                fontWeight: '800',
-                flexShrink: 0,
-              }}
-            >
-              {(profileData.fullName || user?.full_name || 'K').charAt(0)}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '13px',
+                  fontWeight: '800',
+                  flexShrink: 0,
+                }}
+              >
+                {(profileData.fullName || user?.full_name || 'K').charAt(0)}
+              </div>
+              {!isCollapsed && (
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: '12.5px',
+                      fontWeight: '800',
+                      color: '#0f172a',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {profileData.fullName || user?.full_name || 'अधिकारी'}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#0369a1', fontWeight: '600' }}>
+                    {isMr ? 'अधिकृत प्रोफाइल व ओळखपत्र' : 'Official Profile & ID'}
+                  </div>
+                </div>
+              )}
             </div>
             {!isCollapsed && (
-              <div style={{ minWidth: 0, flex: 1 }}>
-                <div
-                  style={{
-                    fontSize: '12.5px',
-                    fontWeight: '800',
-                    color: '#0f172a',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {profileData.fullName || user?.full_name || 'अधिकारी'}
-                </div>
-                <div style={{ fontSize: '11px', color: '#0369a1', fontWeight: '600' }}>
-                  {isMr ? 'क्षेत्र अधिकारी' : 'Field Officer'}
-                </div>
-              </div>
+              <ChevronRight size={14} style={{ color: activeTab === 'User Profile' ? '#0284c7' : '#94a3b8', flexShrink: 0 }} />
             )}
           </div>
 
