@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import {
   X,
   Save,
@@ -7,7 +7,9 @@ import {
   Phone,
   User,
   Mail,
-  Shield
+  Shield,
+  Camera,
+  Trash2
 } from 'lucide-react';
 
 export default function ProfileTab({
@@ -21,20 +23,57 @@ export default function ProfileTab({
   saveProfile,
   dashboardStats = { totalAssigned: 0, contactRate: 0, contacted: 0, surveysCompleted: 0 }
 }) {
+  const [profilePhoto, setProfilePhoto] = useState(() => {
+    return profileData.photoUrl || localStorage.getItem('karyakarta_profile_photo') || null;
+  });
+  const fileInputRef = useRef(null);
+
+  const handlePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert(isMr ? 'कृपया ५ MB पेक्षा लहान फोटो निवडा.' : 'Please select a photo smaller than 5 MB.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target.result;
+      setProfilePhoto(dataUrl);
+      try {
+        localStorage.setItem('karyakarta_profile_photo', dataUrl);
+      } catch (err) {
+        console.warn('Could not save photo to localStorage', err);
+      }
+      if (handleProfileChange) {
+        handleProfileChange({ target: { name: 'photoUrl', value: dataUrl } });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemovePhoto = (e) => {
+    e.stopPropagation();
+    if (window.confirm(isMr ? 'फोटो काढून टाकायचा आहे का?' : 'Remove profile photo?')) {
+      setProfilePhoto(null);
+      localStorage.removeItem('karyakarta_profile_photo');
+      if (handleProfileChange) {
+        handleProfileChange({ target: { name: 'photoUrl', value: '' } });
+      }
+    }
+  };
+
   return (
     <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
       {/* Subheader & Action Bar */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <div style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>👤 {isMr ? 'अधिकृत अधिकारी प्रोफाइल व ओळखपत्र' : 'Official Officer Profile & ID'}</span>
-            <span style={{ fontSize: '11px', background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '2px 8px', borderRadius: '12px', fontWeight: '700' }}>
-              {isMr ? 'सक्रिय व अधिकृत' : 'Verified'}
-            </span>
+            <span>👤 {isMr ? 'प्रोफाइल' : 'Profile'}</span>
+
           </div>
-          <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px' }}>
-            {isMr ? 'वैयक्तिक तपशील, नियुक्त प्रभाग, मतदान केंद्र आणि पक्ष कार्य अहवाल.' : 'Personal information, assigned ward & booth, and service record.'}
-          </div>
+
         </div>
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -114,43 +153,24 @@ export default function ProfileTab({
             position: 'relative',
           }}
         >
-          {/* Ashoka Chakra Background Watermark */}
-          <div
-            style={{
-              position: 'absolute',
-              right: '20px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              opacity: 0.12,
-              pointerEvents: 'none',
-            }}
-          >
-            <svg width="140" height="140" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="46" fill="none" stroke="#ffffff" strokeWidth="2" />
-              <circle cx="50" cy="50" r="10" fill="none" stroke="#ffffff" strokeWidth="2" />
-              {Array.from({ length: 24 }).map((_, i) => (
-                <line
-                  key={i}
-                  x1="50"
-                  y1="50"
-                  x2={50 + 46 * Math.cos((i * 15 * Math.PI) / 180)}
-                  y2={50 + 46 * Math.sin((i * 15 * Math.PI) / 180)}
-                  stroke="#ffffff"
-                  strokeWidth="1.2"
-                />
-              ))}
-            </svg>
-          </div>
-
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', position: 'relative', zIndex: 2 }}>
-            {/* Avatar with Status Ring */}
+            {/* Avatar with Status Ring & Photo Upload */}
             <div style={{ position: 'relative' }}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handlePhotoUpload}
+              />
+
               <div
+                onClick={() => fileInputRef.current?.click()}
                 style={{
-                  width: '76px',
-                  height: '76px',
+                  width: '80px',
+                  height: '80px',
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #FF671F 0%, #ea580c 100%)',
+                  background: profilePhoto ? '#0f172a' : 'linear-gradient(135deg, #FF671F 0%, #ea580c 100%)',
                   color: '#ffffff',
                   display: 'flex',
                   alignItems: 'center',
@@ -158,11 +178,98 @@ export default function ProfileTab({
                   fontSize: '32px',
                   fontWeight: '900',
                   border: '3px solid #ffffff',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  userSelect: 'none'
                 }}
+                title={isMr ? 'प्रोफाइल फोटो अपलोड करण्यासाठी क्लिक करा' : 'Click to upload profile photo'}
               >
-                {(profileData.fullName || user?.full_name || 'K').charAt(0)}
+                {profilePhoto ? (
+                  <img
+                    src={profilePhoto}
+                    alt="Profile"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  <span>{(profileData.fullName || user?.full_name || 'K').charAt(0)}</span>
+                )}
+
+                {/* Hover Camera Overlay */}
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'rgba(0,0,0,0.45)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: 0,
+                    transition: 'opacity 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '0')}
+                >
+                  <Camera size={24} color="#ffffff" />
+                </div>
               </div>
+
+              {/* Camera Upload Button Badge */}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-4px',
+                  width: '26px',
+                  height: '26px',
+                  borderRadius: '50%',
+                  background: '#ffffff',
+                  border: '1.5px solid #e2e8f0',
+                  color: '#ea580c',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                  padding: 0
+                }}
+                title={isMr ? 'फोटो अपलोड करा' : 'Upload photo'}
+              >
+                <Camera size={13} />
+              </button>
+
+              {/* If photo exists, show a remove button */}
+              {profilePhoto && (
+                <button
+                  type="button"
+                  onClick={handleRemovePhoto}
+                  style={{
+                    position: 'absolute',
+                    top: '-4px',
+                    left: '-4px',
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    background: '#ef4444',
+                    border: '1.5px solid #ffffff',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+                    padding: 0
+                  }}
+                  title={isMr ? 'फोटो हटवा' : 'Remove photo'}
+                >
+                  <Trash2 size={12} />
+                </button>
+              )}
+
+              {/* Active Status Indicator */}
               <span
                 style={{
                   position: 'absolute',
@@ -173,6 +280,7 @@ export default function ProfileTab({
                   borderRadius: '50%',
                   background: '#10b981',
                   border: '2px solid #ffffff',
+                  boxShadow: '0 0 6px #10b981'
                 }}
                 title={isMr ? 'सक्रिय अधिकारी' : 'Active Officer'}
               />
