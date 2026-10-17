@@ -263,8 +263,8 @@ export default function OfficerDashboard() {
       items: [
         {
           id: 'workers_performance',
-          label_mr: 'कार्यकर्त्यांचे काम व कामगिरी डॅशबोर्ड',
-          label_en: 'Karyakarta Work & Performance',
+          label_mr: 'अधिकाऱ्यांचे काम व कामगिरी डॅशबोर्ड',
+          label_en: 'Field Officer Performance',
           iconKey: 'workers_performance',
           badge: `${activeWorkersCount} ${isMr ? 'सक्रिय' : 'Active'}`,
           badgeTheme: 'amber',

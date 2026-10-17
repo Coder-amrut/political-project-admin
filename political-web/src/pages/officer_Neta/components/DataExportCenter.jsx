@@ -108,13 +108,13 @@ export default function DataExportCenter({ lang = 'mr' }) {
         } else {
           setPrintableData({
             title: isMr ? 'प्रणाली वापरकर्ते व पदाधिकारी यादी (System Users Roster)' : 'System Users & Officers Directory',
-            subtitle: isMr ? '२८२ - सांगली विधानसभा मतदारसंघ | ॲडमिन, अधिकारी व कार्यकर्ते' : '282 - Sangli Assembly | Admin, Officers & Workers',
+            subtitle: isMr ? '२८२ - सांगली विधानसभा मतदारसंघ | ॲडमिन व क्षेत्र अधिकारी' : '282 - Sangli Assembly | Admin & Field Officers',
             filters: { [isMr ? 'एकूण वापरकर्ते' : 'Total Users']: records.length },
             summaryStats: [
               { label: isMr ? 'एकूण खाती' : 'Total Accounts', value: records.length },
               { label: isMr ? 'ॲडमिन' : 'Admins', value: records.filter((u) => (u.roles || '').includes('ADMIN')).length },
               { label: isMr ? 'अधिकारी' : 'Officers', value: records.filter((u) => (u.roles || '').includes('OFFICER')).length },
-              { label: isMr ? 'कार्यकर्ते' : 'Workers', value: records.filter((u) => (u.roles || '').includes('WORKER')).length },
+              { label: isMr ? 'क्षेत्र अधिकारी' : 'Field Officers', value: records.filter((u) => (u.roles || '').includes('WORKER')).length },
             ],
             headers,
             rows,
@@ -122,8 +122,8 @@ export default function DataExportCenter({ lang = 'mr' }) {
         }
       } else if (targetType === 'surveys') {
         const headers = isMr
-          ? ['सर्व्हे कोड', 'फॉर्मचे नाव', 'मतदाराचे नाव', 'EPIC मतदार ओळखपत्र', 'मोबाईल', 'बूथ क्र.', 'गाव / परिसर', 'सर्व्हेयर कार्यकर्ता', 'स्थिती', 'तारीख']
-          : ['Survey Code', 'Form Name', 'Voter Name', 'EPIC Voter ID', 'Phone', 'Booth No', 'Village', 'Field Worker', 'Status', 'Date'];
+          ? ['सर्व्हे कोड', 'फॉर्मचे नाव', 'मतदाराचे नाव', 'EPIC मतदार ओळखपत्र', 'मोबाईल', 'बूथ क्र.', 'गाव / परिसर', 'सर्व्हेयर अधिकारी', 'स्थिती', 'तारीख']
+          : ['Survey Code', 'Form Name', 'Voter Name', 'EPIC Voter ID', 'Phone', 'Booth No', 'Village', 'Field Officer', 'Status', 'Date'];
         const rows = records.map((s) => [
           s.submission_code || `SUB-${s.id}`,
           isMr ? (s.form_title_mr || 'मतदार पाहणी') : (s.form_title_en || s.form_title_mr || 'Voter Survey'),
@@ -155,8 +155,8 @@ export default function DataExportCenter({ lang = 'mr' }) {
         }
       } else if (targetType === 'crm_citizens') {
         const headers = isMr
-          ? ['नाव', 'EPIC ओळखपत्र', 'मोबाईल', 'वय/लिंग', 'बूथ क्र.', 'पत्ता', 'राजकीय कल', 'जबाबदार कार्यकर्ता']
-          : ['Name', 'EPIC Voter ID', 'Phone', 'Age / Gender', 'Booth No', 'Address', 'Political Sentiment', 'Assigned Worker'];
+          ? ['नाव', 'EPIC ओळखपत्र', 'मोबाईल', 'वय/लिंग', 'बूथ क्र.', 'पत्ता', 'राजकीय कल', 'जबाबदार अधिकारी']
+          : ['Name', 'EPIC Voter ID', 'Phone', 'Age / Gender', 'Booth No', 'Address', 'Political Sentiment', 'Assigned Officer'];
         const rows = records.map((c) => [
           isMr ? c.full_name_mr : (c.full_name_en || c.full_name_mr),
           c.voter_id_number || '-',
@@ -236,11 +236,11 @@ export default function DataExportCenter({ lang = 'mr' }) {
           exportToCSV(`Karyakarta_Roster_${nowStr}.csv`, headers, rows);
         } else {
           setPrintableData({
-            title: isMr ? 'कार्यकर्ते कामगिरी व क्षेत्रीय हजेरी अहवाल' : 'Worker Performance Roster',
+            title: isMr ? 'क्षेत्र अधिकारी कामगिरी व हजेरी अहवाल' : 'Field Officer Performance Roster',
             subtitle: isMr ? '२८२ - सांगली विधानसभा मतदारसंघ | संघटन कक्ष' : '282 - Sangli Assembly Constituency | Operations Desk',
-            filters: { [isMr ? 'एकूण कार्यकर्ते' : 'Worker Count']: records.length },
+            filters: { [isMr ? 'एकूण अधिकारी' : 'Officer Count']: records.length },
             summaryStats: [
-              { label: isMr ? 'नोंदणीकृत कार्यकर्ते' : 'Total Workers', value: records.length },
+              { label: isMr ? 'नोंदणीकृत अधिकारी' : 'Total Officers', value: records.length },
               { label: isMr ? 'सक्रिय' : 'Active', value: records.filter((w) => w.status === 'active').length },
             ],
             headers,
@@ -385,8 +385,8 @@ export default function DataExportCenter({ lang = 'mr' }) {
       id: 'users',
       title_mr: 'युझर व ॲडमिन डेटा (User Accounts)',
       title_en: 'User Accounts & Roles',
-      desc_mr: 'सर्व ॲडमिन, अधिकारी, कार्यकर्ते फोन व भूमिका तपशील',
-      desc_en: 'All admin, officer and worker accounts with roles & phones',
+      desc_mr: 'सर्व ॲडमिन, नेते व क्षेत्र अधिकारी फोन व भूमिका तपशील',
+      desc_en: 'All admin, leader and field officer accounts with roles & phones',
       icon: '👤',
       badge: isMr ? 'खाती' : 'Accounts',
       badgeColor: '#2563eb',
@@ -395,7 +395,7 @@ export default function DataExportCenter({ lang = 'mr' }) {
       id: 'surveys',
       title_mr: 'मतदार सर्वेक्षण डेटा (Field Surveys)',
       title_en: 'Field Survey Submissions',
-      desc_mr: 'प्रत्यक्ष जमिनीवर कार्यकर्त्यांनी भरलेले मतदार पाहणी सर्व्हे',
+      desc_mr: 'प्रत्यक्ष जमिनीवर अधिकाऱ्यांनी भरलेले मतदार पाहणी सर्व्हे',
       desc_en: 'Voter surveys filled on the ground with voter ID & responses',
       icon: '📋',
       badge: isMr ? 'सर्व्हे' : 'Surveys',
@@ -413,12 +413,12 @@ export default function DataExportCenter({ lang = 'mr' }) {
     },
     {
       id: 'workers',
-      title_mr: 'कार्यकर्ते व कामगिरी अहवाल',
-      title_en: 'Worker Roster & Performance',
-      desc_mr: 'कार्यकर्त्यांची हजेरी, बूथ वाटप, पूर्ण झालेले सर्व्हे व रेटिंग',
-      desc_en: 'Worker directory, booth allocations, surveys completed & rating',
+      title_mr: 'क्षेत्र अधिकारी व कामगिरी अहवाल',
+      title_en: 'Field Officer Roster & Performance',
+      desc_mr: 'अधिकाऱ्यांची हजेरी, बूथ वाटप, पूर्ण झालेले सर्व्हे व रेटिंग',
+      desc_en: 'Officer directory, booth allocations, surveys completed & rating',
       icon: '🚩',
-      badge: isMr ? 'कार्यकर्ते' : 'Workers',
+      badge: isMr ? 'अधिकारी' : 'Officers',
       badgeColor: '#d97706',
     },
     {

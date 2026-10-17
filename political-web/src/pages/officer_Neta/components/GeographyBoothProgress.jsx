@@ -590,7 +590,7 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
                 </a>
               </div>
               <div>
-                <strong>🚩 {isMr ? 'नेमलेले कार्यकर्ते:' : 'Assigned Workers:'}</strong> {selectedBoothModal.workers_assigned} {isMr ? 'कार्यकर्ते' : 'workers'}
+                <strong>🚩 {isMr ? 'नेमलेले अधिकारी:' : 'Assigned Officers:'}</strong> {selectedBoothModal.workers_assigned} {isMr ? 'अधिकारी' : 'officers'}
               </div>
               <div>
                 <strong>⚠️ {isMr ? 'स्थानिक प्रमुख मागणी/समस्या:' : 'Key Issue:'}</strong>{' '}

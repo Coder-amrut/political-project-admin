@@ -209,7 +209,7 @@ export default function DataApprovalWorkbench({ lang = 'mr' }) {
         <div style={{ flex: '1 1 240px' }}>
           <input
             type="text"
-            placeholder={isMr ? '🔍 नाव, मतदार ओळखपत्र, फोन किंवा कार्यकर्त्याचे नाव...' : 'Search submissions...'}
+            placeholder={isMr ? '🔍 नाव, मतदार ओळखपत्र, फोन किंवा अधिकाऱ्याचे नाव...' : 'Search submissions...'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
@@ -261,7 +261,7 @@ export default function DataApprovalWorkbench({ lang = 'mr' }) {
                   <th style={{ padding: '12px 16px' }}>{isMr ? 'कोड व नागरिक' : 'Code & Citizen'}</th>
                   <th style={{ padding: '12px 16px' }}>{isMr ? 'मतदार ओळखपत्र / फोन' : 'Voter ID / Phone'}</th>
                   <th style={{ padding: '12px 16px' }}>{isMr ? 'बूथ व परिसर' : 'Booth & Area'}</th>
-                  <th style={{ padding: '12px 16px' }}>{isMr ? 'सादरकर्ता कार्यकर्ता' : 'Submitted By'}</th>
+                  <th style={{ padding: '12px 16px' }}>{isMr ? 'सादरकर्ता अधिकारी' : 'Submitted By'}</th>
                   <th style={{ padding: '12px 16px' }}>{isMr ? 'सद्यस्थिती' : 'Status'}</th>
                   <th style={{ padding: '12px 16px', textAlign: 'right' }}>{isMr ? 'कृती' : 'Action'}</th>
                 </tr>
@@ -610,8 +610,8 @@ export default function DataApprovalWorkbench({ lang = 'mr' }) {
             </h3>
             <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
               {isMr
-                ? 'कार्यकर्त्याला ही नोंद का नाकारली याचे स्पष्ट कारण द्या, जेणेकरून ते दुरुस्त करून पुन्हा पाठवू शकतील.'
-                : 'Provide a clear rejection reason so the field worker can correct and resubmit.'}
+                ? 'अधिकाऱ्याला ही नोंद का नाकारली याचे स्पष्ट कारण द्या, जेणेकरून ते दुरुस्त करून पुन्हा पाठवू शकतील.'
+                : 'Provide a clear rejection reason so the field officer can correct and resubmit.'}
             </p>
 
             <form onSubmit={handleReject}>

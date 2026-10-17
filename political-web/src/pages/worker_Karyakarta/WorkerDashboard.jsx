@@ -785,100 +785,6 @@ export default function WorkerDashboard() {
     teal: { bg: '#f0fdfa', border: '#99f6e4', text: '#0f766e' },
   };
 
-  const navSections = [
-    {
-      id: 'core_ops',
-      title_mr: 'मुख्य नियंत्रण व उपस्थिती',
-      title_en: 'COMMAND & ATTENDANCE',
-      items: [
-        {
-          id: 'Dashboard',
-          label_mr: 'कार्यकर्ता डॅशबोर्ड',
-          label_en: 'Field Overview Dashboard',
-          icon: LayoutDashboard,
-          badge: isMr ? 'थेट डेटा' : 'Live DB',
-          badgeTheme: 'live',
-        },
-        {
-          id: 'Attendance',
-          label_mr: 'डिजिटल उपस्थिती व सेल्फी पंच',
-          label_en: 'Geo Attendance Desk',
-          icon: CalendarCheck,
-          badge: attendanceState === 'Punched In' ? (isMr ? 'हजर' : 'Punched In') : isMr ? 'GPS थेट' : 'GPS Live',
-          badgeTheme: attendanceState === 'Punched In' ? 'live' : 'blue',
-        },
-        {
-          id: 'User Profile',
-          label_mr: 'कार्यकर्ता प्रोफाइल व माहिती',
-          label_en: 'Karyakarta Profile',
-          icon: User,
-          badge: isMr ? 'सक्रिय' : 'Active',
-          badgeTheme: 'amber',
-        },
-        {
-          id: 'Hierarchy',
-          label_mr: '६-स्तरीय क्षेत्ररचना दर्शक',
-          label_en: 'Geography Hierarchy (State to Booth)',
-          icon: Compass,
-          badge: isMr ? '६ स्तर' : '6 Levels',
-          badgeTheme: 'teal',
-        },
-      ],
-    },
-    {
-      id: 'voter_engagement',
-      title_mr: 'मतदार संपर्क, पाहणी व कृती',
-      title_en: 'VOTER ENGAGEMENT & FIELD ACTION',
-      items: [
-        {
-          id: 'Survey',
-          label_mr: 'कुटुंब व मतदार सर्वेक्षण',
-          label_en: 'Household Survey Desk',
-          icon: ClipboardCheck,
-          badge: surveysList.length > 0 ? `${surveysList.length} ${isMr ? 'फॉर्म' : 'Forms'}` : (isMr ? 'थेट' : 'Live'),
-          badgeTheme: 'purple',
-        },
-        {
-          id: 'Contact & Meetings',
-          label_mr: 'नागरिक संपर्क व बैठका',
-          label_en: 'Citizen Connect & Meetings',
-          icon: Calendar,
-        },
-        {
-          id: 'Complaints',
-          label_mr: 'नागरिकांच्या समस्या व विनंत्या',
-          label_en: 'Citizen Grievances & Requests',
-          icon: AlertCircle,
-          badge: complaintsData.filter((c) => c.status === 'Pending').length > 0 ? `${complaintsData.filter((c) => c.status === 'Pending').length} ${isMr ? 'बाकी' : 'Pending'}` : (isMr ? 'थेट' : 'Live'),
-          badgeTheme: 'amber',
-        },
-        {
-          id: 'Tasks',
-          label_mr: 'कार्ये व मतदार पाठपुरावा',
-          label_en: 'Tasks & Citizen Follow-ups',
-          icon: CheckSquare,
-          badge: tasksList.filter((t) => !t.completed).length > 0 ? `${tasksList.filter((t) => !t.completed).length} ${isMr ? 'कामे' : 'Tasks'}` : null,
-          badgeTheme: 'blue',
-        },
-      ],
-    },
-    {
-      id: 'election_voting',
-      title_mr: 'निवडणूक व मतदान कक्ष',
-      title_en: 'ELECTION & VOTING',
-      items: [
-        {
-          id: 'Voting',
-          label_mr: 'डेमो EVM मतदान यंत्र',
-          label_en: 'Digital EVM Voting Machine',
-          icon: CheckSquare,
-          badge: isMr ? 'EVM थेट' : 'Live EVM',
-          badgeTheme: 'live',
-        },
-      ],
-    },
-  ];
-
   const addActivity = (type, title, bgColor, color) => {
     setActivities((prev) => [
       { id: Date.now(), type, bgColor, color, title, time: 'आत्ताच (Just now)' },
@@ -1106,7 +1012,7 @@ export default function WorkerDashboard() {
       setIsEditingProfile(false);
       loadProfile();
       loadOverview();
-      alert(language === 'mr' ? 'कार्यकर्ता माहिती यशस्वीरीत्या जतन झाली!' : 'Profile updated successfully!');
+      alert(language === 'mr' ? 'अधिकारी माहिती यशस्वीरीत्या जतन झाली!' : 'Profile updated successfully!');
     } catch (err) {
       console.error('Save profile error:', err);
       alert('माहिती जतन करताना त्रुटी आली.');
@@ -1424,7 +1330,7 @@ export default function WorkerDashboard() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div>
               <div style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span>🚩 {isMr ? 'कार्यकर्ता व बूथ डॅशबोर्ड' : 'Karyakarta Field Overview Dashboard'}</span>
+                <span>🚩 {isMr ? 'अधिकारी व बूथ डॅशबोर्ड' : 'Field Officer Overview Dashboard'}</span>
 
                 <span style={{ fontSize: '11px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '2px 8px', borderRadius: '12px', fontWeight: '700' }}>
                   🇮🇳 {profileData.assignedWard ? `${isMr ? 'प्रभाग' : 'Ward'} ${profileData.assignedWard}` : 'Sangli Central'}
@@ -1848,7 +1754,7 @@ export default function WorkerDashboard() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div>
               <div style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>👤 {isMr ? 'अधिकृत कार्यकर्ता प्रोफाइल व ओळखपत्र' : 'Official Karyakarta Profile & ID'}</span>
+                <span>👤 {isMr ? 'अधिकृत अधिकारी प्रोफाइल व ओळखपत्र' : 'Official Officer Profile & ID'}</span>
                 <span style={{ fontSize: '11px', background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '2px 8px', borderRadius: '12px', fontWeight: '700' }}>
                   {isMr ? 'सक्रिय व अधिकृत' : 'Verified'}
                 </span>
@@ -1995,14 +1901,14 @@ export default function WorkerDashboard() {
                       background: '#10b981',
                       border: '2px solid #ffffff',
                     }}
-                    title={isMr ? 'सक्रिय कार्यकर्ता' : 'Active'}
+                    title={isMr ? 'सक्रिय अधिकारी' : 'Active Officer'}
                   />
                 </div>
 
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <h2 style={{ fontSize: '22px', fontWeight: '900', margin: 0, color: '#ffffff' }}>
-                      {profileData.fullName || user?.full_name || 'कार्यकर्ता'}
+                      {profileData.fullName || user?.full_name || 'अधिकारी'}
                     </h2>
                     <span
                       style={{
@@ -2020,7 +1926,7 @@ export default function WorkerDashboard() {
                   </div>
 
                   <div style={{ fontSize: '13px', color: '#fed7aa', fontWeight: '700', marginTop: '3px' }}>
-                    🚩 {profileData.responsibility || (isMr ? 'बूथ समन्वयक व प्रभाग कार्यकर्ता' : 'Ward & Booth Coordinator')}
+                    🚩 {profileData.responsibility || (isMr ? 'बूथ समन्वयक व प्रभाग अधिकारी' : 'Ward & Booth Coordinator')}
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '12px', color: '#cbd5e1', marginTop: '6px', flexWrap: 'wrap' }}>
@@ -2694,7 +2600,7 @@ export default function WorkerDashboard() {
                     {isSchedulingMeeting ? (isMr ? 'नवीन बैठक निश्चित करा' : 'Schedule New Campaign Meeting') : (isMr ? 'आगामी बैठका व संवाद' : 'Upcoming Campaign Meetings')}
                   </h2>
                   <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                    {isMr ? 'कार्यकर्ता व मतदार बैठकांचे नियोजन करा.' : 'Plan, coordinate, and review local booth gathering sessions.'}
+                    {isMr ? 'अधिकारी व मतदार बैठकांचे नियोजन करा.' : 'Plan, coordinate, and review local booth gathering sessions.'}
                   </div>
                 </div>
                 {!isSchedulingMeeting && (
@@ -5350,7 +5256,7 @@ export default function WorkerDashboard() {
         { level: 3, name_mr: 'विधानसभा (Assembly)', name_en: 'Assembly', value_mr: '२८२ सांगली विधानसभा मतदारसंघ', code: 'AC-282', icon: '🗳️', desc_mr: 'विधानसभा निवडणूक कार्यक्षेत्र' },
         { level: 4, name_mr: 'तालुका / प्रभाग (Taluka / Ward)', name_en: 'Taluka / Ward', value_mr: 'मिरज तालुका / प्रभाग क्रमांक १२', code: 'TAL-MIRAJ', icon: '📍', desc_mr: 'स्थानिक स्वराज्य संस्था प्रभाग' },
         { level: 5, name_mr: 'गाव / शहर परिसर (Village / Area)', name_en: 'Village / Area', value_mr: 'सांगली शहर मध्य / वॉर्ड परिसर', code: 'VIL-SANGLI', icon: '🏘️', desc_mr: 'नागरी वस्ती व लोकवस्ती कार्यक्षेत्र' },
-        { level: 6, name_mr: 'बूथ / भाग (Booth / Part)', name_en: 'Booth / Part', value_mr: 'बूथ क्र. १ ते १४ (प्राथमिक शाळा केंद्र)', code: 'BOOTH-12/1', icon: '🎯', desc_mr: 'कार्यकर्त्याचे प्रत्यक्ष नियुक्त मतदान केंद्र' },
+        { level: 6, name_mr: 'बूथ / भाग (Booth / Part)', name_en: 'Booth / Part', value_mr: 'बूथ क्र. १ ते १४ (प्राथमिक शाळा केंद्र)', code: 'BOOTH-12/1', icon: '🎯', desc_mr: 'अधिकाऱ्याचे प्रत्यक्ष नियुक्त मतदान केंद्र' },
       ];
 
       return (
@@ -5566,7 +5472,7 @@ export default function WorkerDashboard() {
                     border: '1px solid rgba(255, 103, 31, 0.4)',
                     boxShadow: '0 2px 8px rgba(0, 0, 128, 0.25)',
                   }}
-                  title={isMr ? 'भारत • कार्यकर्ता व बूथ कक्ष' : 'India • Karyakarta Field HQ'}
+                  title={isMr ? 'भारत • अधिकारी व बूथ कक्ष' : 'India • Field Officer HQ'}
                 >
                   <svg width="22" height="15" viewBox="0 0 36 24" style={{ borderRadius: '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.35)' }}>
                     <rect width="36" height="8" fill="#FF9933" />
@@ -5601,7 +5507,7 @@ export default function WorkerDashboard() {
                         textOverflow: 'ellipsis',
                       }}
                     >
-                      {isMr ? 'कार्यकर्ता व बूथ कक्ष' : 'Karyakarta Field HQ'}
+                      {isMr ? 'अधिकारी व बूथ कक्ष' : 'Field Officer HQ'}
                     </div>
                     <div
                       style={{
@@ -6017,10 +5923,10 @@ export default function WorkerDashboard() {
                     textOverflow: 'ellipsis',
                   }}
                 >
-                  {profileData.fullName || user?.full_name || 'कार्यकर्ता'}
+                  {profileData.fullName || user?.full_name || 'अधिकारी'}
                 </div>
                 <div style={{ fontSize: '10.5px', color: '#64748b' }}>
-                  {isMr ? 'बूथ कार्यकर्ता' : 'Field Worker'}
+                  {isMr ? 'क्षेत्र अधिकारी' : 'Field Officer'}
                 </div>
               </div>
             )}

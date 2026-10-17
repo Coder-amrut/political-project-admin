@@ -425,8 +425,8 @@ export default function ImportantReports({ lang = 'mr' }) {
                   </div>
                   <div style={{ fontSize: '12px', color: '#334155', marginTop: '4px' }}>
                     {isMr
-                      ? 'तात्काळ अतिरिक्त कार्यकर्ते पाठवून नागरिकांच्या स्थानिक तक्रारींचे निवारण करावे.'
-                      : 'Urgent deployment of reinforcement karyakartas to redress grievances.'}
+                      ? 'तात्काळ अतिरिक्त अधिकारी पाठवून नागरिकांच्या स्थानिक तक्रारींचे निवारण करावे.'
+                      : 'Urgent deployment of reinforcement officers to redress grievances.'}
                   </div>
                 </div>
               )}

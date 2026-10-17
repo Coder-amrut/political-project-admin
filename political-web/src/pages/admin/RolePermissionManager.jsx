@@ -72,7 +72,7 @@ const SIMPLE_PERMISSIONS_CONFIG = {
     title_en: 'Tour & Meetings',
     title_mr: 'दौरे, सभा व बैठका',
     desc_en: 'Schedule and manage rallies, leader visits, and cadre meetings.',
-    desc_mr: 'राजकीय सभा, नेत्यांचे क्षेत्रीय दौरे आणि कार्यकर्ता बैठका नियोजन.',
+    desc_mr: 'राजकीय सभा, नेत्यांचे क्षेत्रीय दौरे आणि अधिकारी बैठका नियोजन.',
     color: '#7c3aed',
   },
   strategic_reports: {
@@ -273,8 +273,8 @@ export default function RolePermissionManager({
         await loadUsers();
         if (onNotice) {
           onNotice(isMr
-            ? `${selectedWorker?.full_name} या कार्यकर्त्याच्या परवानग्या सेव्ह झाल्या.`
-            : `Permissions for worker "${selectedWorker?.full_name}" saved successfully.`);
+            ? `${selectedWorker?.full_name} या अधिकाऱ्याच्या परवानग्या सेव्ह झाल्या.`
+            : `Permissions for officer "${selectedWorker?.full_name}" saved successfully.`);
         }
         setOriginalPermIds(new Set(stagedPermIds));
       }
@@ -369,8 +369,8 @@ export default function RolePermissionManager({
               </div>
               <p style={{ margin: '4px 0 0 0', fontSize: 13, color: '#64748b' }}>
                 {isMr
-                  ? 'भूमिका निवडा किंवा खालील ड्रॉपडाऊनमधून थेट क्षेत्रीय कार्यकर्ता निवडून परवानग्या चालू/बंद करा.'
-                  : 'Select a role or choose any Field Worker from the dropdown to turn permissions ON or OFF.'}
+                  ? 'भूमिका निवडा किंवा खालील ड्रॉपडाऊनमधून थेट क्षेत्र अधिकारी निवडून परवानग्या चालू/बंद करा.'
+                  : 'Select a role or choose any Field Officer from the dropdown to turn permissions ON or OFF.'}
               </p>
             </div>
 
@@ -474,10 +474,10 @@ export default function RolePermissionManager({
             {/* Option 2: PROMINENT FIELD WORKER DROPDOWN */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <label style={{ fontSize: 12, fontWeight: 750, color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span>👷</span>
-                <span>{isMr ? '२. थेट क्षेत्रीय कार्यकर्ता निवडा (Field Worker Dropdown):' : '2. Select Field Worker Directly:'}</span>
+                <span>👮</span>
+                <span>{isMr ? '२. थेट क्षेत्र अधिकारी निवडा (Field Officer Dropdown):' : '2. Select Field Officer Directly:'}</span>
                 <span style={{ fontSize: 11, color: '#059669', background: '#ecfdf5', padding: '1px 7px', borderRadius: 4, fontWeight: 700 }}>
-                  {fieldWorkers.length} {isMr ? 'कार्यकर्ते' : 'Workers'}
+                  {fieldWorkers.length} {isMr ? 'अधिकारी' : 'Officers'}
                 </span>
               </label>
 
@@ -509,14 +509,14 @@ export default function RolePermissionManager({
                   }}
                 >
                   <option value="">
-                    {isMr ? '▼ येथे क्लिक करून क्षेत्रीय कार्यकर्ता निवडा...' : '▼ Click here to select a Field Worker...'}
+                    {isMr ? '▼ येथे क्लिक करून क्षेत्र अधिकारी निवडा...' : '▼ Click here to select a Field Officer...'}
                   </option>
 
                   {/* Field Workers Group */}
-                  <optgroup label={isMr ? '👷 क्षेत्रीय कार्यकर्ते (Field Workers)' : '👷 Field Workers'}>
+                  <optgroup label={isMr ? '👮 क्षेत्र अधिकारी (Field Officers)' : '👮 Field Officers'}>
                     {fieldWorkers.map((u) => (
                       <option key={u.id} value={u.id}>
-                        👤 {u.full_name} (Field Worker · 📞 {u.phone || 'N/A'})
+                        👤 {u.full_name} (Field Officer · 📞 {u.phone || 'N/A'})
                       </option>
                     ))}
                   </optgroup>
@@ -640,7 +640,7 @@ export default function RolePermissionManager({
                   {isMr ? 'परवानगी (Simple Permission)' : 'Simple Permission'}
                 </th>
                 <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 750, color: '#475569' }}>
-                  {isMr ? 'क्षेत्रीय कार्यकर्ते (Field Workers Dropdown)' : 'Field Workers Assigned (Dropdown)'}
+                  {isMr ? 'क्षेत्र अधिकारी (Field Officers Dropdown)' : 'Field Officers Assigned (Dropdown)'}
                 </th>
                 <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 750, color: '#475569', width: 140, textAlign: 'right' }}>
                   {isMr ? 'चालू / बंद' : 'Toggle'}
@@ -777,7 +777,7 @@ export default function RolePermissionManager({
                               >
                                 <option value="" disabled>
                                   {isGranted
-                                    ? `👥 ${isMr ? 'कार्यकर्त्यांची नावे पहा' : 'View Assigned Workers'} (${roleUsersWithPerm.length}) ▼`
+                                    ? `👥 ${isMr ? 'अधिकाऱ्यांची नावे पहा' : 'View Assigned Officers'} (${roleUsersWithPerm.length}) ▼`
                                     : `⚪ ${isMr ? 'या भूमिकेत परवानगी बंद आहे' : 'Disabled for this role'} ▼`}
                                 </option>
 
@@ -789,7 +789,7 @@ export default function RolePermissionManager({
 
                                 <option disabled>──────────────────────────</option>
                                 <option value="ADD_WORKER">
-                                  ➕ {isMr ? 'विशिष्ट कार्यकर्त्यास ही परवानगी द्या...' : 'Assign to particular worker...'}
+                                  ➕ {isMr ? 'विशिष्ट अधिकाऱ्यास ही परवानगी द्या...' : 'Assign to particular officer...'}
                                 </option>
                               </select>
                             </div>
@@ -960,7 +960,7 @@ export default function RolePermissionManager({
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 20 }}>➕</span>
                 <strong style={{ fontSize: 16, color: '#0f172a' }}>
-                  {isMr ? 'विशिष्ट कार्यकर्त्यास परवानगी द्या' : 'Assign Permission to Worker'}
+                  {isMr ? 'विशिष्ट अधिकाऱ्यास परवानगी द्या' : 'Assign Permission to Officer'}
                 </strong>
               </div>
               <button
@@ -973,13 +973,13 @@ export default function RolePermissionManager({
 
             <p style={{ margin: '0 0 16px 0', fontSize: 13, color: '#64748b' }}>
               {isMr
-                ? `खालील कार्यकर्त्यास "${assignModal.permName}" ही परवानगी थेट दिली जाईल:`
-                : `Grant permission "${assignModal.permName}" directly to the selected worker:`}
+                ? `खालील अधिकाऱ्यास "${assignModal.permName}" ही परवानगी थेट दिली जाईल:`
+                : `Grant permission "${assignModal.permName}" directly to the selected officer:`}
             </p>
 
             <div style={{ marginBottom: 20 }}>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 6 }}>
-                {isMr ? 'कार्यकर्ता निवडा (Select Worker):' : 'Select Worker:'}
+                {isMr ? 'अधिकारी निवडा (Select Officer):' : 'Select Officer:'}
               </label>
               <select
                 value={assignTargetUserId}

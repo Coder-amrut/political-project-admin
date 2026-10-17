@@ -537,8 +537,8 @@ export default function UserAttendanceManager({ language = 'mr' }) {
             </h1>
             <p style={{ margin: 0, color: '#94a3b8', fontSize: '14px', maxWidth: '640px' }}>
               {isMr
-                ? 'सर्व कार्यकर्त्यांची व अधिकाऱ्यांची पत्त्यासह दैनंदिन उपस्थिती तपासा. कोणत्याही वापरकर्त्यावर क्लिक करून त्यांची रोजची हजेरी वेळ व पत्ता पहा.'
-                : 'Monitor user attendance with physical addresses. Click any user to review their everyday presentation history with time.'}
+                ? 'सर्व क्षेत्र अधिकाऱ्यांची व कर्मचाऱ्यांची पत्त्यासह दैनंदिन उपस्थिती तपासा. कोणत्याही वापरकर्त्यावर क्लिक करून त्यांची रोजची हजेरी वेळ व पत्ता पहा.'
+                : 'Monitor officer attendance with physical addresses. Click any user to review their everyday presentation history with time.'}
             </p>
           </div>
 
@@ -919,7 +919,7 @@ export default function UserAttendanceManager({ language = 'mr' }) {
             }}
           >
             <option value="all">{isMr ? 'सर्व भूमिका (All Roles)' : 'All Roles'}</option>
-            <option value="WORKER">{isMr ? 'कार्यकर्ता (WORKER)' : 'Worker'}</option>
+            <option value="WORKER">{isMr ? 'क्षेत्र अधिकारी (Field Officer)' : 'Field Officer'}</option>
             <option value="OFFICER">{isMr ? 'अधिकारी / नेता (OFFICER)' : 'Officer'}</option>
             <option value="ADMIN">{isMr ? 'प्रशासक (ADMIN)' : 'Admin'}</option>
           </select>

@@ -133,13 +133,13 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
       if (res.success) {
         setEditSuccessMsg(
           isMr
-            ? '✓ कार्यकर्त्याचे नाव व भूमिका यशस्वीरित्या जतन झाली!'
-            : '✓ Worker details saved successfully!'
+            ? '✓ अधिकाऱ्याचे नाव व भूमिका यशस्वीरित्या जतन झाली!'
+            : '✓ Officer details saved successfully!'
         );
         showToast(
           isMr
-            ? `कार्यकर्ता '${editFormData.name}' यशस्वीरित्या अद्ययावत केला.`
-            : `Worker '${editFormData.name}' updated successfully.`
+            ? `अधिकारी '${editFormData.name}' यशस्वीरित्या अद्ययावत केला.`
+            : `Officer '${editFormData.name}' updated successfully.`
         );
         setTimeout(() => {
           setEditingWorker(null);
@@ -190,13 +190,13 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
       if (res.success) {
         setAddSuccessMsg(
           isMr
-            ? '✓ नवीन कार्यकर्ता यशस्वीरित्या नोंदवला गेला!'
-            : '✓ New worker registered successfully!'
+            ? '✓ नवीन अधिकारी यशस्वीरित्या नोंदवला गेला!'
+            : '✓ New officer registered successfully!'
         );
         showToast(
           isMr
-            ? `नवीन कार्यकर्ता '${newWorkerData.name}' तयार केला.`
-            : `New worker '${newWorkerData.name}' created.`
+            ? `नवीन अधिकारी '${newWorkerData.name}' तयार केला.`
+            : `New officer '${newWorkerData.name}' created.`
         );
         setTimeout(() => {
           setIsAddModalOpen(false);
@@ -206,7 +206,7 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
       }
     } catch (err) {
       console.error('Failed to create worker in users table:', err);
-      const errMsg = err?.response?.data?.message || err?.message || (isMr ? 'कार्यकर्ता जोडताना त्रुटी आली.' : 'Failed to add worker.');
+      const errMsg = err?.response?.data?.message || err?.message || (isMr ? 'अधिकारी जोडताना त्रुटी आली.' : 'Failed to add officer.');
       alert(errMsg);
     } finally {
       setAddSubmitting(false);
@@ -282,7 +282,7 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
             boxShadow: '0 2px 4px rgba(37,99,255,0.25)',
           }}
         >
-          ➕ {isMr ? 'नवीन कार्यकर्ता जोडा' : 'Add New Worker'}
+          ➕ {isMr ? 'नवीन अधिकारी जोडा' : 'Add New Officer'}
         </button>
       </div>
 
@@ -330,7 +330,7 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
 
           {[
             { key: 'all', label_mr: 'सर्व भूमिका', label_en: 'All Roles' },
-            { key: 'WORKER', label_mr: '👷 कार्यकर्ते', label_en: 'Workers' },
+            { key: 'WORKER', label_mr: '👮 क्षेत्र अधिकारी', label_en: 'Field Officers' },
             { key: 'OFFICER', label_mr: '👔 नेते व अधिकारी', label_en: 'Officers' },
           ].map((tab) => (
             <button
@@ -355,7 +355,7 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
         <div style={{ minWidth: '280px' }}>
           <input
             type="text"
-            placeholder={isMr ? 'कार्यकर्त्याचे नाव / फोन / भूमिका शोधा...' : 'Search by worker name, phone or role...'}
+            placeholder={isMr ? 'अधिकाऱ्याचे नाव / फोन / भूमिका शोधा...' : 'Search by officer name, phone or role...'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{
@@ -382,14 +382,14 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
       >
         {loading ? (
           <div style={{ padding: '36px', textAlign: 'center', color: '#1e3a8a', fontWeight: '700' }}>
-            ⏳ {isMr ? 'डेटाबेसमधून कार्यकर्त्यांची माहिती लोड होत आहे...' : 'Loading workers from database...'}
+            ⏳ {isMr ? 'डेटाबेसमधून अधिकाऱ्यांची माहिती लोड होत आहे...' : 'Loading officers from database...'}
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569', fontWeight: '700' }}>
-                  <th style={{ padding: '12px 16px' }}>{isMr ? 'कार्यकर्त्याचे नाव व भूमिका' : 'Worker Name & Role'}</th>
+                  <th style={{ padding: '12px 16px' }}>{isMr ? 'अधिकाऱ्याचे नाव व भूमिका' : 'Officer Name & Role'}</th>
                   <th style={{ padding: '12px 14px' }}>{isMr ? 'संपर्क' : 'Contact'}</th>
                   <th style={{ padding: '12px 14px' }}>{isMr ? 'नेमलेले कार्यक्षेत्र' : 'Assigned Area'}</th>
                   <th style={{ padding: '12px 14px' }}>{isMr ? 'पूर्ण सर्वेक्षण' : 'Surveys Done'}</th>
@@ -401,7 +401,7 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
                 {workers.length === 0 ? (
                   <tr>
                     <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
-                      {isMr ? 'कोणतेही कार्यकर्ते आढळले नाहीत.' : 'No workers found.'}
+                      {isMr ? 'कोणतेही अधिकारी आढळले नाहीत.' : 'No officers found.'}
                     </td>
                   </tr>
                 ) : (
@@ -457,7 +457,7 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
                               fontWeight: '600',
                             }}
                           >
-                            {isMr ? (worker.role_name === 'OFFICER' ? 'अधिकारी' : 'कार्यकर्ता') : worker.role_name}
+                            {isMr ? (worker.role_name === 'OFFICER' ? 'वरिष्ठ अधिकारी' : 'क्षेत्र अधिकारी') : (worker.role_name === 'WORKER' ? 'Field Officer' : worker.role_name)}
                           </span>
                         </div>
 
@@ -532,7 +532,7 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
                           {/* Edit Worker Details & Role (User Table Save) */}
                           <button
                             onClick={() => handleOpenEdit(worker)}
-                            title={isMr ? 'कार्यकर्त्याचे नाव व भूमिका बदला' : 'Edit Worker Name & Role'}
+                            title={isMr ? 'अधिकाऱ्याचे नाव व भूमिका बदला' : 'Edit Officer Name & Role'}
                             style={{
                               background: '#0284c7',
                               color: '#ffffff',
@@ -645,7 +645,7 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', marginBottom: '16px' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>
-                  ✏️ {isMr ? 'कार्यकर्त्याचे नाव व भूमिका संपादित करा' : 'Edit Worker Name & Role'}
+                  ✏️ {isMr ? 'अधिकाऱ्याचे नाव व भूमिका संपादित करा' : 'Edit Officer Name & Role'}
                 </h3>
                 <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
                   {isMr ? 'येथे केलेले सर्व बदल थेट डेटाबेसमध्ये जतन केले जातात.' : 'Changes are saved directly into the database.'}
@@ -673,7 +673,7 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
                 {/* Worker Full Name */}
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>
-                    {isMr ? 'कार्यकर्त्याचे नाव *' : 'Worker Full Name *'}
+                    {isMr ? 'अधिकाऱ्याचे नाव *' : 'Officer Full Name *'}
                   </label>
                   <input
                     type="text"
@@ -713,8 +713,8 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
                   >
                     {rolesList.map((r) => (
                       <option key={r.id} value={r.id}>
-                        {r.name === 'WORKER' ? (isMr ? '👷 फील्ड कार्यकर्ता' : '👷 Field Worker') :
-                         r.name === 'OFFICER' ? (isMr ? '👔 नेते / अधिकारी' : '👔 Leader / Officer') :
+                        {r.name === 'WORKER' ? (isMr ? '👮 क्षेत्र अधिकारी (Field Officer)' : '👮 Field Officer') :
+                         r.name === 'OFFICER' ? (isMr ? '👔 वरिष्ठ नेते / अधिकारी' : '👔 Senior Leader / Officer') :
                          (isMr ? (r.display_name || r.name) : r.name)}
                       </option>
                     ))}
@@ -859,10 +859,10 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', marginBottom: '16px' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>
-                  ➕ {isMr ? 'नवीन कार्यकर्ता नोंदणी' : 'Add New Worker'}
+                  ➕ {isMr ? 'नवीन अधिकारी नोंदणी' : 'Add New Officer'}
                 </h3>
                 <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                  {isMr ? 'कार्यकर्ता थेट डेटाबेसमध्ये नोंदवला जाईल आणि त्याला भूमिका नेमली जाईल.' : 'Worker will be registered directly into the system.'}
+                  {isMr ? 'अधिकारी थेट डेटाबेसमध्ये नोंदवला जाईल आणि त्याला भूमिका नेमली जाईल.' : 'Officer will be registered directly into the system.'}
                 </p>
               </div>
               <button
@@ -882,7 +882,7 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
                 {/* Full Name */}
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>
-                    {isMr ? 'कार्यकर्त्याचे नाव *' : 'Full Name *'}
+                    {isMr ? 'अधिकाऱ्याचे नाव *' : 'Full Name *'}
                   </label>
                   <input
                     type="text"
@@ -922,7 +922,7 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
                   >
                     {rolesList.map((r) => (
                       <option key={r.id} value={r.id}>
-                        {r.name === 'WORKER' ? (isMr ? '👷 फील्ड कार्यकर्ता' : '👷 Field Worker') :
+                        {r.name === 'WORKER' ? (isMr ? '👮 क्षेत्र अधिकारी' : '👮 Field Officer') :
                          r.name === 'OFFICER' ? (isMr ? '👔 नेते / अधिकारी' : '👔 Leader / Officer') :
                          (isMr ? (r.display_name || r.name) : r.name)}
                       </option>
@@ -1026,7 +1026,7 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
                       cursor: addSubmitting ? 'wait' : 'pointer',
                     }}
                   >
-                    {addSubmitting ? (isMr ? 'नोंदणी करत आहे...' : 'Registering...') : (isMr ? '➕ कार्यकर्ता नोंदवा' : 'Add Worker')}
+                    {addSubmitting ? (isMr ? 'नोंदणी करत आहे...' : 'Registering...') : (isMr ? '➕ अधिकारी नोंदवा' : 'Add Officer')}
                   </button>
                 </div>
               </form>
@@ -1067,7 +1067,7 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>
-                ⚡ {isMr ? 'कार्यकर्त्याला थेट कार्य सोपवा' : 'Assign Direct Task to Worker'}
+                ⚡ {isMr ? 'अधिकाऱ्याला थेट कार्य सोपवा' : 'Assign Direct Task to Officer'}
               </h3>
               <button
                 onClick={() => setSelectedWorkerForTask(null)}
@@ -1079,12 +1079,12 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
 
             {taskSubmittedToast ? (
               <div style={{ padding: '24px', textAlign: 'center', color: '#16a34a', fontWeight: '700' }}>
-                ✓ {isMr ? 'कार्यकर्त्याला कार्य यशस्वीरित्या पाठवले गेले!' : 'Task assigned and dispatched successfully!'}
+                ✓ {isMr ? 'अधिकाऱ्याला कार्य यशस्वीरित्या पाठवले गेले!' : 'Task assigned and dispatched successfully!'}
               </div>
             ) : (
               <form onSubmit={handleAssignTask} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{ padding: '10px 14px', background: '#f8fafc', borderRadius: '8px', fontSize: '13px' }}>
-                  <strong>{isMr ? 'कार्यकर्ता:' : 'Worker:'}</strong> {selectedWorkerForTask.name} (
+                  <strong>{isMr ? 'अधिकारी:' : 'Officer:'}</strong> {selectedWorkerForTask.name} (
                   {isMr ? selectedWorkerForTask.assigned_area_mr : (selectedWorkerForTask.assigned_area_en || selectedWorkerForTask.assigned_area_mr)})
                 </div>
 

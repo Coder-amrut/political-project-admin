@@ -318,7 +318,7 @@ function Home() {
                 POLITICAL COMMAND HQ
               </div>
               <p style={{ margin: 0, fontSize: '13px', color: '#64748b', lineHeight: 1.5 }}>
-                मतदारसंघ आढावा, बूथनिहाय प्रगती, कार्यकर्त्यांचे काम, आगामी बैठका, महत्त्वाचे अहवाल आणि थेट राजकीय विश्लेषण.
+                मतदारसंघ आढावा, बूथनिहाय प्रगती, अधिकाऱ्यांचे काम, आगामी बैठका, महत्त्वाचे अहवाल आणि थेट राजकीय विश्लेषण.
               </p>
             </div>
 
@@ -328,7 +328,7 @@ function Home() {
             </div>
           </div>
 
-          {/* 3. Field Worker Platform Card */}
+          {/* 3. Field Officer Platform Card */}
           <div
             onClick={() => navigate('/worker')}
             style={{
@@ -369,7 +369,7 @@ function Home() {
                     boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
                   }}
                 >
-                  👷
+                  👮
                 </span>
                 <span
                   style={{
@@ -382,14 +382,14 @@ function Home() {
                     border: '1px solid #bbf7d0',
                   }}
                 >
-                  Field Worker App
+                  Field Officer App
                 </span>
               </div>
               <h3 style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: '850', color: '#0f172a' }}>
-                कार्यकर्ता कक्ष
+                क्षेत्र अधिकारी कक्ष
               </h3>
               <div style={{ fontSize: '12px', fontWeight: '700', color: '#059669', marginBottom: '8px' }}>
-                FIELD WORKER APP
+                FIELD OFFICER APP
               </div>
               <p style={{ margin: 0, fontSize: '13px', color: '#64748b', lineHeight: 1.5 }}>
                 घरोघरी मतदार भेट, कुटुंब सर्वेक्षण फॉर्म भरणे, मतदार डेटा संकलन आणि स्थानिक समस्यांची नोंदणी.
@@ -397,7 +397,7 @@ function Home() {
             </div>
 
             <div style={{ marginTop: '20px', paddingTop: '14px', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '12.5px', fontWeight: '750', color: '#059669' }}>कार्यकर्ता ॲप उघडा →</span>
+              <span style={{ fontSize: '12.5px', fontWeight: '750', color: '#059669' }}>अधिकारी पोर्टल उघडा →</span>
               <span style={{ fontSize: '16px' }}>📝</span>
             </div>
           </div>

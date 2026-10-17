@@ -16,7 +16,7 @@ export default function AdminChatbotDesk({ lang = 'mr', isFloating = false, onCl
         { label: isMr ? '📊 एकूण मतदार सारांश' : '📊 Total Voters Summary', query: isMr ? 'एकूण मतदार संख्या आणि राजकीय कल दाखवा' : 'Show total voters and sentiment' },
         { label: isMr ? '🗳️ बूथनिहाय प्रगती' : '🗳️ Booth Progress', query: isMr ? 'बूथनिहाय प्रगती आणि आघाडीवरील बूथ दाखवा' : 'Show booth progress' },
         { label: isMr ? '⚠️ प्रलंबित समस्या' : '⚠️ Pending Issues', query: isMr ? 'सध्याच्या प्रलंबित नागरी समस्या कोणत्या आहेत?' : 'What are pending civic issues?' },
-        { label: isMr ? '👥 सक्रिय कार्यकर्ते' : '👥 Active Workers', query: isMr ? 'सक्रिय कार्यकर्ते आणि त्यांची कामगिरी दाखवा' : 'Show active karyakartas' },
+        { label: isMr ? '👥 सक्रिय अधिकारी' : '👥 Active Officers', query: isMr ? 'सक्रिय अधिकारी आणि त्यांची कामगिरी दाखवा' : 'Show active field officers' },
       ],
       timestamp: new Date().toLocaleTimeString(isMr ? 'mr-IN' : 'en-IN', { hour: '2-digit', minute: '2-digit' }),
     },
@@ -536,7 +536,7 @@ export default function AdminChatbotDesk({ lang = 'mr', isFloating = false, onCl
                             } else if (item.type === 'issue') {
                               handleSend(`तक्रार ${item.title} चे सविस्तर निवारण अपडेट`);
                             } else if (item.type === 'worker') {
-                              handleSend(`कार्यकर्ता ${item.title} यांनी केलेले सर्व्हे अहवाल`);
+                              handleSend(`अधिकारी ${item.title} यांनी केलेले सर्व्हे अहवाल`);
                             }
                           }}
                           style={{

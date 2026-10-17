@@ -1470,7 +1470,7 @@ function AdminDashboard() {
                   {isMr ? 'नवीन वापरकर्ता तयार करा' : 'Create a User'}
                 </h2>
                 <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                  {isMr ? 'कार्यकर्ता किंवा कक्ष अधिकाऱ्याची थेट नोंदणी' : 'Direct user onboarding for field team'}
+                  {isMr ? 'क्षेत्र अधिकारी किंवा प्रभाग अधिकाऱ्याची थेट नोंदणी' : 'Direct user onboarding for field team'}
                 </p>
               </div>
             </div>
@@ -1483,7 +1483,7 @@ function AdminDashboard() {
               <label style={styles.label}>
                 {isMr ? 'भूमिका' : 'Role'}
                 <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} style={styles.input}>
-                  <option value="WORKER">{isMr ? 'कार्यकर्ता' : 'Worker'}</option>
+                  <option value="WORKER">{isMr ? 'क्षेत्र अधिकारी (Field Officer)' : 'Field Officer'}</option>
                   <option value="OFFICER">{isMr ? 'अधिकारी' : 'Officer'}</option>
                 </select>
               </label>
@@ -1600,7 +1600,7 @@ function AdminDashboard() {
             language={language}
             onCreated={async (project) => {
               await loadProjects();
-              setNotice('Project created. Assign workers or officers below.');
+              setNotice('Project created. Assign field officers below.');
               if (project?.uuid) await openMemberAssignment(project);
             }}
           />
@@ -1614,8 +1614,8 @@ function AdminDashboard() {
                 </h2>
                 <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748b' }}>
                   {isMr
-                    ? 'सर्व सक्रिय आणि पूर्ण झालेले प्रकल्प तपासा, कार्यकर्ते वाटप करा आणि स्थिती व्यवस्थापित करा.'
-                    : 'View and manage created projects, assign karyakartas and monitor completion.'}
+                    ? 'सर्व सक्रिय आणि पूर्ण झालेले प्रकल्प तपासा, अधिकारी वाटप करा आणि स्थिती व्यवस्थापित करा.'
+                    : 'View and manage created projects, assign officers and monitor completion.'}
                 </p>
               </div>
 
@@ -1680,7 +1680,7 @@ function AdminDashboard() {
                 isMr ? 'प्रकल्प नाव' : 'Project',
                 isMr ? 'प्रकार' : 'Type',
                 isMr ? 'स्थिती' : 'Status',
-                isMr ? 'वाटप केलेले कार्यकर्ते' : 'Assigned Team',
+                isMr ? 'वाटप केलेले अधिकारी' : 'Assigned Officers',
                 isMr ? 'तारीख' : 'Created',
                 isMr ? 'कृती' : 'Actions',
               ],
@@ -1733,7 +1733,7 @@ function AdminDashboard() {
                     gap: '5px',
                   }}
                 >
-                  <span>👥</span> {isMr ? 'कार्यकर्ते पहा' : 'View Team'}
+                  <span>👥</span> {isMr ? 'अधिकारी पहा' : 'View Officers'}
                 </button>,
                 <span style={{ color: '#64748b', fontSize: '12px' }}>{p.created_at ? new Date(p.created_at).toLocaleDateString() : '—'}</span>,
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -1984,8 +1984,10 @@ function AdminDashboard() {
                                           : roleName === 'OFFICER'
                                           ? 'अधिकारी'
                                           : roleName === 'WORKER'
-                                          ? 'कार्यकर्ता'
+                                          ? 'क्षेत्र अधिकारी'
                                           : roleName
+                                        : roleName === 'WORKER'
+                                        ? 'Field Officer'
                                         : roleName}
                                     </span>
                                     {member.user_status && member.user_status !== 'ACTIVE' && (
@@ -2142,7 +2144,7 @@ function AdminDashboard() {
                             {member.full_name}
                           </div>
                           <div style={{ fontSize: 12, color: '#64748b' }}>
-                            {(isMr ? (member.role === 'OFFICER' ? 'अधिकारी' : member.role === 'WORKER' ? 'कार्यकर्ता' : member.role) : member.role) || (isMr ? 'कार्यकर्ता' : 'WORKER')} · {member.phone || member.email}
+                            {(isMr ? (member.role === 'OFFICER' ? 'अधिकारी' : member.role === 'WORKER' ? 'क्षेत्र अधिकारी' : member.role) : (member.role === 'WORKER' ? 'Field Officer' : member.role)) || (isMr ? 'क्षेत्र अधिकारी' : 'Field Officer')} · {member.phone || member.email}
                           </div>
                         </div>
                         <span
@@ -2170,7 +2172,7 @@ function AdminDashboard() {
                       <div style={{ fontSize: 32, marginBottom: 8 }}>👥</div>
                       <b>{isMr ? 'या प्रकल्पाला अद्याप कोणतेही सदस्य नियुक्त केलेले नाहीत.' : 'No members assigned to this project yet.'}</b>
                       <p style={{ fontSize: 13, marginTop: 4 }}>
-                        {isMr ? 'तुम्ही या प्रकल्पासाठी सक्रिय कार्यकर्ते आणि अधिकारी नियुक्त करू शकता.' : 'You can assign active field workers and officers to this project.'}
+                        {isMr ? 'तुम्ही या प्रकल्पासाठी सक्रिय क्षेत्र अधिकारी नियुक्त करू शकता.' : 'You can assign active field officers to this project.'}
                       </p>
                       {viewAssignedProject.status !== 'COMPLETED' && (
                         <Button

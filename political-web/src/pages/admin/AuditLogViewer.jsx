@@ -154,8 +154,8 @@ export const getDetailedStory = (log, lang = 'mr') => {
     case 'PROJECT_MEMBERS_ASSIGNED':
       return {
         title: isMr
-          ? `${actor} यांनी '${targetProject || `प्रकल्प #${entityId}`}' प्रकल्पात कार्यकर्ते व अधिकारी नियुक्त केले.`
-          : `${actor} assigned workers/officers to project '${targetProject || `Project #${entityId}`}'.`,
+          ? `${actor} यांनी '${targetProject || `प्रकल्प #${entityId}`}' प्रकल्पात क्षेत्र अधिकारी नियुक्त केले.`
+          : `${actor} assigned field officers to project '${targetProject || `Project #${entityId}`}'.`,
         category: isMr ? 'सदस्य नियुक्ती' : 'Team Assigned',
         targetLabel: targetProject || (isMr ? `प्रकल्प #${entityId}` : `Project #${entityId}`),
         badgeColor: { bg: '#ecfdf5', text: '#059669', border: '#a7f3d0' },
@@ -789,8 +789,8 @@ function AuditLogViewer({ logs = [], currentUser, language = 'mr', onRefresh }) 
                           }}
                         >
                           {isMr
-                            ? (log.user?.role === 'ADMIN' ? 'प्रशासक' : log.user?.role === 'WORKER' ? 'कार्यकर्ता' : log.user?.role === 'OFFICER' ? 'अधिकारी' : (log.user?.role || 'प्रशासक'))
-                            : (log.user?.role || 'ADMIN')}
+                            ? (log.user?.role === 'ADMIN' ? 'प्रशासक' : log.user?.role === 'WORKER' ? 'क्षेत्र अधिकारी' : log.user?.role === 'OFFICER' ? 'अधिकारी' : (log.user?.role || 'प्रशासक'))
+                            : (log.user?.role === 'WORKER' ? 'Field Officer' : (log.user?.role || 'ADMIN'))}
                         </span>
                       </div>
                     </td>

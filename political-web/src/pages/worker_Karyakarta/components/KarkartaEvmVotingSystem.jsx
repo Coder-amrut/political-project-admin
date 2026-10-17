@@ -495,7 +495,7 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
           candidateId: candidate.id,
           candidateName: candidate.candidate_name,
           electionId: election?.id,
-          voterName: user?.full_name || 'क्षेत्र कार्यकर्ता',
+          voterName: user?.full_name || 'क्षेत्र अधिकारी',
           boothNo: 'सांगली मध्य बूथ क्र. १'
         });
 
@@ -790,7 +790,7 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
                 <span>{election?.name || '२८२ - सांगली मतदारसंघ (Sangli Constituency)'}</span>
                 <span>•</span>
                 <span style={{ color: '#059669', fontWeight: '700' }}>
-                  ✓ {isMr ? 'थेट डेटाबेस जोडणी' : 'MySQL Live'} (karkarta_)
+                  ✓ {isMr ? 'थेट डेटाबेस जोडणी' : 'MySQL Live'}
                 </span>
               </div>
             </div>
@@ -900,7 +900,7 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
           }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2563eb' }} />
             <span style={{ fontSize: '12.5px', fontWeight: '800', color: '#1d4ed8' }}>
-              {isMr ? 'कार्यकर्ता प्रत्यक्ष मतदान केंद्र (EVM)' : 'Karyakarta Polling Station (EVM)'}
+              {isMr ? 'अधिकारी प्रत्यक्ष मतदान केंद्र (EVM)' : 'Officer Polling Station (EVM)'}
             </span>
           </div>
         )}
@@ -1630,7 +1630,7 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
                   📊 {isMr ? 'EVM थेट मतदान निकाल व कल विश्लेषण' : 'EVM Live Mock Polling Results'}
                 </h2>
                 <p style={{ fontSize: '13px', color: '#64748b', margin: '3px 0 0 0' }}>
-                  {isMr ? 'कार्यकर्त्याने घेतलेल्या प्रात्यक्षिक मतदानाची थेट आकडेवारी.' : 'Real-time mock polling tallies recorded from voters in the field.'}
+                  {isMr ? 'अधिकाऱ्याने घेतलेल्या प्रात्यक्षिक मतदानाची थेट आकडेवारी.' : 'Real-time mock polling tallies recorded from voters in the field.'}
                 </p>
               </div>
 
@@ -1775,7 +1775,7 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
                     </span>
                   </h3>
                   <p style={{ fontSize: '12.5px', color: '#64748b', margin: '3px 0 0 0' }}>
-                    {isMr ? 'कोणत्या कार्यकर्त्याने / मतदाराने कोणत्या उमेदवाराला मत दिले याची संपूर्ण माहिती.' : 'Audit report showing all candidates and the individual voters who cast votes for them.'}
+                    {isMr ? 'कोणत्या अधिकाऱ्याने / मतदाराने कोणत्या उमेदवाराला मत दिले याची संपूर्ण माहिती.' : 'Audit report showing all candidates and the individual voters who cast votes for them.'}
                   </p>
                 </div>
 
@@ -1876,7 +1876,7 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
                   <thead>
                     <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontWeight: '800' }}>
                       <th style={{ padding: '10px 14px', width: '50px' }}>#</th>
-                      <th style={{ padding: '10px 14px' }}>{isMr ? 'मतदार / कार्यकर्ता नाव' : 'Voter / Worker Name'}</th>
+                      <th style={{ padding: '10px 14px' }}>{isMr ? 'मतदार / अधिकारी नाव' : 'Voter / Officer Name'}</th>
                       <th style={{ padding: '10px 14px' }}>{isMr ? 'मोबाईल / भूमिका' : 'Phone / Role'}</th>
                       <th style={{ padding: '10px 14px' }}>{isMr ? 'मतदान केलेला उमेदवार' : 'Candidate Voted'}</th>
                       <th style={{ padding: '10px 14px' }}>{isMr ? 'बूथ / प्रभाग' : 'Booth / Ward'}</th>
@@ -1918,7 +1918,7 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
                               }}>
                                 {(v.voter_name || 'V').charAt(0)}
                               </span>
-                              <span>{v.voter_name || (isMr ? 'कार्यकर्ता / मतदार' : 'Worker / Voter')}</span>
+                              <span>{v.voter_name || (isMr ? 'अधिकारी / मतदार' : 'Officer / Voter')}</span>
                             </div>
                           </td>
                           <td style={{ padding: '10px 14px', color: '#475569' }}>

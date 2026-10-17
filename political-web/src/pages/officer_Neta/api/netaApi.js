@@ -22,7 +22,7 @@ export const netaApi = {
     return res.data;
   },
 
-  // 3. कार्यकर्त्यांचे काम व Performance Dashboard
+  // 3. अधिकाऱ्यांचे काम व Performance Dashboard
   getKaryakartas: async (params = {}) => {
     const res = await apiClient.get('/neta/karyakartas', { params });
     return res.data;

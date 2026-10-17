@@ -346,7 +346,7 @@ export default function AreaOverviewDashboard({ onNavigate, lang = 'mr' }) {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>
-              {isMr ? 'आज सक्रिय कार्यकर्ते ऑन-फील्ड' : 'Active Workers Today'}
+              {isMr ? 'आज सक्रिय अधिकारी ऑन-फील्ड' : 'Active Officers Today'}
             </span>
             <span style={{ fontSize: '18px', padding: '6px 8px', background: '#fff7ed', borderRadius: '8px', border: '1px solid #ffedd5' }}>🚩</span>
           </div>

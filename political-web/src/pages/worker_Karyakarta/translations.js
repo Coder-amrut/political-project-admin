@@ -13,7 +13,7 @@ export const translations = {
     "recentActivities": "Recent Activities",
     "viewAll": "View All",
     "searchPlaceholder": "Search voters, tasks, messages...",
-    "karyakartaPortal": "Karyakarta Portal",
+    "karyakartaPortal": "Officer Portal",
     "beTheChange": "Be the Change",
     "joinTheMovement": "Join the Movement",
     "signout": "Sign Out",
@@ -51,7 +51,7 @@ export const translations = {
     "alreadyVoted": "You have already voted.",
     "vote": "Vote",
     "candidates": "Candidates",
-    "votingDesc": "Meet the candidates for Karyakarta President Election 2026"
+    "votingDesc": "Meet the candidates for Officer President Election 2026"
   },
   "mr": {
     "dashboardOverview": "डॅशबोर्ड विहंगावलोकन",
@@ -67,7 +67,7 @@ export const translations = {
     "recentActivities": "अलीकडील घडामोडी",
     "viewAll": "सर्व पहा",
     "searchPlaceholder": "मतदार, कार्ये, संदेश शोधा...",
-    "karyakartaPortal": "कार्यकर्ता पोर्टल",
+    "karyakartaPortal": "अधिकारी पोर्टल",
     "beTheChange": "बदल घडवा",
     "joinTheMovement": "चळवळीत सामील व्हा",
     "signout": "बाहेर पडा",
@@ -105,7 +105,7 @@ export const translations = {
     "alreadyVoted": "तुम्ही आधीच मतदान केले आहे.",
     "vote": "मत द्या",
     "candidates": "उमेदवार",
-    "votingDesc": "कार्यकर्ता अध्यक्ष निवडणूक २०२६ च्या उमेदवारांना भेटा"
+    "votingDesc": "अधिकारी अध्यक्ष निवडणूक २०२६ च्या उमेदवारांना भेटा"
   },
   "hi": {
     "dashboardOverview": "डैशबोर्ड अवलोकन",
@@ -121,7 +121,7 @@ export const translations = {
     "recentActivities": "हाल की गतिविधियां",
     "viewAll": "सभी देखें",
     "searchPlaceholder": "मतदाता, कार्य, संदेश खोजें...",
-    "karyakartaPortal": "कार्यकर्ता पोर्टल",
+    "karyakartaPortal": "अधिकारी पोर्टल",
     "beTheChange": "बदलाव लाएं",
     "joinTheMovement": "आंदोलन में शामिल हों",
     "signout": "लॉग आउट",
@@ -159,6 +159,6 @@ export const translations = {
     "alreadyVoted": "आप पहले ही वोट कर चुके हैं।",
     "vote": "वोट दें",
     "candidates": "उम्मीदवार",
-    "votingDesc": "कार्यकर्ता अध्यक्ष चुनाव २०२६ के उम्मीदवारों से मिलें"
+    "votingDesc": "अधिकारी अध्यक्ष चुनाव २०२६ के उम्मीदवारों से मिलें"
   }
 };

@@ -334,7 +334,7 @@ export default function Citizen360CRM({ lang = 'mr' }) {
         >
           <option value="all">{isMr ? 'सर्व प्रवर्ग' : 'All Categories'}</option>
           <option value="influencer">{isMr ? 'स्थानिक वजनदार व्यक्ती' : 'Influencers'}</option>
-          <option value="loyal_supporter">{isMr ? 'निष्ठावान कार्यकर्ते व समर्थक' : 'Loyal Supporters'}</option>
+          <option value="loyal_supporter">{isMr ? 'निष्ठावान पदाधिकारी व समर्थक' : 'Loyal Supporters'}</option>
           <option value="youth">{isMr ? 'युवा व प्रथम मतदार' : 'Youth Voters'}</option>
           <option value="senior">{isMr ? 'ज्येष्ठ नागरिक' : 'Senior Citizens'}</option>
         </select>
@@ -396,7 +396,7 @@ export default function Citizen360CRM({ lang = 'mr' }) {
                   <th style={{ padding: '12px 16px' }}>{isMr ? 'नाव व ओळख' : 'Name & Identity'}</th>
                   <th style={{ padding: '12px 16px' }}>{isMr ? 'मोबाईल / संपर्क' : 'Mobile / Contact'}</th>
                   <th style={{ padding: '12px 16px' }}>{isMr ? 'बूथ व परिसर' : 'Booth & Area'}</th>
-                  <th style={{ padding: '12px 16px' }}>{isMr ? 'जबाबदार कार्यकर्ता' : 'Assigned Worker'}</th>
+                  <th style={{ padding: '12px 16px' }}>{isMr ? 'जबाबदार अधिकारी' : 'Assigned Officer'}</th>
                   <th style={{ padding: '12px 16px', textAlign: 'right' }}>{isMr ? 'कृती' : 'Actions'}</th>
                 </tr>
               </thead>
@@ -662,7 +662,7 @@ export default function Citizen360CRM({ lang = 'mr' }) {
                         </div>
 
                         <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                          <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>{isMr ? 'जबाबदार कार्यकर्ता' : 'Assigned Worker'}</span>
+                          <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>{isMr ? 'जबाबदार अधिकारी' : 'Assigned Officer'}</span>
                           <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginTop: '2px' }}>
                             👤 {citizenDetail.citizen.assigned_worker_name || (isMr ? 'नेमलेला नाही' : 'Unassigned')}
                           </div>
@@ -1053,7 +1053,7 @@ export default function Citizen360CRM({ lang = 'mr' }) {
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'जबाबदार कार्यकर्ता' : 'Assigned Worker'}</label>
+                  <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'जबाबदार अधिकारी' : 'Assigned Officer'}</label>
                   <input
                     type="text"
                     value={newCitizen.assigned_worker_name}
@@ -1309,7 +1309,7 @@ export default function Citizen360CRM({ lang = 'mr' }) {
               </div>
 
               <div>
-                <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'जबाबदार कार्यकर्ता' : 'Assigned Worker'}</label>
+                <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'जबाबदार अधिकारी' : 'Assigned Officer'}</label>
                 <input
                   type="text"
                   value={newIssue.assigned_worker}

@@ -449,8 +449,8 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
 
       showToast(
         isMr
-          ? `🚀 '${finalTitleMr}' फॉर्म published_forms टेबलमध्ये यशस्वीरीत्या सेव्ह व प्रकाशित झाला! (${assignedCount} कार्यकर्त्यांना ॲक्सेस मिळाला)`
-          : `🚀 '${finalTitleEn}' created and saved into published_forms table! (${assignedCount} workers granted access)`
+          ? `🚀 '${finalTitleMr}' फॉर्म published_forms टेबलमध्ये यशस्वीरीत्या सेव्ह व प्रकाशित झाला! (${assignedCount} अधिकाऱ्यांना ॲक्सेस मिळाला)`
+          : `🚀 '${finalTitleEn}' created and saved into published_forms table! (${assignedCount} officers granted access)`
       );
     } catch (err) {
       console.error('Publish error:', err);
@@ -544,7 +544,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
 
       setShowUserAccessModal(false);
       fetchPublishedForms();
-      showToast(isMr ? '✓ कार्यकर्त्यांचे ॲक्सेस अधिकार यशस्वीरित्या सेव्ह झाले!' : '✓ Worker access saved successfully!');
+      showToast(isMr ? '✓ अधिकाऱ्यांचे ॲक्सेस अधिकार यशस्वीरित्या सेव्ह झाले!' : '✓ Officer access saved successfully!');
     } catch (err) {
       console.error('Error saving user access:', err);
       alert(isMr ? 'अधिकार सेव्ह करताना त्रुटी आली.' : 'Failed to save access.');
@@ -758,8 +758,8 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
           </div>
           <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
             {isMr
-              ? 'मतदार सर्व्हे फॉर्म तयार करा, फॉर्म फॉरमॅट पहा आणि कार्यकर्त्यांना थेट ॲक्सेस अधिकार द्या.'
-              : 'Design survey forms, view published formats, and seamlessly grant form access to field workers.'}
+              ? 'मतदार सर्व्हे फॉर्म तयार करा, फॉर्म फॉरमॅट पहा आणि अधिकाऱ्यांना थेट ॲक्सेस अधिकार द्या.'
+              : 'Design survey forms, view published formats, and seamlessly grant form access to field officers.'}
           </p>
         </div>
 
@@ -999,7 +999,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
               </h2>
               <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
                 {isMr
-                  ? 'येथे सर्व प्रकाशित फॉर्म, त्यांचे सर्व फॉरमॅट्स आणि ॲक्सेस असलेले कार्यकर्ते दिसतील. येथून थेट वापरकर्त्यांना अधिकार द्या.'
+                  ? 'येथे सर्व प्रकाशित फॉर्म, त्यांचे सर्व फॉरमॅट्स आणि ॲक्सेस असलेले अधिकारी दिसतील. येथून थेट वापरकर्त्यांना अधिकार द्या.'
                   : 'All published forms from `published_forms` table with their full schema and assigned users. Manage access seamlessly.'}
               </p>
             </div>
@@ -1116,7 +1116,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                   <tr style={{ color: '#475569', fontSize: '12.5px', fontWeight: '800', textAlign: 'left', textTransform: 'uppercase' }}>
                     <th style={{ padding: '0 16px 8px' }}>{isMr ? 'फॉर्म नाव व प्रकल्प' : 'Form Title & Project'}</th>
                     <th style={{ padding: '0 16px 8px' }}>{isMr ? 'व्याप्ती (Scope)' : 'Scope'}</th>
-                    <th style={{ padding: '0 16px 8px' }}>{isMr ? 'ॲक्सेस असलेले कार्यकर्ते' : 'Assigned Users (Workers)'}</th>
+                    <th style={{ padding: '0 16px 8px' }}>{isMr ? 'ॲक्सेस असलेले अधिकारी' : 'Assigned Officers'}</th>
                     <th style={{ padding: '0 16px 8px' }}>{isMr ? 'स्थिती (Status)' : 'Status'}</th>
                     <th style={{ padding: '0 16px 8px', textAlign: 'right' }}>{isMr ? 'कृती / ॲक्सेस' : 'Actions'}</th>
                   </tr>
@@ -1214,7 +1214,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                           >
                             <span style={{ fontSize: '14px' }}>👥</span>
                             <span>
-                              {pForm.assigned_users_count || assignedUsers.length} {isMr ? 'कार्यकर्ते' : 'Workers'}
+                              {pForm.assigned_users_count || assignedUsers.length} {isMr ? 'अधिकारी' : 'Officers'}
                             </span>
                             <span
                               style={{
@@ -1441,7 +1441,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                 >
                   <div>
                     <strong style={{ fontSize: '13.5px', color: '#0f172a', display: 'block' }}>
-                      👥 {isMr ? 'ॲक्सेस असलेले कार्यकर्ते' : 'Assigned Workers'} ({filteredUsers.length}/{assignedUsers.length})
+                      👥 {isMr ? 'ॲक्सेस असलेले अधिकारी' : 'Assigned Officers'} ({filteredUsers.length}/{assignedUsers.length})
                     </strong>
                     <span style={{ fontSize: '11px', color: '#64748b' }}>
                       📁 {activeDropupForm.project_name}
@@ -1479,7 +1479,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                     <input
                       type="text"
                       autoFocus
-                      placeholder={isMr ? 'कार्यकर्त्याचे नाव किंवा मोबाईल शोधा...' : 'Search worker by name, phone...'}
+                      placeholder={isMr ? 'अधिकाऱ्याचे नाव किंवा मोबाईल शोधा...' : 'Search officer by name, phone...'}
                       value={workerDropupSearch}
                       onChange={(e) => setWorkerDropupSearch(e.target.value)}
                       style={{
@@ -1519,11 +1519,11 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                 <div style={{ maxHeight: '220px', overflowY: 'auto', padding: '8px 10px', background: '#f8fafc' }}>
                   {assignedUsers.length === 0 ? (
                     <div style={{ padding: '18px 12px', textAlign: 'center', color: '#dc2626', fontSize: '12.5px', fontWeight: '750' }}>
-                      ⚠️ {isMr ? 'कोणताही कार्यकर्ता जोडलेला नाही' : 'No workers assigned yet'}
+                      ⚠️ {isMr ? 'कोणताही अधिकारी जोडलेला नाही' : 'No officers assigned yet'}
                     </div>
                   ) : filteredUsers.length === 0 ? (
                     <div style={{ padding: '18px 12px', textAlign: 'center', color: '#64748b', fontSize: '12.5px' }}>
-                      🔍 {isMr ? 'या शोध निकषात कोणताही कार्यकर्ता सापडला नाही' : `No workers match "${workerDropupSearch}"`}
+                      🔍 {isMr ? 'या शोध निकषात कोणताही अधिकारी सापडला नाही' : `No officers match "${workerDropupSearch}"`}
                     </div>
                   ) : (
                     filteredUsers.map((u) => (
@@ -1618,7 +1618,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                     }}
                   >
                     <span>⚙️</span>
-                    <span>{isMr ? 'कार्यकर्ते ॲक्सेस बदला / जोडा' : 'Manage / Assign Workers'}</span>
+                    <span>{isMr ? 'अधिकारी ॲक्सेस बदला / जोडा' : 'Manage / Assign Officers'}</span>
                   </button>
                 </div>
               </div>
@@ -1907,7 +1907,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                       }}
                     />
                     <span style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px', display: 'block' }}>
-                      {isMr ? 'कार्यकर्त्यांना व ॲडमिनला इंग्रजी भाषेत दिसणारे नाव' : 'Visible to workers & admin in English'}
+                      {isMr ? 'अधिकाऱ्यांना व ॲडमिनला इंग्रजी भाषेत दिसणारे नाव' : 'Visible to officers & admin in English'}
                     </span>
                   </div>
 
@@ -1935,7 +1935,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                       }}
                     />
                     <span style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px', display: 'block' }}>
-                      {isMr ? 'कार्यकर्त्यांना व ॲडमिनला मराठी भाषेत दिसणारे नाव' : 'Visible to workers & admin in Marathi'}
+                      {isMr ? 'अधिकाऱ्यांना व ॲडमिनला मराठी भाषेत दिसणारे नाव' : 'Visible to officers & admin in Marathi'}
                     </span>
                   </div>
 
@@ -2025,7 +2025,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                       }}
                     />
                     <span style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px', display: 'block' }}>
-                      {isMr ? 'कार्यकर्त्यांना allocated कुटुंब संख्या' : 'Household target allocated for workers'}
+                      {isMr ? 'अधिकाऱ्यांना allocated कुटुंब संख्या' : 'Household target allocated for officers'}
                     </span>
                   </div>
                 </div>
@@ -2041,8 +2041,8 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                     />
                     <span style={{ fontSize: '13px', fontWeight: '750', color: '#1e293b' }}>
                       {isMr
-                        ? '✓ सर्व सक्रिय कार्यकर्त्यांना हा फॉर्म भरण्याचा अधिकार (Access) द्या'
-                        : '✓ Automatically grant form access to all active field workers in `published_form_users`'}
+                        ? '✓ सर्व सक्रिय अधिकाऱ्यांना हा फॉर्म भरण्याचा अधिकार (Access) द्या'
+                        : '✓ Automatically grant form access to all active field officers in `published_form_users`'}
                     </span>
                   </label>
                 </div>
@@ -2445,13 +2445,13 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '18px' }}>📱</span>
                     <strong style={{ fontSize: '14.5px', color: '#0f172a' }}>
-                      {isMr ? 'मोबाईल ॲप फॉर्म भरण्याचा प्रत्यक्ष डेमो (Live Worker View)' : 'Live Mobile Survey Form Filling Demo'}
+                      {isMr ? 'मोबाईल ॲप फॉर्म भरण्याचा प्रत्यक्ष डेमो (Live Officer View)' : 'Live Mobile Survey Form Filling Demo'}
                     </strong>
                   </div>
                   <p style={{ margin: '3px 0 0', fontSize: '12.5px', color: '#64748b' }}>
                     {isMr
-                      ? 'कार्यकर्ते प्रत्यक्ष फील्डवर अशाच प्रकारे फॉर्म भरतील. खाली माहिती भरून चाचणी घ्या.'
-                      : 'This is the exact interactive form field workers fill in the mobile app. Test filling it below.'}
+                      ? 'अधिकारी प्रत्यक्ष फील्डवर अशाच प्रकारे फॉर्म भरतील. खाली माहिती भरून चाचणी घ्या.'
+                      : 'This is the exact interactive form field officers fill in the mobile app. Test filling it below.'}
                   </p>
                 </div>
 
@@ -2491,7 +2491,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '750', fontSize: '13.5px' }}>
                     <span>✓</span>
-                    <span>{isMr ? 'चाचणी यशस्वी! कार्यकर्त्यांना प्रत्यक्ष ॲपमध्ये हा फॉर्म असाच दिसेल.' : 'Demo submission recorded successfully!'}</span>
+                    <span>{isMr ? 'चाचणी यशस्वी! अधिकाऱ्यांना प्रत्यक्ष ॲपमध्ये हा फॉर्म असाच दिसेल.' : 'Demo submission recorded successfully!'}</span>
                   </div>
                   <button
                     type="button"
@@ -2906,8 +2906,8 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
           </h2>
           <p style={{ fontSize: '13.5px', color: '#64748b', maxWidth: '520px', margin: '0 auto 24px', lineHeight: '1.6' }}>
             {isMr
-              ? 'नवीन सर्व्हे फॉर्म तयार करा जो थेट published_forms डेटाबेस टेबलमध्ये सेव्ह होईल आणि कार्यकर्त्यांसाठी उपलब्ध होईल.'
-              : 'Create a survey form that saves directly into the `published_forms` database table and activates for field workers.'}
+              ? 'नवीन सर्व्हे फॉर्म तयार करा जो थेट published_forms डेटाबेस टेबलमध्ये सेव्ह होईल आणि अधिकाऱ्यांसाठी उपलब्ध होईल.'
+              : 'Create a survey form that saves directly into the `published_forms` database table and activates for field officers.'}
           </p>
           <button
             type="button"
@@ -2958,7 +2958,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
               </h2>
               <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
                 {isMr
-                  ? 'कोणत्याही प्रकल्पासाठी फॉर्म तयार करा किंवा थेट कार्यकर्त्यांसाठी प्रकाशित करा.'
+                  ? 'कोणत्याही प्रकल्पासाठी फॉर्म तयार करा किंवा थेट अधिकाऱ्यांसाठी प्रकाशित करा.'
                   : 'Select any created project to configure, design, or publish forms.'}
               </p>
             </div>
@@ -3073,7 +3073,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                           📍 {scopeTitle}
                         </span>
                         <span style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', padding: '3px 8px', borderRadius: '6px', fontSize: '11.5px', fontWeight: '650' }}>
-                          👥 {memberCount} {isMr ? 'कार्यकर्ते' : 'Workers'}
+                          👥 {memberCount} {isMr ? 'अधिकारी' : 'Officers'}
                         </span>
                       </div>
 
@@ -3177,10 +3177,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
             <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '17px', fontWeight: '850', color: '#0f172a' }}>
-                  👥 {isMr ? 'कार्यकर्त्यांना ॲक्सेस अधिकार द्या (Manage User Access)' : 'Manage User Access for Published Form'}
+                  👥 {isMr ? 'अधिकाऱ्यांना ॲक्सेस अधिकार द्या (Manage Officer Access)' : 'Manage Officer Access for Published Form'}
                 </h3>
                 <span style={{ fontSize: '12.5px', color: '#64748b' }}>
-                  📋 {selectedPublishedForm.form_title} • ({selectedAccessUserIds.length} {isMr ? 'कार्यकर्ते निवडले' : 'users selected'})
+                  📋 {selectedPublishedForm.form_title} • ({selectedAccessUserIds.length} {isMr ? 'अधिकारी निवडले' : 'officers selected'})
                 </span>
               </div>
               <button
@@ -3196,7 +3196,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
             <div style={{ padding: '12px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               <input
                 type="text"
-                placeholder={isMr ? 'कार्यकर्ता नाव, फोन किंवा ईमेलने शोधा...' : 'Search user by name, phone or email...'}
+                placeholder={isMr ? 'अधिकारी नाव, फोन किंवा ईमेलने शोधा...' : 'Search officer by name, phone or email...'}
                 value={accessUserSearch}
                 onChange={(e) => setAccessUserSearch(e.target.value)}
                 style={{ flex: 1, minWidth: '220px', boxSizing: 'border-box', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
@@ -3243,7 +3243,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
             <div style={{ padding: '16px 24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {loadingAccessUsers ? (
                 <div style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
-                  {isMr ? 'कार्यकर्ते लोड होत आहेत...' : 'Loading users list...'}
+                  {isMr ? 'अधिकारी लोड होत आहेत...' : 'Loading officers list...'}
                 </div>
               ) : accessModalUsers.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
@@ -3310,7 +3310,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
             {/* Modal Footer */}
             <div style={{ padding: '16px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '13px', color: '#475569', fontWeight: '750' }}>
-                {selectedAccessUserIds.length} {isMr ? 'कार्यकर्त्यांना ॲक्सेस मिळेल' : 'workers will have access'}
+                {selectedAccessUserIds.length} {isMr ? 'अधिकाऱ्यांना ॲक्सेस मिळेल' : 'officers will have access'}
               </span>
 
               <div style={{ display: 'flex', gap: '10px' }}>
@@ -3531,8 +3531,8 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
 
             <p style={{ margin: '0 0 16px', fontSize: '13.5px', color: '#475569', lineHeight: 1.5 }}>
               {isMr
-                ? `तुम्ही "${selectedProject.name}" या प्रकल्पासाठीचा सर्व्हे फॉर्म प्रकाशित करत आहात. हा फॉर्म 'published_forms' टेबलमध्ये सेव्ह होईल आणि सर्व संबंधित कार्यकर्त्यांना थेट ॲक्सेस मिळेल.`
-                : `You are publishing the survey form for "${selectedProject.name}". It will be saved into the \`published_forms\` table and eligible workers will automatically receive access.`}
+                ? `तुम्ही "${selectedProject.name}" या प्रकल्पासाठीचा सर्व्हे फॉर्म प्रकाशित करत आहात. हा फॉर्म 'published_forms' टेबलमध्ये सेव्ह होईल आणि सर्व संबंधित अधिकाऱ्यांना थेट ॲक्सेस मिळेल.`
+                : `You are publishing the survey form for "${selectedProject.name}". It will be saved into the \`published_forms\` table and eligible officers will automatically receive access.`}
             </p>
 
             {/* Option for giving the name of form in Publish Modal */}
@@ -3593,7 +3593,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                 <div>📁 <strong>{isMr ? 'प्रकल्प:' : 'Project:'}</strong> {selectedProject.name}</div>
                 <div>✓ <strong>{isMr ? 'डीफॉल्ट माहिती:' : 'Default Fields:'}</strong> कुटुंब प्रमुख, एकूण मतदार, सर्व सदस्य (DOB, वय, Voter ID)</div>
                 <div>❓ <strong>{isMr ? 'अतिरिक्त प्रश्न:' : 'Custom Questions:'}</strong> {customQuestions.length} {isMr ? 'प्रश्न' : 'Questions'}</div>
-                <div>👥 <strong>{isMr ? 'कार्यकर्ते ॲक्सेस:' : 'Eligible Workers:'}</strong> {selectedProject.assigned_member_count || selectedProject.assigned_members_count || 0} {isMr ? 'कार्यकर्ते' : 'Workers'}</div>
+                <div>👥 <strong>{isMr ? 'अधिकारी ॲक्सेस:' : 'Eligible Officers:'}</strong> {selectedProject.assigned_member_count || selectedProject.assigned_members_count || 0} {isMr ? 'अधिकारी' : 'Officers'}</div>
               </div>
             </div>
 
