@@ -4,15 +4,15 @@ import { useAuth } from '../../hooks/useAuth';
 import BackButton from '../../components/BackButton';
 import AdminChatbotDesk from '../admin/AdminChatbotDesk';
 import './worker.css';
-import { 
-  LayoutDashboard, 
-  User, 
-  Users, 
-  ClipboardList, 
-  MessageSquare, 
-  Settings, 
-  Search, 
-  Bell, 
+import {
+  LayoutDashboard,
+  User,
+  Users,
+  ClipboardList,
+  MessageSquare,
+  Settings,
+  Search,
+  Bell,
   Menu,
   TrendingUp,
   UserCheck,
@@ -63,26 +63,26 @@ import {
   WifiOff,
   ChevronRight
 } from 'lucide-react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
 } from 'recharts';
 import { translations } from './translations';
 import Webcam from 'react-webcam';
 import { workerApi } from './workerApi';
 import KarkartaEvmVotingSystem from './components/KarkartaEvmVotingSystem';
-import { 
-  isNetworkOnline, 
-  getOfflineQueue, 
-  enqueueOfflineItem, 
-  syncOfflineQueue, 
-  cacheWorkerData, 
-  getWorkerCache 
+import {
+  isNetworkOnline,
+  getOfflineQueue,
+  enqueueOfflineItem,
+  syncOfflineQueue,
+  cacheWorkerData,
+  getWorkerCache
 } from './offlineSyncManager';
 
 // Self-contained Live Clock component: ticks every second in its own micro-lifecycle
@@ -118,6 +118,7 @@ const LiveClock = React.memo(function LiveClock({ isMr, variant = 'header' }) {
   if (variant === 'header') {
     return (
       <div
+        className="live-clock-header"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -136,7 +137,7 @@ const LiveClock = React.memo(function LiveClock({ isMr, variant = 'header' }) {
         <span style={{ fontFamily: 'monospace', fontWeight: '750', color: '#0f172a' }}>
           {formatted.time}
         </span>
-        <span style={{ color: '#94a3b8', fontSize: '11px' }}>({formatted.date})</span>
+        <span className="live-clock-date" style={{ color: '#94a3b8', fontSize: '11px' }}>({formatted.date})</span>
       </div>
     );
   }
@@ -561,10 +562,10 @@ export default function WorkerDashboard() {
         payload,
       });
 
-      alert(isMr 
+      alert(isMr
         ? '📶 इंटरनेट जोडणी नाही.\nतक्रार डिव्हाइसवर सुरक्षित साठवली आहे!\nनेटवर्क येताच ती आपोआप सर्व्हरवर सिंक होईल.'
         : '📶 Offline.\nComplaint saved locally on device!\nIt will automatically sync when online.');
-      
+
       setIsAddingComplaint(false);
       setComplaintFormData({
         name: '',
@@ -713,8 +714,8 @@ export default function WorkerDashboard() {
     try {
       const result = await syncOfflineQueue(workerApi);
       if (result.synced > 0) {
-        const msg = isMr 
-          ? `✓ ${result.synced} ऑफलाइन नोंदी डेटाबेसमध्ये यशस्वीरीत्या सिंक झाल्या!` 
+        const msg = isMr
+          ? `✓ ${result.synced} ऑफलाइन नोंदी डेटाबेसमध्ये यशस्वीरीत्या सिंक झाल्या!`
           : `✓ ${result.synced} offline records successfully synced to database!`;
         setSyncStatusMsg(msg);
         alert(msg);
@@ -917,7 +918,7 @@ export default function WorkerDashboard() {
             const d = await res.json();
             if (d.display_name) addr = d.display_name;
           }
-        } catch (e) {}
+        } catch (e) { }
         setCurrentCoords({ latitude: lat, longitude: lng, address: addr });
         setLocationDetecting(false);
       },
@@ -960,7 +961,7 @@ export default function WorkerDashboard() {
                 const d = await res.json();
                 if (d.display_name) addr = d.display_name;
               }
-            } catch (e) {}
+            } catch (e) { }
             resolve({ latitude: lat, longitude: lng, address: addr });
           },
           () => resolve(null),
@@ -985,14 +986,14 @@ export default function WorkerDashboard() {
       if (punchMode === 'IN') {
         setAttendanceState('Punched In');
         addActivity('clock', 'सकाळची उपस्थिती (Offline Punch In) नोंदवली', '#ecfdf5', '#059669');
-        alert(isMr 
-          ? '📶 ऑफलाइन हजेरी (Punch In) डिव्हाइसवर नोंदवली गेली आहे!\nनेटवर्क उपलब्ध होताच ती आपोआप डेटाबेसमध्ये सिंक होईल.' 
+        alert(isMr
+          ? '📶 ऑफलाइन हजेरी (Punch In) डिव्हाइसवर नोंदवली गेली आहे!\nनेटवर्क उपलब्ध होताच ती आपोआप डेटाबेसमध्ये सिंक होईल.'
           : '📶 Punched In offline! Will automatically sync to database when online.');
       } else {
         setAttendanceState('Completed');
         addActivity('clock', 'कर्तव्य समाप्ती (Offline Punch Out) नोंदवली', '#fff7ed', '#ea580c');
-        alert(isMr 
-          ? '📶 ऑफलाइन निर्गमन (Punch Out) डिव्हाइसवर नोंदवले गेले आहे!\nनेटवर्क उपलब्ध होताच ते आपोआप डेटाबेसमध्ये सिंक होईल.' 
+        alert(isMr
+          ? '📶 ऑफलाइन निर्गमन (Punch Out) डिव्हाइसवर नोंदवले गेले आहे!\nनेटवर्क उपलब्ध होताच ते आपोआप डेटाबेसमध्ये सिंक होईल.'
           : '📶 Punched Out offline! Will automatically sync to database when online.');
       }
       return;
@@ -1027,8 +1028,8 @@ export default function WorkerDashboard() {
         });
         if (punchMode === 'IN') setAttendanceState('Punched In');
         else setAttendanceState('Completed');
-        alert(isMr 
-          ? '📶 नेटवर्क उपलब्ध नसल्यामुळे हजेरी ऑफलाइन साठवली आहे. इंटरनेट आल्यावर आपोआप सिंक होईल.' 
+        alert(isMr
+          ? '📶 नेटवर्क उपलब्ध नसल्यामुळे हजेरी ऑफलाइन साठवली आहे. इंटरनेट आल्यावर आपोआप सिंक होईल.'
           : '📶 Network unavailable. Attendance saved offline and will auto-sync when online.');
         return;
       }
@@ -1296,8 +1297,8 @@ export default function WorkerDashboard() {
         }
       });
 
-      alert(language === 'mr' 
-        ? '📶 इंटरनेट जोडणी उपलब्ध नाही.\nसर्व्हे फॉर्म या डिव्हाइसवर स्थानिक पातळीवर सुरक्षित साठवला आहे!\nइंटरनेट सुरू होताच तो आपोआप डेटाबेसमध्ये सिंक होईल.' 
+      alert(language === 'mr'
+        ? '📶 इंटरनेट जोडणी उपलब्ध नाही.\nसर्व्हे फॉर्म या डिव्हाइसवर स्थानिक पातळीवर सुरक्षित साठवला आहे!\nइंटरनेट सुरू होताच तो आपोआप डेटाबेसमध्ये सिंक होईल.'
         : '📶 No internet connection.\nSurvey form saved locally on device!\nIt will automatically sync to database when online.');
 
       setActiveSurveyToFill(null);
@@ -1378,8 +1379,8 @@ export default function WorkerDashboard() {
             custom_answers: surveyFormData.custom_answers,
           }
         });
-        alert(language === 'mr' 
-          ? '📶 नेटवर्क खंडित झाले. सर्व्हे माहिती डिव्हाइसवर सुरक्षित साठवली आहे. इंटरनेट आल्यावर आपोआप सिंक होईल.' 
+        alert(language === 'mr'
+          ? '📶 नेटवर्क खंडित झाले. सर्व्हे माहिती डिव्हाइसवर सुरक्षित साठवली आहे. इंटरनेट आल्यावर आपोआप सिंक होईल.'
           : '📶 Network disconnected. Survey saved locally and will auto-sync when online.');
         setActiveSurveyToFill(null);
       } else {
@@ -1420,18 +1421,14 @@ export default function WorkerDashboard() {
             <div>
               <div style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span>🚩 {isMr ? 'कार्यकर्ता व बूथ डॅशबोर्ड' : 'Karyakarta Field Overview Dashboard'}</span>
-                <span style={{ fontSize: '11px', background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '2px 8px', borderRadius: '12px', fontWeight: '700' }}>
-                  {isMr ? 'थेट माहिती' : 'Live DB Sync'}
-                </span>
+
                 <span style={{ fontSize: '11px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '2px 8px', borderRadius: '12px', fontWeight: '700' }}>
                   🇮🇳 {profileData.assignedWard ? `${isMr ? 'प्रभाग' : 'Ward'} ${profileData.assignedWard}` : 'Sangli Central'}
                 </span>
               </div>
-              <div style={{ fontSize: '13.5px', color: '#64748b', marginTop: '4px' }}>
-                {isMr ? 'तुमच्या प्रभागातील मतदार संपर्क, उपस्थिती आणि दैनंदिन कार्य प्रगती.' : 'Real-time monitoring of booth voter coverage, field tasks, attendance, and civic grievances.'}
-              </div>
+
             </div>
-            
+
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <LiveClock isMr={isMr} variant="header" />
               {user?.roles?.some((r) => r === 'ADMIN' || r === 'OFFICER') && (
@@ -1842,7 +1839,7 @@ export default function WorkerDashboard() {
 
     if (activeTab === 'User Profile') {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Subheader & Action Bar */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div>
@@ -2373,16 +2370,16 @@ export default function WorkerDashboard() {
 
             {/* Sub-tab Navigation */}
             <div style={{ display: 'flex', gap: '4px', backgroundColor: '#ffffff', padding: '4px', borderRadius: '10px', border: '1px solid #cbd5e1' }}>
-              <button 
+              <button
                 type="button"
                 onClick={() => setContactTab('contacts')}
-                style={{ 
-                  padding: '7px 18px', 
-                  borderRadius: '7px', 
-                  border: 'none', 
-                  background: contactTab === 'contacts' ? '#0284c7' : 'transparent', 
-                  color: contactTab === 'contacts' ? '#ffffff' : '#475569', 
-                  fontWeight: 700, 
+                style={{
+                  padding: '7px 18px',
+                  borderRadius: '7px',
+                  border: 'none',
+                  background: contactTab === 'contacts' ? '#0284c7' : 'transparent',
+                  color: contactTab === 'contacts' ? '#ffffff' : '#475569',
+                  fontWeight: 700,
                   fontSize: '13px',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease'
@@ -2390,16 +2387,16 @@ export default function WorkerDashboard() {
               >
                 👥 {isMr ? 'मतदार संपर्क यादी' : 'Voter Directory'} ({votersList.length})
               </button>
-              <button 
+              <button
                 type="button"
                 onClick={() => setContactTab('meetings')}
-                style={{ 
-                  padding: '7px 18px', 
-                  borderRadius: '7px', 
-                  border: 'none', 
-                  background: contactTab === 'meetings' ? '#0284c7' : 'transparent', 
-                  color: contactTab === 'meetings' ? '#ffffff' : '#475569', 
-                  fontWeight: 700, 
+                style={{
+                  padding: '7px 18px',
+                  borderRadius: '7px',
+                  border: 'none',
+                  background: contactTab === 'meetings' ? '#0284c7' : 'transparent',
+                  color: contactTab === 'meetings' ? '#ffffff' : '#475569',
+                  fontWeight: 700,
                   fontSize: '13px',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease'
@@ -2490,27 +2487,27 @@ export default function WorkerDashboard() {
                     ))}
                   </div>
 
-                  <div style={{ position: 'relative', width: '300px' }}>
+                  <div className="worker-filter-input-wrap">
                     <Search size={14} color="#94a3b8" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder={isMr ? "नाव, फोन किंवा प्रभाग शोधा..." : "Search voters by name, phone, or ward..."}
                       value={contactSearchQuery}
                       onChange={(e) => setContactSearchQuery(e.target.value)}
-                      style={{ 
-                        width: '100%', 
-                        padding: '7px 24px 7px 30px', 
-                        borderRadius: '8px', 
-                        border: '1px solid #cbd5e1', 
-                        fontSize: '12px', 
-                        outline: 'none', 
-                        boxSizing: 'border-box' 
-                      }} 
+                      style={{
+                        width: '100%',
+                        padding: '7px 24px 7px 30px',
+                        borderRadius: '8px',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '12px',
+                        outline: 'none',
+                        boxSizing: 'border-box'
+                      }}
                     />
                     {contactSearchQuery && (
-                      <button 
-                        type="button" 
-                        onClick={() => setContactSearchQuery('')} 
+                      <button
+                        type="button"
+                        onClick={() => setContactSearchQuery('')}
                         style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '12px' }}
                       >
                         ✕
@@ -2579,16 +2576,16 @@ export default function WorkerDashboard() {
                                   >
                                     <CalendarCheck size={16} />
                                   </button>
-                                  <button 
-                                    className="icon-btn icon-btn-primary" 
-                                    title={isMr ? "कॉल करा" : "Call Voter"} 
+                                  <button
+                                    className="icon-btn icon-btn-primary"
+                                    title={isMr ? "कॉल करा" : "Call Voter"}
                                     onClick={() => alert(`Calling ${contact.name} (${contact.phone})...`)}
                                   >
                                     <PhoneCall size={16} color="var(--primary)" />
                                   </button>
-                                  <button 
-                                    className="icon-btn icon-btn-success" 
-                                    title={isMr ? "व्हॉट्सॲप संवाद" : "WhatsApp Chat"} 
+                                  <button
+                                    className="icon-btn icon-btn-success"
+                                    title={isMr ? "व्हॉट्सॲप संवाद" : "WhatsApp Chat"}
                                     onClick={() => alert(`Opening WhatsApp chat for ${contact.phone}...`)}
                                   >
                                     <MessageCircle size={16} color="var(--success)" />
@@ -2611,18 +2608,8 @@ export default function WorkerDashboard() {
 
                 {/* Visit Log Recording Modal */}
                 {activeVisitContact && (
-                  <div style={{
-                    position: 'fixed',
-                    inset: 0,
-                    background: 'rgba(15, 23, 42, 0.72)',
-                    backdropFilter: 'blur(4px)',
-                    zIndex: 9999,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '16px'
-                  }}>
-                    <div style={{ background: '#ffffff', borderRadius: '16px', maxWidth: '500px', width: '100%', padding: '24px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #cbd5e1' }}>
+                  <div className="responsive-modal-overlay">
+                    <div className="responsive-modal-content" style={{ maxWidth: '500px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
                         <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span>🤝</span>
@@ -2648,9 +2635,9 @@ export default function WorkerDashboard() {
                           <label style={{ display: 'block', fontSize: '12.5px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
                             {isMr ? 'राजकीय कल / मतदाराची भावना *' : 'Voter Political Sentiment / Response *'}
                           </label>
-                          <select 
-                            className="form-input" 
-                            value={visitFormData.status} 
+                          <select
+                            className="form-input"
+                            value={visitFormData.status}
                             onChange={(e) => setVisitFormData({ ...visitFormData, status: e.target.value })}
                           >
                             <option value="Supportive">🟢 {isMr ? 'अनुकूल / पाठीराखा (Supportive)' : 'Supportive (In Favor)'}</option>
@@ -2713,33 +2700,33 @@ export default function WorkerDashboard() {
                   </button>
                 )}
               </div>
-              
+
               {isSchedulingMeeting ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', maxWidth: '650px', marginTop: '10px' }}>
                   <div className="info-group">
                     <label className="info-label">{isMr ? 'बैठकीचा विषय *' : 'Meeting Title *'}</label>
-                    <input 
-                      type="text" 
-                      className="form-input" 
-                      placeholder={isMr ? "उदा. बूथ क्र. २ मतदार बैठक" : "e.g., Booth 2 Citizens Consultation"} 
-                      value={newMeeting.title} 
-                      onChange={(e) => setNewMeeting({...newMeeting, title: e.target.value})} 
+                    <input
+                      type="text"
+                      className="form-input"
+                      placeholder={isMr ? "उदा. बूथ क्र. २ मतदार बैठक" : "e.g., Booth 2 Citizens Consultation"}
+                      value={newMeeting.title}
+                      onChange={(e) => setNewMeeting({ ...newMeeting, title: e.target.value })}
                     />
                   </div>
                   <div className="info-row">
                     <div className="info-group">
                       <label className="info-label">{isMr ? 'तारीख व वेळ *' : 'Date & Time *'}</label>
-                      <input 
-                        type="text" 
-                        className="form-input" 
-                        placeholder={isMr ? "उदा. उद्या, सायं ५:००" : "e.g., Tomorrow, 5:00 PM"} 
-                        value={newMeeting.time} 
-                        onChange={(e) => setNewMeeting({...newMeeting, time: e.target.value})} 
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder={isMr ? "उदा. उद्या, सायं ५:००" : "e.g., Tomorrow, 5:00 PM"}
+                        value={newMeeting.time}
+                        onChange={(e) => setNewMeeting({ ...newMeeting, time: e.target.value })}
                       />
                     </div>
                     <div className="info-group">
                       <label className="info-label">{isMr ? 'बैठकीचा प्रकार' : 'Meeting Format'}</label>
-                      <select className="form-input" value={newMeeting.type} onChange={(e) => setNewMeeting({...newMeeting, type: e.target.value})}>
+                      <select className="form-input" value={newMeeting.type} onChange={(e) => setNewMeeting({ ...newMeeting, type: e.target.value })}>
                         <option value="In-person">{isMr ? 'प्रत्यक्ष भेट (In-person)' : 'In-person Gathering'}</option>
                         <option value="Virtual">{isMr ? 'व्हर्च्युअल / ऑनलाइन (Virtual)' : 'Virtual / Video Call'}</option>
                       </select>
@@ -2748,22 +2735,22 @@ export default function WorkerDashboard() {
                   <div className="info-row">
                     <div className="info-group">
                       <label className="info-label">{isMr ? 'ठिकाण / पत्ता / लिंक' : 'Location or Meeting Link'}</label>
-                      <input 
-                        type="text" 
-                        className="form-input" 
-                        placeholder={isMr ? "पत्ता किंवा Google Meet लिंक" : "Address or video link"} 
-                        value={newMeeting.location} 
-                        onChange={(e) => setNewMeeting({...newMeeting, location: e.target.value})} 
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder={isMr ? "पत्ता किंवा Google Meet लिंक" : "Address or video link"}
+                        value={newMeeting.location}
+                        onChange={(e) => setNewMeeting({ ...newMeeting, location: e.target.value })}
                       />
                     </div>
                     <div className="info-group">
                       <label className="info-label">{isMr ? 'अपेक्षित उपस्थिती' : 'Expected Attendees'}</label>
-                      <input 
-                        type="text" 
-                        className="form-input" 
-                        placeholder={isMr ? "उदा. १५ मतदार" : "e.g., 15 Citizens"} 
-                        value={newMeeting.attendees} 
-                        onChange={(e) => setNewMeeting({...newMeeting, attendees: e.target.value})} 
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder={isMr ? "उदा. १५ मतदार" : "e.g., 15 Citizens"}
+                        value={newMeeting.attendees}
+                        onChange={(e) => setNewMeeting({ ...newMeeting, attendees: e.target.value })}
                       />
                     </div>
                   </div>
@@ -2788,7 +2775,7 @@ export default function WorkerDashboard() {
                           {meeting.type}
                         </span>
                       </div>
-                      
+
                       <div>
                         <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', marginBottom: '6px' }}>{meeting.title}</h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '12.5px', marginBottom: '4px' }}>
@@ -2798,7 +2785,7 @@ export default function WorkerDashboard() {
                           <MapPin size={14} color="#ea580c" /> {meeting.location}
                         </div>
                       </div>
-                      
+
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
                         <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>👥 {meeting.attendees}</span>
                         <span style={{ color: '#0284c7', fontWeight: 700, fontSize: '12px' }}>
@@ -2918,10 +2905,10 @@ export default function WorkerDashboard() {
                     {locationDetecting
                       ? (isMr ? '🔄 GPS स्थान शोधत आहे...' : 'Detecting GPS...')
                       : currentCoords?.address
-                      ? currentCoords.address
-                      : currentCoords?.latitude
-                      ? `Lat: ${currentCoords.latitude}, Lng: ${currentCoords.longitude}`
-                      : (isMr ? 'स्थान उपलब्ध नाही (Detect Location वर क्लिक करा)' : 'GPS not detected yet')}
+                        ? currentCoords.address
+                        : currentCoords?.latitude
+                          ? `Lat: ${currentCoords.latitude}, Lng: ${currentCoords.longitude}`
+                          : (isMr ? 'स्थान उपलब्ध नाही (Detect Location वर क्लिक करा)' : 'GPS not detected yet')}
                   </div>
                 </div>
               </div>
@@ -3165,20 +3152,19 @@ export default function WorkerDashboard() {
                     {isMr ? 'आजची उपस्थिती स्थिती' : "Today's Shift Status"}
                   </h3>
                   <span
-                    className={`badge-status ${
-                      attendanceState === 'Punched In'
-                        ? 'status-progress'
-                        : attendanceState === 'Completed'
+                    className={`badge-status ${attendanceState === 'Punched In'
+                      ? 'status-progress'
+                      : attendanceState === 'Completed'
                         ? 'status-completed'
                         : 'status-pending'
-                    }`}
+                      }`}
                     style={{ fontSize: '12px', padding: '4px 10px' }}
                   >
                     {attendanceState === 'Punched In'
                       ? (isMr ? '🟢 कामावर हजर (On Duty)' : 'On Duty')
                       : attendanceState === 'Completed'
-                      ? (isMr ? '✓ कर्तव्य पूर्ण (Completed)' : 'Completed')
-                      : (isMr ? '⚪ उपस्थिती बाकी (Not Started)' : 'Not Started')}
+                        ? (isMr ? '✓ कर्तव्य पूर्ण (Completed)' : 'Completed')
+                        : (isMr ? '⚪ उपस्थिती बाकी (Not Started)' : 'Not Started')}
                   </span>
                 </div>
 
@@ -3206,8 +3192,8 @@ export default function WorkerDashboard() {
                   {attendanceState === 'Completed'
                     ? (isMr ? '🎉 आजचे कर्तव्य यशस्वीरीत्या पूर्ण झाले आहे. धन्यवाद!' : 'Shift completed successfully today. Thank you!')
                     : attendanceState === 'Punched In'
-                    ? (isMr ? '👍 आपण सध्या ड्युटीवर आहात. कार्य संपल्यावर वरील Punch Out बटनावर क्लिक करा.' : 'You are currently on duty. Use the Punch Out button above when leaving.')
-                    : (isMr ? '📌 कृपया दिवसाचे काम सुरू करण्यासाठी प्रथम Punch In करा.' : 'Please punch in first to begin today\'s shift.')}
+                      ? (isMr ? '👍 आपण सध्या ड्युटीवर आहात. कार्य संपल्यावर वरील Punch Out बटनावर क्लिक करा.' : 'You are currently on duty. Use the Punch Out button above when leaving.')
+                      : (isMr ? '📌 कृपया दिवसाचे काम सुरू करण्यासाठी प्रथम Punch In करा.' : 'Please punch in first to begin today\'s shift.')}
                 </div>
               </div>
 
@@ -3540,19 +3526,19 @@ export default function WorkerDashboard() {
                 {language === 'mr' ? 'मतदार कुटुंब सर्वेक्षण डेस्क' : 'Household Survey Desk'}
               </h1>
               <div className="page-subtitle">
-                {language === 'mr' 
-                  ? 'प्रशासनाकडून तुम्हाला केवळ अधिकृत वाटप केलेले फॉर्म. बॅकएंडमध्ये जमा झालेले व शिल्लक राहिलेले फॉर्म येथे थेट तपासू शकता.' 
+                {language === 'mr'
+                  ? 'प्रशासनाकडून तुम्हाला केवळ अधिकृत वाटप केलेले फॉर्म. बॅकएंडमध्ये जमा झालेले व शिल्लक राहिलेले फॉर्म येथे थेट तपासू शकता.'
                   : 'Survey forms strictly allocated to your account. Track forms saved to backend and pending target allocations.'}
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <span style={{ 
-                background: '#eff6ff', 
-                color: '#1d4ed8', 
-                padding: '6px 14px', 
-                borderRadius: '20px', 
-                fontWeight: 700, 
-                fontSize: '13px', 
+              <span style={{
+                background: '#eff6ff',
+                color: '#1d4ed8',
+                padding: '6px 14px',
+                borderRadius: '20px',
+                fontWeight: 700,
+                fontSize: '13px',
                 border: '1px solid #bfdbfe',
                 display: 'flex',
                 alignItems: 'center',
@@ -3561,13 +3547,13 @@ export default function WorkerDashboard() {
                 <Shield size={14} />
                 {language === 'mr' ? `वाटप केलेले फॉर्म: ${surveyStats.allocatedForms}` : `Allocated Forms: ${surveyStats.allocatedForms}`}
               </span>
-              <span style={{ 
-                background: '#f0fdf4', 
-                color: '#16a34a', 
-                padding: '6px 14px', 
-                borderRadius: '20px', 
-                fontWeight: 700, 
-                fontSize: '13px', 
+              <span style={{
+                background: '#f0fdf4',
+                color: '#16a34a',
+                padding: '6px 14px',
+                borderRadius: '20px',
+                fontWeight: 700,
+                fontSize: '13px',
                 border: '1px solid #bbf7d0',
                 display: 'flex',
                 alignItems: 'center',
@@ -3796,7 +3782,7 @@ export default function WorkerDashboard() {
               <div style={{ background: '#0284c7', color: '#fff', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 800 }}>ℹ</div>
               <span>
                 <strong>{language === 'mr' ? 'केवळ फॉर्म भरण्याची परवानगी:' : 'Fill-only Access:'}</strong>{' '}
-                {language === 'mr' 
+                {language === 'mr'
                   ? 'तुम्हाला केवळ प्रशासनाने (Admin) अधिकृत केलेल्या फॉर्ममध्ये नवीन मतदारांची माहिती भरण्याची परवानगी आहे. फॉर्मचे स्वरूप बदलता येत नाही.'
                   : 'You have read and fill-only permissions for these assigned forms. Form schema cannot be altered.'}
               </span>
@@ -3805,22 +3791,12 @@ export default function WorkerDashboard() {
 
           {/* Survey Fill Modal - Only for Assigned Forms */}
           {activeSurveyToFill && (
-            <div style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'rgba(15, 23, 42, 0.72)',
-              backdropFilter: 'blur(4px)',
-              zIndex: 9999,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '16px'
-            }}>
+            <div className="responsive-modal-overlay">
               <div style={{
                 background: '#ffffff',
                 borderRadius: '16px',
                 maxWidth: '820px',
-                width: '100%',
+                width: '96%',
                 maxHeight: '92vh',
                 display: 'flex',
                 flexDirection: 'column',
@@ -3860,9 +3836,9 @@ export default function WorkerDashboard() {
                       <span style={{ color: '#4ade80' }}>✓ अधिकृत फॉर्म (Fill Only)</span>
                     </div>
                   </div>
-                  <button 
+                  <button
                     type="button"
-                    onClick={() => setActiveSurveyToFill(null)} 
+                    onClick={() => setActiveSurveyToFill(null)}
                     style={{
                       border: 'none',
                       background: 'rgba(255,255,255,0.1)',
@@ -3884,7 +3860,7 @@ export default function WorkerDashboard() {
                 {/* Modal Body / Scrollable Form */}
                 <form onSubmit={handleSurveySubmit} style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden', flex: 1 }}>
                   <div style={{ padding: '22px 24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '22px' }}>
-                    
+
                     {/* SECTION 1: कुटुंब प्रमुख व घर तपशील */}
                     <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '18px', border: '1px solid #e2e8f0' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
@@ -3899,12 +3875,12 @@ export default function WorkerDashboard() {
                           <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
                             कुटुंब प्रमुखाचे पूर्ण नाव (Family Pramukh Name) <span style={{ color: '#ef4444' }}>*</span>
                           </label>
-                          <input 
-                            type="text" 
-                            required 
-                            className="form-input" 
-                            placeholder="उदा. सतीश विठ्ठल खोत" 
-                            value={surveyFormData.pramukh_name} 
+                          <input
+                            type="text"
+                            required
+                            className="form-input"
+                            placeholder="उदा. सतीश विठ्ठल खोत"
+                            value={surveyFormData.pramukh_name}
                             onChange={(e) => {
                               const val = e.target.value;
                               setSurveyFormData((prev) => {
@@ -3914,7 +3890,7 @@ export default function WorkerDashboard() {
                                 }
                                 return { ...prev, pramukh_name: val, members: nextMembers };
                               });
-                            }} 
+                            }}
                           />
                         </div>
 
@@ -3922,14 +3898,14 @@ export default function WorkerDashboard() {
                           <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
                             एकूण मतदार संख्या (Total Matdar) <span style={{ color: '#ef4444' }}>*</span>
                           </label>
-                          <input 
-                            type="number" 
-                            min="1" 
-                            required 
-                            className="form-input" 
-                            placeholder="उदा. ३" 
-                            value={surveyFormData.total_matdar} 
-                            onChange={(e) => setSurveyFormData({ ...surveyFormData, total_matdar: parseInt(e.target.value) || 1 })} 
+                          <input
+                            type="number"
+                            min="1"
+                            required
+                            className="form-input"
+                            placeholder="उदा. ३"
+                            value={surveyFormData.total_matdar}
+                            onChange={(e) => setSurveyFormData({ ...surveyFormData, total_matdar: parseInt(e.target.value) || 1 })}
                           />
                           <span style={{ fontSize: '11px', color: '#64748b' }}>
                             (ओळखपत्र YES असलेल्या सदस्यांनुसार आपोआप मोजले जाते)
@@ -3940,12 +3916,12 @@ export default function WorkerDashboard() {
                           <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
                             मोबाईल नंबर (Mobile Number)
                           </label>
-                          <input 
-                            type="tel" 
+                          <input
+                            type="tel"
                             maxLength="10"
-                            className="form-input" 
-                            placeholder="उदा. ९८XXXXXXXX" 
-                            value={surveyFormData.phone} 
+                            className="form-input"
+                            placeholder="उदा. ९८XXXXXXXX"
+                            value={surveyFormData.phone}
                             onChange={(e) => {
                               const val = e.target.value.replace(/\D/g, '');
                               setSurveyFormData({ ...surveyFormData, phone: val });
@@ -3954,7 +3930,7 @@ export default function WorkerDashboard() {
                               } else {
                                 setSurveyDuplicateWarning(null);
                               }
-                            }} 
+                            }}
                           />
                           {surveyDuplicateWarning && (
                             <div style={{ marginTop: '5px', padding: '6px 10px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '6px', color: '#b45309', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -3968,12 +3944,12 @@ export default function WorkerDashboard() {
                           <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '4px' }}>
                             घराचा पत्ता / परिसर (Address / Lane / Ward)
                           </label>
-                          <input 
-                            type="text" 
-                            className="form-input" 
-                            placeholder="उदा. घर क्र. २४, मेन रोड, वॉर्ड ३" 
-                            value={surveyFormData.address} 
-                            onChange={(e) => setSurveyFormData({ ...surveyFormData, address: e.target.value })} 
+                          <input
+                            type="text"
+                            className="form-input"
+                            placeholder="उदा. घर क्र. २४, मेन रोड, वॉर्ड ३"
+                            value={surveyFormData.address}
+                            onChange={(e) => setSurveyFormData({ ...surveyFormData, address: e.target.value })}
                           />
                         </div>
                       </div>
@@ -4016,12 +3992,12 @@ export default function WorkerDashboard() {
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                         {surveyFormData.members.map((member, idx) => (
-                          <div 
-                            key={member.id} 
-                            style={{ 
-                              background: '#ffffff', 
-                              borderRadius: '10px', 
-                              padding: '14px', 
+                          <div
+                            key={member.id}
+                            style={{
+                              background: '#ffffff',
+                              borderRadius: '10px',
+                              padding: '14px',
                               border: '1px solid #e2e8f0',
                               boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
                             }}
@@ -4174,13 +4150,13 @@ export default function WorkerDashboard() {
 
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                           {activeSurveyToFill.custom_questions.map((q, qIdx) => (
-                            <div 
-                              key={q.id || qIdx} 
-                              style={{ 
-                                background: '#ffffff', 
-                                borderRadius: '10px', 
-                                padding: '14px', 
-                                border: '1px solid #e2e8f0' 
+                            <div
+                              key={q.id || qIdx}
+                              style={{
+                                background: '#ffffff',
+                                borderRadius: '10px',
+                                padding: '14px',
+                                border: '1px solid #e2e8f0'
                               }}
                             >
                               <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: '#1e293b', marginBottom: '4px' }}>
@@ -4196,8 +4172,8 @@ export default function WorkerDashboard() {
                               {q.type === 'single_choice' && (
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '6px' }}>
                                   {(q.options || ['होय', 'नाही']).map((opt, oIdx) => (
-                                    <label 
-                                      key={oIdx} 
+                                    <label
+                                      key={oIdx}
                                       style={{
                                         display: 'flex',
                                         alignItems: 'center',
@@ -4212,11 +4188,11 @@ export default function WorkerDashboard() {
                                         fontSize: '13px'
                                       }}
                                     >
-                                      <input 
-                                        type="radio" 
-                                        name={`q_${q.id}`} 
-                                        checked={surveyFormData.custom_answers?.[q.id] === opt} 
-                                        onChange={() => handleCustomAnswerChange(q.id, opt)} 
+                                      <input
+                                        type="radio"
+                                        name={`q_${q.id}`}
+                                        checked={surveyFormData.custom_answers?.[q.id] === opt}
+                                        onChange={() => handleCustomAnswerChange(q.id, opt)}
                                         style={{ accentColor: '#2563eb' }}
                                       />
                                       {opt}
@@ -4231,8 +4207,8 @@ export default function WorkerDashboard() {
                                   {(q.options || []).map((opt, oIdx) => {
                                     const isChecked = Array.isArray(surveyFormData.custom_answers?.[q.id]) && surveyFormData.custom_answers[q.id].includes(opt);
                                     return (
-                                      <label 
-                                        key={oIdx} 
+                                      <label
+                                        key={oIdx}
                                         style={{
                                           display: 'flex',
                                           alignItems: 'center',
@@ -4247,10 +4223,10 @@ export default function WorkerDashboard() {
                                           fontSize: '13px'
                                         }}
                                       >
-                                        <input 
-                                          type="checkbox" 
-                                          checked={isChecked} 
-                                          onChange={() => handleMultiChoiceToggle(q.id, opt)} 
+                                        <input
+                                          type="checkbox"
+                                          checked={isChecked}
+                                          onChange={() => handleMultiChoiceToggle(q.id, opt)}
                                           style={{ accentColor: '#16a34a' }}
                                         />
                                         {opt}
@@ -4384,7 +4360,7 @@ export default function WorkerDashboard() {
               </div>
             </div>
           )}
-          
+
           {/* Content Views: Allocated Forms vs Saved in Backend History */}
           {surveyActiveView === 'forms' ? (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
@@ -4395,15 +4371,15 @@ export default function WorkerDashboard() {
                   const progressPct = Math.min(100, Math.round((savedCount / (targetCount || 1)) * 100));
 
                   return (
-                    <div 
-                      key={survey.id} 
-                      className="card" 
-                      style={{ 
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        gap: '1rem', 
-                        padding: '1.5rem', 
-                        border: '1px solid #bfdbfe', 
+                    <div
+                      key={survey.id}
+                      className="card"
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1rem',
+                        padding: '1.5rem',
+                        border: '1px solid #bfdbfe',
                         borderRadius: '16px',
                         boxShadow: '0 4px 12px rgba(37,99,235,0.06)',
                         background: '#ffffff',
@@ -4495,17 +4471,17 @@ export default function WorkerDashboard() {
                         <span style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <Lock size={12} /> {isMr ? 'पाहणे व भरणे अधिकृत' : 'Fill-only Access'}
                         </span>
-                        <button 
-                          className="btn-primary" 
-                          style={{ 
-                            padding: '0.55rem 1.35rem', 
+                        <button
+                          className="btn-primary"
+                          style={{
+                            padding: '0.55rem 1.35rem',
                             fontSize: '0.9rem',
                             fontWeight: 700,
                             display: 'flex',
                             alignItems: 'center',
                             gap: '6px',
                             background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'
-                          }} 
+                          }}
                           onClick={() => handleOpenSurveyModal(survey)}
                         >
                           {isMr ? 'फॉर्म भरा (Fill Form) →' : 'Fill Form →'}
@@ -4759,7 +4735,7 @@ export default function WorkerDashboard() {
               ))}
             </div>
 
-            <div style={{ position: 'relative', width: '300px' }}>
+            <div className="worker-filter-input-wrap">
               <Search size={14} color="#94a3b8" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
               <input
                 type="text"
@@ -4888,28 +4864,8 @@ export default function WorkerDashboard() {
 
           {/* New Complaint Registration Modal with Photo & GPS */}
           {isAddingComplaint && (
-            <div style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'rgba(15, 23, 42, 0.72)',
-              backdropFilter: 'blur(4px)',
-              zIndex: 9999,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '16px'
-            }}>
-              <div style={{
-                background: '#ffffff',
-                borderRadius: '16px',
-                maxWidth: '620px',
-                width: '100%',
-                maxHeight: '90vh',
-                overflowY: 'auto',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                border: '1px solid #cbd5e1',
-                padding: '24px'
-              }}>
+            <div className="responsive-modal-overlay">
+              <div className="responsive-modal-content" style={{ maxWidth: '620px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
                   <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <AlertCircle size={22} color="#ea580c" />
@@ -5300,8 +5256,8 @@ export default function WorkerDashboard() {
 
           {/* Add Task Modal */}
           {isAddingTask && (
-            <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-              <div style={{ background: '#ffffff', borderRadius: '14px', maxWidth: '440px', width: '100%', padding: '20px', border: '1px solid #cbd5e1' }}>
+            <div className="responsive-modal-overlay">
+              <div className="responsive-modal-content" style={{ maxWidth: '440px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                   <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>{isMr ? 'नवीन काम जोडा' : 'Add New Task'}</h3>
                   <button type="button" onClick={() => setIsAddingTask(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px', color: '#94a3b8' }}>✕</button>
@@ -5345,8 +5301,8 @@ export default function WorkerDashboard() {
 
           {/* Add Follow-up Modal */}
           {isAddingFollowUp && (
-            <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(3px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-              <div style={{ background: '#ffffff', borderRadius: '14px', maxWidth: '440px', width: '100%', padding: '20px', border: '1px solid #cbd5e1' }}>
+            <div className="responsive-modal-overlay">
+              <div className="responsive-modal-content" style={{ maxWidth: '440px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                   <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800 }}>{isMr ? 'नवीन पाठपुरावा नोंदवा' : 'Add Follow-up'}</h3>
                   <button type="button" onClick={() => setIsAddingFollowUp(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px', color: '#94a3b8' }}>✕</button>
@@ -5540,28 +5496,15 @@ export default function WorkerDashboard() {
         display: 'flex',
       }}
     >
+      {/* Mobile Drawer Backdrop */}
+      <div
+        className={`worker-sidebar-backdrop ${isSidebarOpen ? 'active' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+
       {/* UNIFIED LIGHT SAAS SIDEBAR */}
       <aside
-        style={{
-          width: isCollapsed ? '72px' : '268px',
-          minWidth: isCollapsed ? '72px' : '268px',
-          background: '#ffffff',
-          borderRight: '1px solid #e2e8f0',
-          boxShadow: '1px 0 3px rgba(0, 0, 0, 0.03)',
-          color: '#1e293b',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          position: 'sticky',
-          top: 0,
-          height: '100vh',
-          boxSizing: 'border-box',
-          padding: isCollapsed ? '16px 8px' : '18px 12px 14px 12px',
-          zIndex: 50,
-          overflowY: 'auto',
-          overflowX: 'hidden',
-          transition: 'width 0.2s ease, min-width 0.2s ease',
-        }}
+        className={`worker-sidebar ${isCollapsed ? 'collapsed' : ''} ${isSidebarOpen ? 'mobile-open' : ''}`}
       >
         <div>
           {/* Brand Header Card — Indian Flag Theme */}
@@ -5688,6 +5631,29 @@ export default function WorkerDashboard() {
                 title={isCollapsed ? (isMr ? 'विस्तृत करा' : 'Expand Sidebar') : (isMr ? 'संक्षिप्त करा' : 'Collapse Sidebar')}
               >
                 {isCollapsed ? <ArrowRight size={14} /> : <ArrowLeft size={14} />}
+              </button>
+
+              {/* Mobile Drawer Close Button */}
+              <button
+                type="button"
+                className="mobile-close-sidebar-btn"
+                onClick={() => setSidebarOpen(false)}
+                style={{
+                  width: '26px',
+                  height: '26px',
+                  borderRadius: '6px',
+                  background: '#fee2e2',
+                  border: '1px solid #fecaca',
+                  color: '#dc2626',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  padding: 0,
+                  flexShrink: 0,
+                }}
+                title={isMr ? 'मेनू बंद करा' : 'Close Menu'}
+              >
+                <X size={15} />
               </button>
             </div>
 
@@ -5818,7 +5784,12 @@ export default function WorkerDashboard() {
                       <button
                         key={item.id}
                         type="button"
-                        onClick={() => setActiveTab(item.id)}
+                        onClick={() => {
+                          setActiveTab(item.id);
+                          if (typeof window !== 'undefined' && window.innerWidth <= 992) {
+                            setSidebarOpen(false);
+                          }
+                        }}
                         style={{
                           width: '100%',
                           display: 'flex',
@@ -6009,22 +5980,19 @@ export default function WorkerDashboard() {
       >
         {/* STICKY TOP HEADER BAR */}
         <header
-          style={{
-            height: '64px',
-            background: '#ffffff',
-            borderBottom: '1px solid #e2e8f0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 24px',
-            position: 'sticky',
-            top: 0,
-            zIndex: 40,
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.02)',
-          }}
+          className="worker-header"
         >
-          {/* Left: BackButton & Current Tab Title */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: 0 }}>
+          {/* Left: Mobile Menu Toggle + BackButton & Current Tab Title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+            <button
+              type="button"
+              className="mobile-menu-btn"
+              onClick={() => setSidebarOpen(true)}
+              title={isMr ? 'मेनू उघडा' : 'Open Menu'}
+            >
+              <Menu size={20} />
+            </button>
+
             {user?.roles?.some((r) => r === 'ADMIN' || r === 'OFFICER') ? (
               <BackButton fallbackPath="/admin" text={isMr ? 'परत' : 'Back'} />
             ) : (
@@ -6064,8 +6032,8 @@ export default function WorkerDashboard() {
               >
                 {isOnline ? <Wifi size={13} /> : <WifiOff size={13} />}
                 <span>
-                  {isOnline 
-                    ? (isMr ? 'ऑनलाइन (Online)' : 'Online') 
+                  {isOnline
+                    ? (isMr ? 'ऑनलाइन (Online)' : 'Online')
                     : (isMr ? 'ऑफलाइन (Offline)' : 'Offline')}
                 </span>
               </div>
@@ -6094,8 +6062,8 @@ export default function WorkerDashboard() {
                 >
                   <RefreshCw size={12} style={{ animation: isSyncing ? 'spin 1s linear infinite' : 'none' }} />
                   <span>
-                    {isSyncing 
-                      ? (isMr ? 'सिंक होत आहे...' : 'Syncing...') 
+                    {isSyncing
+                      ? (isMr ? 'सिंक होत आहे...' : 'Syncing...')
                       : (isMr ? `⚡ ${offlineQueueCount} सिंक करा` : `⚡ Sync (${offlineQueueCount})`)}
                   </span>
                 </button>
@@ -6135,8 +6103,8 @@ export default function WorkerDashboard() {
                 {attendanceState === 'Punched In'
                   ? (isMr ? 'हजर (Punched In)' : 'Punched In')
                   : attendanceState === 'Completed'
-                  ? (isMr ? 'काम पूर्ण' : 'Completed')
-                  : (isMr ? 'उपस्थिती बाकी' : 'Not Checked In')}
+                    ? (isMr ? 'काम पूर्ण' : 'Completed')
+                    : (isMr ? 'उपस्थिती बाकी' : 'Not Checked In')}
               </span>
             </div>
 
@@ -6207,37 +6175,14 @@ export default function WorkerDashboard() {
         </header>
 
         {/* PAGE CONTENT CONTAINER */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '24px',
-            maxWidth: '1600px',
-            margin: '0 auto',
-            width: '100%',
-            boxSizing: 'border-box',
-          }}
-        >
+        <div className="worker-content-container">
           {renderContent()}
         </div>
 
         {/* FLOATING AI CAMPAIGN & FIELD ASSISTANT (MATCHING OFFICER/ADMIN DESK) */}
-        <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 1000 }}>
+        <div className="floating-bot-container">
           {showFloatingChat ? (
-            <div
-              style={{
-                width: '420px',
-                height: '600px',
-                maxHeight: 'calc(100vh - 48px)',
-                background: '#ffffff',
-                borderRadius: '16px',
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
-                border: '1px solid #e2e8f0',
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-              }}
-            >
+            <div className="floating-bot-window">
               <AdminChatbotDesk
                 lang={language}
                 isFloating={true}
@@ -6273,6 +6218,50 @@ export default function WorkerDashboard() {
             </button>
           )}
         </div>
+
+        {/* MOBILE BOTTOM NAVIGATION BAR */}
+        <nav className="worker-bottom-nav">
+          <button
+            type="button"
+            className={`worker-bottom-nav-item ${activeTab === 'Dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveTab('Dashboard')}
+          >
+            <span className="icon"><LayoutDashboard size={18} /></span>
+            <span>{isMr ? 'डॅशबोर्ड' : 'Dashboard'}</span>
+          </button>
+          <button
+            type="button"
+            className={`worker-bottom-nav-item ${activeTab === 'Attendance' ? 'active' : ''}`}
+            onClick={() => setActiveTab('Attendance')}
+          >
+            <span className="icon"><CalendarCheck size={18} /></span>
+            <span>{isMr ? 'हजेरी' : 'Attendance'}</span>
+          </button>
+          <button
+            type="button"
+            className={`worker-bottom-nav-item ${activeTab === 'Contact & Meetings' ? 'active' : ''}`}
+            onClick={() => setActiveTab('Contact & Meetings')}
+          >
+            <span className="icon"><Calendar size={18} /></span>
+            <span>{isMr ? 'संपर्क' : 'Contacts'}</span>
+          </button>
+          <button
+            type="button"
+            className={`worker-bottom-nav-item ${activeTab === 'Complaints' ? 'active' : ''}`}
+            onClick={() => setActiveTab('Complaints')}
+          >
+            <span className="icon"><AlertCircle size={18} /></span>
+            <span>{isMr ? 'समस्या' : 'Grievances'}</span>
+          </button>
+          <button
+            type="button"
+            className="worker-bottom-nav-item"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <span className="icon"><Menu size={18} /></span>
+            <span>{isMr ? 'मेनू' : 'Menu'}</span>
+          </button>
+        </nav>
       </main>
     </div>
   );

@@ -748,7 +748,7 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
   }, [allVotes, candidateLedgerFilter]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', fontFamily: "'Inter', 'Noto Sans Devanagari', 'Mukta', sans-serif" }}>
+    <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '20px', fontFamily: "'Inter', 'Noto Sans Devanagari', 'Mukta', sans-serif" }}>
       {/* Hidden Audio Elements */}
       <audio ref={audioRef} src={voteSongAudio} preload="auto" />
       <audio ref={wrongAudioRef} src={wrongSoundAudio} preload="auto" />
