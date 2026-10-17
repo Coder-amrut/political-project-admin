@@ -1338,87 +1338,85 @@ export default function WorkerDashboard() {
             </div>
           </div>
 
-          {/* 4 Crisp SaaS Metric Cards Matching Officer/Admin Design */}
+          {/* 4 Crisp SaaS Metric Cards in Light Blue Theme */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
             {/* 1. Total Assigned */}
-            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderTop: '3.5px solid #3b82f6', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 6px rgba(15, 23, 42, 0.03)' }}>
+            <div style={{ background: '#e0f2fe', border: '1.5px solid #bae6fd', borderTop: '3.5px solid #0284c7', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 8px rgba(37, 99, 235, 0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>
+                <span style={{ fontSize: '13px', color: '#0369a1', fontWeight: '800' }}>
                   {isMr ? 'एकूण नियुक्त मतदार' : 'Total Assigned Voters'}
                 </span>
-                <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Users size={18} />
                 </span>
               </div>
               <div style={{ fontSize: '28px', fontWeight: '900', color: '#0f172a', lineHeight: 1.1 }}>
                 {dashboardStats.totalAssigned.toLocaleString()}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #bae6fd', fontSize: '12px', color: '#0369a1' }}>
                 <span>{dashboardStats.contactRate ? `${dashboardStats.contactRate}% ${isMr ? 'संपर्क पूर्ण' : 'Contact Rate'}` : (isMr ? 'बूथ मतदार' : 'Booth Network')}</span>
-                <span style={{ fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px', background: '#eff6ff', color: '#1d4ed8' }}>
-                  {isMr ? 'नियुक्त' : 'Assigned'}
-                </span>
+
               </div>
             </div>
 
             {/* 2. Contacted */}
-            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderTop: '3.5px solid #10b981', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 6px rgba(15, 23, 42, 0.03)' }}>
+            <div style={{ background: '#e0f2fe', border: '1.5px solid #bae6fd', borderTop: '3.5px solid #0284c7', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 8px rgba(37, 99, 235, 0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>
+                <span style={{ fontSize: '13px', color: '#0369a1', fontWeight: '800' }}>
                   {isMr ? 'थेट संपर्क साधलेले' : 'Contacted Voters'}
                 </span>
-                <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <PhoneCall size={18} />
                 </span>
               </div>
               <div style={{ fontSize: '28px', fontWeight: '900', color: '#0f172a', lineHeight: 1.1 }}>
                 {dashboardStats.contacted.toLocaleString()}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #bae6fd', fontSize: '12px', color: '#0369a1' }}>
                 <span>{dashboardStats.supportiveRate ? `${dashboardStats.supportiveRate}% ${isMr ? 'अनुकूल प्रतिसाद' : 'Positive Response'}` : (isMr ? 'प्रत्यक्ष संवाद' : 'Doorstep & Calls')}</span>
-                <span style={{ fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px', background: '#ecfdf5', color: '#059669' }}>
+                <span style={{ fontSize: '11px', fontWeight: '750', padding: '2px 8px', borderRadius: '12px', background: '#ffffff', color: '#059669', border: '1px solid #bae6fd' }}>
                   {isMr ? 'संपर्कित' : 'Reached'}
                 </span>
               </div>
             </div>
 
             {/* 3. Completed Surveys */}
-            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderTop: '3.5px solid #f97316', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 6px rgba(15, 23, 42, 0.03)' }}>
+            <div style={{ background: '#e0f2fe', border: '1.5px solid #bae6fd', borderTop: '3.5px solid #0284c7', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 8px rgba(37, 99, 235, 0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>
+                <span style={{ fontSize: '13px', color: '#0369a1', fontWeight: '800' }}>
                   {isMr ? 'कुटुंब सर्वेक्षण नोंद' : 'Household Surveys Completed'}
                 </span>
-                <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <ClipboardCheck size={18} />
                 </span>
               </div>
               <div style={{ fontSize: '28px', fontWeight: '900', color: '#0f172a', lineHeight: 1.1 }}>
                 {dashboardStats.surveysCompleted.toLocaleString()}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #bae6fd', fontSize: '12px', color: '#0369a1' }}>
                 <span>{isMr ? `उद्दिष्ट: ${dashboardStats.surveysTarget || 100} कुटुंबे` : `Target: ${dashboardStats.surveysTarget || 100} Families`}</span>
-                <span style={{ fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px', background: '#fff7ed', color: '#ea580c' }}>
+                <span style={{ fontSize: '11px', fontWeight: '750', padding: '2px 8px', borderRadius: '12px', background: '#ffffff', color: '#ea580c', border: '1px solid #bae6fd' }}>
                   {isMr ? 'सक्रिय' : 'Active'}
                 </span>
               </div>
             </div>
 
             {/* 4. Supportive Voters */}
-            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderTop: '3.5px solid #8b5cf6', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 6px rgba(15, 23, 42, 0.03)' }}>
+            <div style={{ background: '#e0f2fe', border: '1.5px solid #bae6fd', borderTop: '3.5px solid #0284c7', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 2px 8px rgba(37, 99, 235, 0.05)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>
+                <span style={{ fontSize: '13px', color: '#0369a1', fontWeight: '800' }}>
                   {isMr ? 'अनुकूल मतदार आधार' : 'Supportive Voter Base'}
                 </span>
-                <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <BarChart2 size={18} />
                 </span>
               </div>
               <div style={{ fontSize: '28px', fontWeight: '900', color: '#0f172a', lineHeight: 1.1 }}>
                 {dashboardStats.supportive.toLocaleString()}
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #f1f5f9', fontSize: '12px', color: '#64748b' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px', paddingTop: '8px', borderTop: '1px solid #bae6fd', fontSize: '12px', color: '#0369a1' }}>
                 <span>{dashboardStats.totalAssigned > 0 ? `${Math.round((dashboardStats.supportive / dashboardStats.totalAssigned) * 100)}% ${isMr ? 'समर्थक कल' : 'Base Sentiment'}` : (isMr ? 'सकारात्मक कल' : 'Positive Base')}</span>
-                <span style={{ fontSize: '11px', fontWeight: '700', padding: '2px 8px', borderRadius: '12px', background: '#faf5ff', color: '#7e22ce' }}>
+                <span style={{ fontSize: '11px', fontWeight: '750', padding: '2px 8px', borderRadius: '12px', background: '#ffffff', color: '#7e22ce', border: '1px solid #bae6fd' }}>
                   {isMr ? 'अनुकूल' : 'Positive'}
                 </span>
               </div>
@@ -5494,7 +5492,7 @@ export default function WorkerDashboard() {
               padding: isCollapsed ? '8px 4px' : '12px 12px 10px 12px',
               borderRadius: '10px',
               background: '#ffffff',
-              border: '1px solid #e2e8f0',
+              border: '1.5px solid #bae6fd',
               marginBottom: '14px',
               display: 'flex',
               flexDirection: 'column',
@@ -5677,8 +5675,8 @@ export default function WorkerDashboard() {
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                background: '#f1f5f9',
-                border: '1px solid #e2e8f0',
+                background: '#ffffff',
+                border: '1.5px solid #bae6fd',
                 borderRadius: '8px',
                 padding: '3px',
                 marginBottom: '12px',
@@ -5696,8 +5694,8 @@ export default function WorkerDashboard() {
                   fontSize: '11.5px',
                   fontWeight: '750',
                   cursor: 'pointer',
-                  background: language === 'en' ? '#ea580c' : 'transparent',
-                  color: language === 'en' ? '#ffffff' : '#475569',
+                  background: language === 'en' ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' : 'transparent',
+                  color: language === 'en' ? '#ffffff' : '#0369a1',
                   transition: 'all 0.15s ease',
                   display: 'flex',
                   alignItems: 'center',
@@ -5705,7 +5703,6 @@ export default function WorkerDashboard() {
                   gap: '4px',
                 }}
               >
-
                 <span>English</span>
               </button>
               <button
@@ -5719,8 +5716,8 @@ export default function WorkerDashboard() {
                   fontSize: '11.5px',
                   fontWeight: '750',
                   cursor: 'pointer',
-                  background: language === 'mr' ? '#ea580c' : 'transparent',
-                  color: language === 'mr' ? '#ffffff' : '#475569',
+                  background: language === 'mr' ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' : 'transparent',
+                  color: language === 'mr' ? '#ffffff' : '#0369a1',
                   transition: 'all 0.15s ease',
                   display: 'flex',
                   alignItems: 'center',
@@ -5728,7 +5725,6 @@ export default function WorkerDashboard() {
                   gap: '4px',
                 }}
               >
-
                 <span>मराठी</span>
               </button>
             </div>
@@ -5740,11 +5736,11 @@ export default function WorkerDashboard() {
                 width: '100%',
                 padding: '6px 0',
                 borderRadius: '7px',
-                border: '1px solid #cbd5e1',
+                border: '1.5px solid #bae6fd',
                 background: '#ffffff',
                 fontSize: '11px',
                 fontWeight: '800',
-                color: '#ea580c',
+                color: '#0284c7',
                 cursor: 'pointer',
                 marginBottom: '10px',
               }}
@@ -5787,8 +5783,8 @@ export default function WorkerDashboard() {
                   padding: '7px 24px 7px 28px',
                   fontSize: '11.5px',
                   borderRadius: '7px',
-                  border: '1px solid #cbd5e1',
-                  background: '#f8fafc',
+                  border: '1.5px solid #bae6fd',
+                  background: '#ffffff',
                   color: '#0f172a',
                   outline: 'none',
                   fontFamily: 'inherit',
@@ -5824,10 +5820,10 @@ export default function WorkerDashboard() {
                 {!isCollapsed && (
                   <div
                     style={{
-                      fontSize: '10px',
+                      fontSize: '10.5px',
                       fontWeight: '800',
                       letterSpacing: '0.6px',
-                      color: '#94a3b8',
+                      color: '#0284c7',
                       textTransform: 'uppercase',
                       padding: '0 8px 4px 8px',
                     }}
@@ -5858,27 +5854,28 @@ export default function WorkerDashboard() {
                           justifyContent: isCollapsed ? 'center' : 'space-between',
                           padding: isCollapsed ? '9px 0' : '8px 10px',
                           borderRadius: '8px',
-                          border: isActive ? '1px solid #fed7aa' : '1px solid transparent',
-                          background: isActive ? '#fff7ed' : 'transparent',
-                          color: isActive ? '#c2410c' : '#334155',
+                          border: isActive ? '1.5px solid #0284c7' : '1.5px solid transparent',
+                          background: isActive ? '#ffffff' : 'transparent',
+                          color: isActive ? '#0284c7' : '#1e3a8a',
                           cursor: 'pointer',
                           fontFamily: 'inherit',
                           fontSize: '12.5px',
-                          fontWeight: isActive ? '750' : '550',
+                          fontWeight: isActive ? '800' : '600',
                           textAlign: 'left',
                           transition: 'all 0.12s ease',
                           position: 'relative',
+                          boxShadow: isActive ? '0 2px 6px rgba(2, 132, 199, 0.12)' : 'none',
                         }}
                         onMouseOver={(e) => {
                           if (!isActive) {
-                            e.currentTarget.style.background = '#f1f5f9';
-                            e.currentTarget.style.color = '#0f172a';
+                            e.currentTarget.style.background = '#ffffff80';
+                            e.currentTarget.style.color = '#0284c7';
                           }
                         }}
                         onMouseOut={(e) => {
                           if (!isActive) {
                             e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = '#334155';
+                            e.currentTarget.style.color = '#1e3a8a';
                           }
                         }}
                         title={isMr ? item.label_mr : item.label_en}
@@ -5886,7 +5883,7 @@ export default function WorkerDashboard() {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '9px', minWidth: 0 }}>
                           <span
                             style={{
-                              color: isActive ? '#ea580c' : '#64748b',
+                              color: isActive ? '#0284c7' : '#0284c7',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -5949,24 +5946,25 @@ export default function WorkerDashboard() {
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              padding: isCollapsed ? '4px 0' : '6px 8px',
-              borderRadius: '8px',
-              background: '#f8fafc',
-              border: '1px solid #f1f5f9',
+              padding: isCollapsed ? '4px 0' : '8px 10px',
+              borderRadius: '9px',
+              background: '#ffffff',
+              border: '1.5px solid #bae6fd',
               justifyContent: isCollapsed ? 'center' : 'flex-start',
+              boxShadow: '0 2px 6px rgba(2, 132, 199, 0.05)',
             }}
           >
             <div
               style={{
-                width: '30px',
-                height: '30px',
+                width: '32px',
+                height: '32px',
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #FF671F 0%, #ea580c 100%)',
+                background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
                 color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '12px',
+                fontSize: '13px',
                 fontWeight: '800',
                 flexShrink: 0,
               }}
@@ -5977,8 +5975,8 @@ export default function WorkerDashboard() {
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div
                   style={{
-                    fontSize: '12px',
-                    fontWeight: '750',
+                    fontSize: '12.5px',
+                    fontWeight: '800',
                     color: '#0f172a',
                     whiteSpace: 'nowrap',
                     overflow: 'hidden',
@@ -5987,7 +5985,7 @@ export default function WorkerDashboard() {
                 >
                   {profileData.fullName || user?.full_name || 'अधिकारी'}
                 </div>
-                <div style={{ fontSize: '10.5px', color: '#64748b' }}>
+                <div style={{ fontSize: '11px', color: '#0369a1', fontWeight: '600' }}>
                   {isMr ? 'क्षेत्र अधिकारी' : 'Field Officer'}
                 </div>
               </div>
@@ -5999,8 +5997,8 @@ export default function WorkerDashboard() {
             onClick={handleLogout}
             style={{
               width: '100%',
-              background: '#fef2f2',
-              border: '1px solid #fee2e2',
+              background: '#ffffff',
+              border: '1.5px solid #fecdd3',
               color: '#dc2626',
               padding: isCollapsed ? '8px 0' : '7px 10px',
               borderRadius: '7px',

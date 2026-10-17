@@ -494,9 +494,9 @@
 .worker-sidebar {
   width: 268px;
   min-width: 268px;
-  background: #ffffff;
-  border-right: 1px solid #e2e8f0;
-  box-shadow: 1px 0 3px rgba(0, 0, 0, 0.03);
+  background: #e0f2fe;
+  border-right: 1.5px solid #bae6fd;
+  box-shadow: 2px 0 12px rgba(2, 132, 199, 0.06);
   color: #1e293b;
   display: flex;
   flex-direction: column;
