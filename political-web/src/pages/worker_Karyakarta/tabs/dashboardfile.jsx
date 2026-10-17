@@ -41,60 +41,87 @@ export default function DashboardTab({
   const [hasScrolledDown, setHasScrolledDown] = React.useState(false);
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);
   const [extraFeeds, setExtraFeeds] = React.useState([]);
+  const sunContainerRef = React.useRef(null);
+
+  const loadMoreData = React.useCallback(() => {
+    setIsLoadingMore(true);
+    setTimeout(() => {
+      setIsLoadingMore(false);
+      setHasScrolledDown(true);
+      setExtraFeeds([
+        {
+          id: 'extra-1',
+          title: isMr ? 'बूथ क्र. १ ते १४ - थेट उपस्थिती अहवाल' : 'Booths 1-14 - Live Attendance Report',
+          desc: isMr ? '९२% प्रमुख कार्यकर्ते थेट प्रभागात सक्रिय' : '92% key karyakartas currently active in ward',
+          tag: isMr ? 'सक्रिय' : 'Active',
+          color: '#16a34a',
+          bg: '#ecfdf5',
+          border: '#bbf7d0'
+        },
+        {
+          id: 'extra-2',
+          title: isMr ? 'आजचे संकलित मतदार कल विश्लेषण' : 'Today\'s Voter Sentiment Analysis',
+          desc: isMr ? '८८% सकारात्मक व अनुकूल कल नोंद' : '88% positive and supportive response logged',
+          tag: isMr ? 'अनुकूल' : 'Positive',
+          color: '#2563eb',
+          bg: '#eff6ff',
+          border: '#bfdbfe'
+        },
+        {
+          id: 'extra-3',
+          title: isMr ? 'कुटुंब भेटींचा प्रति तास वेग' : 'Door-to-Door Household Outreach Pace',
+          desc: isMr ? 'प्रति तास सरासरी १४ कुटुंबांशी थेट संवाद' : 'Average 14 households reached per hour',
+          tag: isMr ? 'उत्कृष्ट' : 'Optimal',
+          color: '#d97706',
+          bg: '#fffdf5',
+          border: '#fde68a'
+        }
+      ]);
+    }, 1200);
+  }, [isMr]);
 
   React.useEffect(() => {
     let triggered = false;
-    const handleScroll = () => {
-      const scrollPos = window.scrollY || document.documentElement.scrollTop;
-      const windowHeight = window.innerHeight;
-      const docHeight = document.documentElement.scrollHeight;
-      
-      // When user scrolls down more (past 180px or within 400px of bottom)
-      if (scrollPos > 160 || (scrollPos + windowHeight >= docHeight - 400)) {
-        setHasScrolledDown(true);
-        if (!triggered) {
+
+    // 1. Intersection Observer: Triggers as soon as the sun section is approaching viewport
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first && first.isIntersecting && !triggered) {
           triggered = true;
-          setIsLoadingMore(true);
-          setTimeout(() => {
-            setIsLoadingMore(false);
-            setExtraFeeds([
-              {
-                id: 'extra-1',
-                title: isMr ? 'बूथ क्र. १ ते १४ - थेट उपस्थिती अहवाल' : 'Booths 1-14 - Live Attendance Report',
-                desc: isMr ? '९२% प्रमुख कार्यकर्ते थेट प्रभागात सक्रिय' : '92% key karyakartas currently active in ward',
-                tag: isMr ? 'सक्रिय' : 'Active',
-                color: '#16a34a',
-                bg: '#ecfdf5',
-                border: '#bbf7d0'
-              },
-              {
-                id: 'extra-2',
-                title: isMr ? 'आजचे संकलित मतदार कल विश्लेषण' : 'Today\'s Voter Sentiment Analysis',
-                desc: isMr ? '८८% सकारात्मक व अनुकूल कल नोंद' : '88% positive and supportive response logged',
-                tag: isMr ? 'अनुकूल' : 'Positive',
-                color: '#2563eb',
-                bg: '#eff6ff',
-                border: '#bfdbfe'
-              },
-              {
-                id: 'extra-3',
-                title: isMr ? 'कुटुंब भेटींचा प्रति तास वेग' : 'Door-to-Door Household Outreach Pace',
-                desc: isMr ? 'प्रति तास सरासरी १४ कुटुंबांशी थेट संवाद' : 'Average 14 households reached per hour',
-                tag: isMr ? 'उत्कृष्ट' : 'Optimal',
-                color: '#d97706',
-                bg: '#fffdf5',
-                border: '#fde68a'
-              }
-            ]);
-          }, 1400);
+          loadMoreData();
         }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sunContainerRef.current) {
+      observer.observe(sunContainerRef.current);
+    }
+
+    // 2. Scroll listener on both window and the .worker-content-container scrollable element
+    const contentEl = document.querySelector('.worker-content-container');
+    const handleScroll = () => {
+      const scrollPos = (contentEl ? contentEl.scrollTop : 0) || window.scrollY || document.documentElement.scrollTop;
+      if (scrollPos > 100 && !triggered) {
+        triggered = true;
+        loadMoreData();
       }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isMr]);
+    if (contentEl) {
+      contentEl.addEventListener('scroll', handleScroll, { passive: true });
+    }
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+      if (contentEl) {
+        contentEl.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, [loadMoreData]);
 
   const chartDataToRender = voterData.length > 0 ? voterData : [
     { name: isMr ? 'मे' : 'May', value1: 45, value2: 60 },
@@ -966,67 +993,75 @@ export default function DashboardTab({
         </div>
       </div>
 
-      {/* 6. SUN LOADING SECTION (Triggers when user scrolls down more) */}
-      {hasScrolledDown && (
-        <div
-          style={{
-            background: 'linear-gradient(180deg, #ffffff 0%, #fffbf5 100%)',
-            border: '1.5px solid #fed7aa',
-            borderRadius: '26px',
-            padding: '28px 24px',
-            boxShadow: '0 8px 30px rgba(245, 158, 11, 0.1)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            gap: '16px',
-            marginTop: '10px',
-            transition: 'all 0.3s ease'
-          }}
-        >
-          {/* Radiant Glowing Sun Image */}
-          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img
-              src="/sun_icon.jpg"
-              alt="Sun Symbol"
-              className="sun-loader-img"
-              style={{
-                width: '84px',
-                height: '84px',
-                borderRadius: '50%',
-                objectFit: 'cover',
-                boxShadow: '0 0 24px rgba(245, 158, 11, 0.5)',
-                border: '3px solid #fef3c7'
-              }}
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          </div>
+      {/* 6. SUN LOADING SECTION (Always mounted with ref for IntersectionObserver & scroll triggers) */}
+      <div
+        ref={sunContainerRef}
+        style={{
+          background: 'linear-gradient(180deg, #ffffff 0%, #fffbf5 100%)',
+          border: '1.5px solid #fed7aa',
+          borderRadius: '26px',
+          padding: '28px 24px',
+          boxShadow: '0 8px 30px rgba(245, 158, 11, 0.1)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          gap: '16px',
+          marginTop: '14px',
+          transition: 'all 0.3s ease'
+        }}
+      >
+        {/* Radiant Glowing Sun Image */}
+        <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+          <img
+            src="/sun_icon.jpg"
+            alt="Sun Symbol"
+            className="sun-loader-img"
+            style={{
+              width: '88px',
+              height: '88px',
+              borderRadius: '50%',
+              objectFit: 'cover',
+              boxShadow: '0 0 28px rgba(245, 158, 11, 0.55)',
+              border: '3px solid #fef3c7'
+            }}
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        </div>
 
-          <div style={{ maxWidth: '520px' }}>
-            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '900', color: '#9a3412', letterSpacing: '-0.3px' }}>
-              {isMr ? 'सूर्य संचलन कक्ष • थेट माहिती अपडेट्स' : 'Sun Field Command • Live Data Hub'}
-            </h3>
-            <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#78350f', fontWeight: '600' }}>
-              {isLoadingMore
-                ? (isMr ? 'नवीन क्षेत्रीय माहिती व बूथ नोंदी लोड होत आहेत...' : 'Loading latest field updates & booth data...')
-                : (isMr ? 'सर्व ताज्या क्षेत्रीय नोंदी अद्ययावत आहेत.' : 'All live field records are synced.')}
-            </p>
-          </div>
+        <div style={{ maxWidth: '520px' }}>
+          <h3 style={{ margin: 0, fontSize: '19px', fontWeight: '900', color: '#9a3412', letterSpacing: '-0.3px' }}>
+            {isMr ? 'सूर्य संचलन कक्ष • थेट माहिती अपडेट्स' : 'Sun Field Command • Live Data Hub'}
+          </h3>
+          <p style={{ margin: '6px 0 0 0', fontSize: '13.5px', color: '#78350f', fontWeight: '600' }}>
+            {isLoadingMore
+              ? (isMr ? 'नवीन क्षेत्रीय माहिती व बूथ नोंदी लोड होत आहेत...' : 'Loading latest field updates & booth data...')
+              : (isMr ? 'सर्व ताज्या क्षेत्रीय नोंदी अद्ययावत आहेत.' : 'All live field records are synced.')}
+          </p>
+        </div>
 
-          {/* Spinner and Loading Status */}
-          {isLoadingMore ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px' }}>
-              <div className="sun-spinner-ring" />
-              <span style={{ fontSize: '13px', fontWeight: '800', color: '#d97706' }}>
-                {isMr ? 'माहिती लोड होत आहे...' : 'Loading field records...'}
+        {/* Stylish Shimmer & Spinner Loading Status */}
+        {isLoadingMore ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginTop: '6px', width: '100%' }}>
+            {/* Shimmer Progress Bar */}
+            <div className="sun-shimmer-bar" />
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span className="sun-pulse-dot" />
+              <span className="sun-pulse-dot" />
+              <span className="sun-pulse-dot" />
+              <span style={{ fontSize: '13px', fontWeight: '800', color: '#d97706', marginLeft: '6px' }}>
+                {isMr ? 'थेट माहिती लोड होत आहे...' : 'Loading live updates...'}
               </span>
             </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', marginTop: '4px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '12px', width: '100%' }}>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%', marginTop: '4px' }}>
+            {extraFeeds.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px', width: '100%' }}>
                 {extraFeeds.map((feed) => (
                   <div
                     key={feed.id}
@@ -1056,37 +1091,43 @@ export default function DashboardTab({
                   </div>
                 ))}
               </div>
+            )}
 
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLoadingMore(true);
-                  setTimeout(() => setIsLoadingMore(false), 900);
-                }}
-                style={{
-                  alignSelf: 'center',
-                  background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '20px',
-                  padding: '9px 22px',
-                  fontSize: '12.5px',
-                  fontWeight: '800',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: '0 4px 14px rgba(245, 158, 11, 0.3)',
-                  marginTop: '6px'
-                }}
-              >
-                <span>☀️</span>
-                <span>{isMr ? 'पुन्हा रिफ्रेश करा' : 'Refresh Live Feed'}</span>
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+            <button
+              type="button"
+              onClick={loadMoreData}
+              style={{
+                alignSelf: 'center',
+                background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '24px',
+                padding: '10px 24px',
+                fontSize: '13px',
+                fontWeight: '800',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 6px 18px rgba(245, 158, 11, 0.35)',
+                transition: 'all 0.2s ease',
+                marginTop: '4px'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 8px 22px rgba(245, 158, 11, 0.45)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 6px 18px rgba(245, 158, 11, 0.35)';
+              }}
+            >
+              <span>☀️</span>
+              <span>{isMr ? 'अधिक क्षेत्रीय माहिती लोड करा' : 'Load More Field Records'}</span>
+            </button>
+          </div>
+        )}
+      </div>
 
     </div>
   );
