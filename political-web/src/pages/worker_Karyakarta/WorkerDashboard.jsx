@@ -2237,10 +2237,12 @@ export default function WorkerDashboard() {
               {isMr ? currentNav?.label_mr || activeTab : currentNav?.label_en || activeTab}
             </span>
           </div>
-          {user?.roles?.some((r) => r === 'ADMIN' || r === 'OFFICER') ? (
-            <BackButton fallbackPath="/admin" text={isMr ? 'परत' : 'Back'} />
-          ) : (
-            <BackButton fallbackPath="/" text={isMr ? 'मुख्य' : 'Home'} />
+          {activeTab !== 'Dashboard' && (
+            user?.roles?.some((r) => r === 'ADMIN' || r === 'OFFICER') ? (
+              <BackButton fallbackPath="/admin" text={isMr ? 'परत' : 'Back'} />
+            ) : (
+              <BackButton fallbackPath="/" text={isMr ? 'मुख्य' : 'Home'} />
+            )
           )}
         </div>
 

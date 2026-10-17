@@ -21,7 +21,6 @@ import {
   Tooltip,
   Bar,
 } from 'recharts';
-import BackButton from '../../../components/BackButton';
 
 export default function DashboardTab({
   isMr,
@@ -168,10 +167,6 @@ export default function DashboardTab({
             <Bell size={20} />
             <span style={{ position: 'absolute', top: '12px', right: '12px', width: '7px', height: '7px', borderRadius: '50%', background: '#ef4444' }} />
           </button>
-
-          {user?.roles?.some((r) => r === 'ADMIN' || r === 'OFFICER') && (
-            <BackButton fallbackPath="/admin" text={isMr ? 'प्रशासक HQ' : 'Admin HQ'} />
-          )}
         </div>
       </div>
 
