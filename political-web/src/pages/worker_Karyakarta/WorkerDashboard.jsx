@@ -1338,65 +1338,197 @@ export default function WorkerDashboard() {
             </div>
           </div>
 
-          {/* 4 Metric Cards in Dark Blue with White Text */}
+          {/* 4 Premium SaaS Metric Cards in Sleek Ocean Navy Palette */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
             {/* 1. Total Assigned */}
-            <div style={{ background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', border: '1.5px solid rgba(255, 255, 255, 0.25)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 14px rgba(2, 132, 199, 0.25)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '13px', color: '#ffffff', fontWeight: '800' }}>
+            <div
+              style={{
+                position: 'relative',
+                overflow: 'hidden',
+                background: 'linear-gradient(145deg, #075985 0%, #0369a1 55%, #0284c7 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.22)',
+                borderTop: '3.5px solid #38bdf8',
+                borderRadius: '16px',
+                padding: '18px 20px',
+                boxShadow: '0 6px 18px -4px rgba(2, 132, 199, 0.3)',
+                transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                cursor: 'default',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-3px)';
+                e.currentTarget.style.boxShadow = '0 12px 26px -4px rgba(2, 132, 199, 0.45)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 6px 18px -4px rgba(2, 132, 199, 0.3)';
+              }}
+            >
+              <div style={{ position: 'absolute', right: '-10px', bottom: '-10px', opacity: 0.1, color: '#ffffff', pointerEvents: 'none' }}>
+                <Users size={78} strokeWidth={1.4} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
+                <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: '800', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
                   {isMr ? 'एकूण नियुक्त मतदार' : 'Total Assigned Voters'}
                 </span>
-                <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.22)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Users size={18} />
+                <span style={{ width: '38px', height: '38px', borderRadius: '11px', background: 'rgba(255, 255, 255, 0.18)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255, 255, 255, 0.3)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+                  <Users size={19} />
                 </span>
               </div>
-              <div style={{ fontSize: '28px', fontWeight: '900', color: '#ffffff', lineHeight: 1.1 }}>
+              <div style={{ fontSize: '32px', fontWeight: '900', color: '#ffffff', lineHeight: 1.1, letterSpacing: '-0.5px', position: 'relative', zIndex: 1 }}>
                 {dashboardStats.totalAssigned.toLocaleString()}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.18)', fontSize: '11.5px', color: 'rgba(255, 255, 255, 0.88)', fontWeight: '650', position: 'relative', zIndex: 1 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#38bdf8', boxShadow: '0 0 6px #38bdf8' }} />
+                  {dashboardStats.contactRate ? `${dashboardStats.contactRate}% ${isMr ? 'संपर्क दर' : 'Contact Rate'}` : (isMr ? 'बूथ नेटवर्क' : 'Booth Network')}
+                </span>
+                <span style={{ background: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: '10px', fontSize: '10.5px', fontWeight: '750', color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.25)' }}>
+                  {isMr ? 'नियुक्त' : 'Assigned'}
+                </span>
               </div>
             </div>
 
             {/* 2. Contacted */}
-            <div style={{ background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', border: '1.5px solid rgba(255, 255, 255, 0.25)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 14px rgba(2, 132, 199, 0.25)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '13px', color: '#ffffff', fontWeight: '800' }}>
+            <div
+              style={{
+                position: 'relative',
+                overflow: 'hidden',
+                background: 'linear-gradient(145deg, #075985 0%, #0369a1 55%, #0284c7 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.22)',
+                borderTop: '3.5px solid #34d399',
+                borderRadius: '16px',
+                padding: '18px 20px',
+                boxShadow: '0 6px 18px -4px rgba(2, 132, 199, 0.3)',
+                transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                cursor: 'default',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-3px)';
+                e.currentTarget.style.boxShadow = '0 12px 26px -4px rgba(2, 132, 199, 0.45)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 6px 18px -4px rgba(2, 132, 199, 0.3)';
+              }}
+            >
+              <div style={{ position: 'absolute', right: '-10px', bottom: '-10px', opacity: 0.1, color: '#ffffff', pointerEvents: 'none' }}>
+                <PhoneCall size={78} strokeWidth={1.4} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
+                <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: '800', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
                   {isMr ? 'थेट संपर्क साधलेले' : 'Contacted Voters'}
                 </span>
-                <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.22)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <PhoneCall size={18} />
+                <span style={{ width: '38px', height: '38px', borderRadius: '11px', background: 'rgba(255, 255, 255, 0.18)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255, 255, 255, 0.3)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+                  <PhoneCall size={19} />
                 </span>
               </div>
-              <div style={{ fontSize: '28px', fontWeight: '900', color: '#ffffff', lineHeight: 1.1 }}>
+              <div style={{ fontSize: '32px', fontWeight: '900', color: '#ffffff', lineHeight: 1.1, letterSpacing: '-0.5px', position: 'relative', zIndex: 1 }}>
                 {dashboardStats.contacted.toLocaleString()}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.18)', fontSize: '11.5px', color: 'rgba(255, 255, 255, 0.88)', fontWeight: '650', position: 'relative', zIndex: 1 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399', boxShadow: '0 0 6px #34d399' }} />
+                  {dashboardStats.supportiveRate ? `${dashboardStats.supportiveRate}% ${isMr ? 'अनुकूल प्रतिसाद' : 'Positive Response'}` : (isMr ? 'प्रत्यक्ष संवाद' : 'Direct Outreach')}
+                </span>
+                <span style={{ background: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: '10px', fontSize: '10.5px', fontWeight: '750', color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.25)' }}>
+                  {isMr ? 'संपर्कित' : 'Reached'}
+                </span>
               </div>
             </div>
 
             {/* 3. Completed Surveys */}
-            <div style={{ background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', border: '1.5px solid rgba(255, 255, 255, 0.25)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 14px rgba(2, 132, 199, 0.25)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '13px', color: '#ffffff', fontWeight: '800' }}>
+            <div
+              style={{
+                position: 'relative',
+                overflow: 'hidden',
+                background: 'linear-gradient(145deg, #075985 0%, #0369a1 55%, #0284c7 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.22)',
+                borderTop: '3.5px solid #fb923c',
+                borderRadius: '16px',
+                padding: '18px 20px',
+                boxShadow: '0 6px 18px -4px rgba(2, 132, 199, 0.3)',
+                transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                cursor: 'default',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-3px)';
+                e.currentTarget.style.boxShadow = '0 12px 26px -4px rgba(2, 132, 199, 0.45)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 6px 18px -4px rgba(2, 132, 199, 0.3)';
+              }}
+            >
+              <div style={{ position: 'absolute', right: '-10px', bottom: '-10px', opacity: 0.1, color: '#ffffff', pointerEvents: 'none' }}>
+                <ClipboardCheck size={78} strokeWidth={1.4} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
+                <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: '800', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
                   {isMr ? 'कुटुंब सर्वेक्षण नोंद' : 'Household Surveys Completed'}
                 </span>
-                <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.22)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ClipboardCheck size={18} />
+                <span style={{ width: '38px', height: '38px', borderRadius: '11px', background: 'rgba(255, 255, 255, 0.18)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255, 255, 255, 0.3)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+                  <ClipboardCheck size={19} />
                 </span>
               </div>
-              <div style={{ fontSize: '28px', fontWeight: '900', color: '#ffffff', lineHeight: 1.1 }}>
+              <div style={{ fontSize: '32px', fontWeight: '900', color: '#ffffff', lineHeight: 1.1, letterSpacing: '-0.5px', position: 'relative', zIndex: 1 }}>
                 {dashboardStats.surveysCompleted.toLocaleString()}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.18)', fontSize: '11.5px', color: 'rgba(255, 255, 255, 0.88)', fontWeight: '650', position: 'relative', zIndex: 1 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#fb923c', boxShadow: '0 0 6px #fb923c' }} />
+                  {isMr ? `उद्दिष्ट: ${dashboardStats.surveysTarget || 50} कुटुंबे` : `Target: ${dashboardStats.surveysTarget || 50} Families`}
+                </span>
+                <span style={{ background: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: '10px', fontSize: '10.5px', fontWeight: '750', color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.25)' }}>
+                  {isMr ? 'सक्रिय' : 'Active'}
+                </span>
               </div>
             </div>
 
             {/* 4. Supportive Voters */}
-            <div style={{ background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', border: '1.5px solid rgba(255, 255, 255, 0.25)', borderRadius: '14px', padding: '18px 20px', boxShadow: '0 4px 14px rgba(2, 132, 199, 0.25)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '13px', color: '#ffffff', fontWeight: '800' }}>
+            <div
+              style={{
+                position: 'relative',
+                overflow: 'hidden',
+                background: 'linear-gradient(145deg, #075985 0%, #0369a1 55%, #0284c7 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.22)',
+                borderTop: '3.5px solid #c084fc',
+                borderRadius: '16px',
+                padding: '18px 20px',
+                boxShadow: '0 6px 18px -4px rgba(2, 132, 199, 0.3)',
+                transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+                cursor: 'default',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-3px)';
+                e.currentTarget.style.boxShadow = '0 12px 26px -4px rgba(2, 132, 199, 0.45)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 6px 18px -4px rgba(2, 132, 199, 0.3)';
+              }}
+            >
+              <div style={{ position: 'absolute', right: '-10px', bottom: '-10px', opacity: 0.1, color: '#ffffff', pointerEvents: 'none' }}>
+                <BarChart2 size={78} strokeWidth={1.4} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', position: 'relative', zIndex: 1 }}>
+                <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: '800', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
                   {isMr ? 'अनुकूल मतदार आधार' : 'Supportive Voter Base'}
                 </span>
-                <span style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(255, 255, 255, 0.22)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <BarChart2 size={18} />
+                <span style={{ width: '38px', height: '38px', borderRadius: '11px', background: 'rgba(255, 255, 255, 0.18)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255, 255, 255, 0.3)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+                  <BarChart2 size={19} />
                 </span>
               </div>
-              <div style={{ fontSize: '28px', fontWeight: '900', color: '#ffffff', lineHeight: 1.1 }}>
+              <div style={{ fontSize: '32px', fontWeight: '900', color: '#ffffff', lineHeight: 1.1, letterSpacing: '-0.5px', position: 'relative', zIndex: 1 }}>
                 {dashboardStats.supportive.toLocaleString()}
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.18)', fontSize: '11.5px', color: 'rgba(255, 255, 255, 0.88)', fontWeight: '650', position: 'relative', zIndex: 1 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#c084fc', boxShadow: '0 0 6px #c084fc' }} />
+                  {dashboardStats.totalAssigned > 0 ? `${Math.round((dashboardStats.supportive / dashboardStats.totalAssigned) * 100)}% ${isMr ? 'समर्थक कल' : 'Base Sentiment'}` : (isMr ? 'सकारात्मक कल' : 'Positive Base')}
+                </span>
+                <span style={{ background: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: '10px', fontSize: '10.5px', fontWeight: '750', color: '#ffffff', border: '1px solid rgba(255, 255, 255, 0.25)' }}>
+                  {isMr ? 'अनुकूल' : 'Positive'}
+                </span>
               </div>
             </div>
           </div>
