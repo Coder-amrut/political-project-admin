@@ -17,7 +17,8 @@ import {
   LayoutGrid,
   List,
   Phone,
-  UserCheck
+  UserCheck,
+  ExternalLink
 } from 'lucide-react';
 
 export default function ContactsTab({
@@ -45,6 +46,7 @@ export default function ContactsTab({
 }) {
   const [selectedContactForOptions, setSelectedContactForOptions] = useState(null);
   const [copiedPhone, setCopiedPhone] = useState(false);
+  const [copiedMeetLink, setCopiedMeetLink] = useState(false);
   const [viewMode, setViewMode] = useState('cards'); // 'cards' (default modern) or 'table'
   const [contactStatusFilter, setContactStatusFilter] = useState('All'); // 'All' | 'Contacted' | 'Pending'
 
@@ -754,15 +756,15 @@ export default function ContactsTab({
             badgeBg: '#2563eb',
             statusBadge: isMr ? '● उद्या' : '● Tomorrow',
             cardBorder: '#bfdbfe',
-            title: isMr ? 'साप्ताहिक मोहीम आढावा ऑनलाइन' : 'Weekly Campaign Review Online',
+            title: isMr ? 'साप्ताहिक मोहीम आढावा ऑनलाईन' : 'Weekly Campaign Review Online',
             showVideoEmoji: true,
             time: isMr ? 'उद्या • सकाळी १०:३० वाजता' : 'Tomorrow • 10:30 AM',
             timeIcon: 'calendar',
-            location: isMr ? 'Google Meet / व्हर्च्युअल लिंक' : 'Google Meet / Virtual Link',
+            location: 'Google Meet',
             locationIcon: 'virtual',
             actionType: 'join',
-            actionLabel: isMr ? 'जॉईन लिंक' : 'Join Link',
-            link: 'https://meet.google.com',
+            actionLabel: isMr ? 'Google Meet जॉईन करा' : 'Join Google Meet',
+            link: 'https://meet.google.com/pqr-stuv-wxy',
           },
           {
             id: 'm3',
@@ -784,37 +786,65 @@ export default function ContactsTab({
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {/* Section Header Row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
-              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.3px' }}>
-                {isMr ? 'नियोजित बैठका' : 'Scheduled Meetings'}
-              </h2>
-              <span
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginTop: '2px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.3px' }}>
+                  {isMr ? 'नियोजित बैठका' : 'Scheduled Meetings'}
+                </h2>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '4px 12px',
+                    borderRadius: '9999px',
+                    background: '#ecfdf5',
+                    border: '1.5px solid #86efac',
+                    color: '#15803d',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    letterSpacing: '0.2px',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: '7px',
+                      height: '7px',
+                      borderRadius: '50%',
+                      background: '#16a34a',
+                      display: 'inline-block',
+                      boxShadow: '0 0 6px #16a34a',
+                    }}
+                  />
+                  <span>{isMr ? '(• थेट सक्रिय •)' : '(• Live & Active •)'}</span>
+                </span>
+              </div>
+
+              {/* Instant Google Meet Launcher */}
+              <a
+                href="https://meet.google.com/new"
+                target="_blank"
+                rel="noopener noreferrer"
+                title={isMr ? 'नवीन Google Meet सुरू करा' : 'Start Instant Google Meet'}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  padding: '4px 12px',
-                  borderRadius: '9999px',
-                  background: '#ecfdf5',
+                  gap: '7px',
+                  background: '#f0fdf4',
                   border: '1.5px solid #86efac',
-                  color: '#15803d',
-                  fontSize: '12px',
+                  color: '#166534',
+                  padding: '6px 14px',
+                  borderRadius: '10px',
+                  fontSize: '12.5px',
                   fontWeight: 800,
-                  letterSpacing: '0.2px',
+                  textDecoration: 'none',
+                  boxShadow: '0 2px 6px rgba(22, 163, 74, 0.08)',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                <span
-                  style={{
-                    width: '7px',
-                    height: '7px',
-                    borderRadius: '50%',
-                    background: '#16a34a',
-                    display: 'inline-block',
-                    boxShadow: '0 0 6px #16a34a',
-                  }}
-                />
-                <span>{isMr ? '(• थेट सक्रिय •)' : '(• Live & Active •)'}</span>
-              </span>
+                <Video size={15} color="#16a34a" />
+                <span>{isMr ? '+ नवीन Google Meet' : '+ New Google Meet'}</span>
+              </a>
             </div>
 
             {/* Meetings Cards */}
@@ -929,14 +959,36 @@ export default function ContactsTab({
                           <span>{meeting.time}</span>
                         </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>
-                          {meeting.locationIcon === 'virtual' ? (
-                            <span style={{ fontSize: '15px', lineHeight: 1 }}>🖥️</span>
-                          ) : (
+                        {meeting.locationIcon === 'virtual' || isVirtual ? (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', background: '#f8fafc', padding: '6px 10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#1d4ed8', fontSize: '12.5px', fontWeight: 800 }}>
+                              <Video size={15} color="#2563eb" />
+                              <span>Google Meet:</span>
+                            </div>
+                            <a
+                              href={meeting.link || 'https://meet.google.com/pqr-stuv-wxy'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                fontSize: '12.5px',
+                                color: '#2563eb',
+                                fontWeight: 750,
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              <span>{meeting.link ? meeting.link.replace(/^https?:\/\//, '') : 'meet.google.com/pqr-stuv-wxy'}</span>
+                              <ExternalLink size={12} />
+                            </a>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>
                             <MapPin size={15} color="#ea580c" />
-                          )}
-                          <span>{meeting.location}</span>
-                        </div>
+                            <span>{meeting.location}</span>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -949,31 +1001,64 @@ export default function ContactsTab({
                         paddingTop: '10px',
                         borderTop: '1px solid #f8fafc',
                         marginTop: '2px',
+                        gap: '8px',
+                        flexWrap: 'wrap',
                       }}
                     >
-                      {meeting.actionType === 'join' ? (
-                        <a
-                          href={meeting.link || 'https://meet.google.com'}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '6px',
-                            background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                            color: '#ffffff',
-                            padding: '8px 22px',
-                            borderRadius: '12px',
-                            fontSize: '13px',
-                            fontWeight: 800,
-                            textDecoration: 'none',
-                            boxShadow: '0 4px 14px rgba(37,99,235,0.3)',
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          <span>{meeting.actionLabel || (isMr ? 'जॉईन लिंक' : 'Join Link')}</span>
-                        </a>
+                      {meeting.actionType === 'join' || isVirtual ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const meetUrl = meeting.link || 'https://meet.google.com/pqr-stuv-wxy';
+                              navigator.clipboard.writeText(meetUrl);
+                              setCopiedMeetLink(meeting.id || true);
+                              setTimeout(() => setCopiedMeetLink(false), 2000);
+                            }}
+                            title={isMr ? 'Google Meet लिंक कॉपी करा' : 'Copy Google Meet Link'}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              padding: '8px 14px',
+                              borderRadius: '12px',
+                              border: copiedMeetLink === (meeting.id || true) ? '1.5px solid #86efac' : '1.5px solid #cbd5e1',
+                              background: copiedMeetLink === (meeting.id || true) ? '#dcfce7' : '#ffffff',
+                              color: copiedMeetLink === (meeting.id || true) ? '#15803d' : '#475569',
+                              fontSize: '12.5px',
+                              fontWeight: 750,
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            {copiedMeetLink === (meeting.id || true) ? <Check size={14} /> : <Copy size={14} />}
+                            <span>{copiedMeetLink === (meeting.id || true) ? (isMr ? '✓ कॉपी झाली!' : '✓ Copied!') : (isMr ? 'लिंक कॉपी' : 'Copy Link')}</span>
+                          </button>
+
+                          <a
+                            href={meeting.link || 'https://meet.google.com/pqr-stuv-wxy'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '7px',
+                              background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                              color: '#ffffff',
+                              padding: '8px 22px',
+                              borderRadius: '12px',
+                              fontSize: '13px',
+                              fontWeight: 800,
+                              textDecoration: 'none',
+                              boxShadow: '0 4px 14px rgba(37,99,235,0.3)',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            <Video size={15} />
+                            <span>{isMr ? 'Google Meet जॉईन करा' : 'Join Google Meet'}</span>
+                          </a>
+                        </div>
                       ) : (
                         <a
                           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(meeting.location + ' Sangli')}`}
