@@ -2315,45 +2315,6 @@ export default function WorkerDashboard() {
           {renderContent()}
         </div>
 
-        {/* FLOATING AI CAMPAIGN & FIELD ASSISTANT (MATCHING OFFICER/ADMIN DESK) */}
-        <div className="floating-bot-container">
-          {showFloatingChat ? (
-            <div className="floating-bot-window">
-              <AdminChatbotDesk
-                lang={language}
-                isFloating={true}
-                onClose={() => setShowFloatingChat(false)}
-              />
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setShowFloatingChat(true)}
-              style={{
-                background: 'linear-gradient(135deg, #c2410c 0%, #ea580c 100%)',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '50px',
-                padding: '11px 18px',
-                fontSize: '13px',
-                fontWeight: '750',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 8px 20px rgba(234, 88, 12, 0.35)',
-                transition: 'transform 0.15s ease',
-              }}
-              onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
-              onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-              title={isMr ? 'AI बूथ सहाय्यक उघडा' : 'Open Field AI Assistant'}
-            >
-              <span style={{ fontSize: '18px' }}>🤖</span>
-              <span>{isMr ? 'AI बूथ सहाय्यक' : 'Field AI Bot'}</span>
-              <span style={{ background: '#22c55e', width: '8px', height: '8px', borderRadius: '50%' }} />
-            </button>
-          )}
-        </div>
 
         {/* MOBILE BOTTOM NAVIGATION BAR */}
         <nav className="worker-bottom-nav">

@@ -945,11 +945,44 @@
     bottom: 72px;
   }
   .floating-bot-window {
-    width: 100%;
-    height: calc(100vh - 120px);
     max-height: 520px;
     border-radius: 14px;
   }
+}
+
+/* Sun Infinite Scroll & Loading Animation */
+@keyframes sunSpinSlow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes sunPulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 16px rgba(245, 158, 11, 0.35);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 32px rgba(249, 115, 22, 0.65);
+  }
+}
+
+.sun-loader-img {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  animation: sunSpinSlow 22s linear infinite, sunPulseGlow 3s ease-in-out infinite;
+  display: block;
+  object-fit: cover;
+}
+
+.sun-spinner-ring {
+  width: 22px;
+  height: 22px;
+  border: 3px solid rgba(245, 158, 11, 0.25);
+  border-top-color: #f59e0b;
+  border-radius: 50%;
+  animation: sunSpinSlow 0.8s linear infinite;
 }
 
 /* Modal Responsiveness */
