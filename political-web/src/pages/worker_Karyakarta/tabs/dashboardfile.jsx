@@ -36,7 +36,8 @@ export default function DashboardTab({
   setActiveTab,
   LiveClock,
 }) {
-  const pendingComplaintsCount = complaintsData.filter((c) => c.status === 'Pending').length;
+  const pendingComplaintsCount = (complaintsData || []).filter((c) => c?.status === 'Pending').length;
+  const pendingTasksCount = (tasksList || []).filter((t) => !t?.completed).length;
   const [hasScrolledDown, setHasScrolledDown] = React.useState(false);
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);
   const [extraFeeds, setExtraFeeds] = React.useState([]);
