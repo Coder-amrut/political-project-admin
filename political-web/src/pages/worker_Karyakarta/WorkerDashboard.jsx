@@ -40,6 +40,8 @@ import {
   Video,
   MessageCircle,
   MoreVertical,
+  MoreHorizontal,
+  BookUser,
   Play,
   CheckCheck,
   CheckSquare,
@@ -2381,7 +2383,7 @@ export default function WorkerDashboard() {
             className={`worker-bottom-nav-item ${activeTab === 'Dashboard' ? 'active' : ''}`}
             onClick={() => setActiveTab('Dashboard')}
           >
-            <span className="icon"><LayoutDashboard size={18} /></span>
+            <span className="icon"><LayoutDashboard size={20} /></span>
             <span>{isMr ? 'डॅशबोर्ड' : 'Dashboard'}</span>
           </button>
           <button
@@ -2389,7 +2391,7 @@ export default function WorkerDashboard() {
             className={`worker-bottom-nav-item ${activeTab === 'Attendance' ? 'active' : ''}`}
             onClick={() => setActiveTab('Attendance')}
           >
-            <span className="icon"><CalendarCheck size={18} /></span>
+            <span className="icon"><CalendarCheck size={20} /></span>
             <span>{isMr ? 'हजेरी' : 'Attendance'}</span>
           </button>
           <button
@@ -2397,7 +2399,7 @@ export default function WorkerDashboard() {
             className={`worker-bottom-nav-item ${activeTab === 'Contact & Meetings' ? 'active' : ''}`}
             onClick={() => setActiveTab('Contact & Meetings')}
           >
-            <span className="icon"><Calendar size={18} /></span>
+            <span className="icon"><BookUser size={20} /></span>
             <span>{isMr ? 'संपर्क' : 'Contacts'}</span>
           </button>
           <button
@@ -2405,17 +2407,20 @@ export default function WorkerDashboard() {
             className={`worker-bottom-nav-item ${activeTab === 'Complaints' ? 'active' : ''}`}
             onClick={() => setActiveTab('Complaints')}
           >
-            <span className="icon"><AlertCircle size={18} /></span>
+            <span className="icon" style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+              <AlertCircle size={20} />
+              <span style={{ position: 'absolute', top: '-3px', right: '-4px', width: '7px', height: '7px', borderRadius: '50%', background: '#ef4444' }} />
+            </span>
             <span>{isMr ? 'समस्या' : 'Grievances'}</span>
           </button>
           <button
             type="button"
             className="worker-bottom-nav-item"
             onClick={() => setSidebarOpen(true)}
-            title={isMr ? 'अधिक मेनू (३ डॉट्स)' : 'More Menu (3 Dots)'}
+            title={isMr ? 'अधिक मेनू' : 'More Menu'}
           >
-            <span className="icon"><MoreVertical size={19} /></span>
-            <span>{isMr ? 'अधिक (⋮)' : 'More (⋮)'}</span>
+            <span className="icon"><MoreHorizontal size={22} /></span>
+            <span>{isMr ? 'अधिक' : 'More'}</span>
           </button>
         </nav>
       </main>
