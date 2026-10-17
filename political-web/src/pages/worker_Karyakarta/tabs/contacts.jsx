@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Calendar,
   Search,
@@ -9,7 +9,15 @@ import {
   Plus,
   Video,
   Users,
-  Clock
+  Clock,
+  Copy,
+  Check,
+  MessageSquare,
+  ChevronDown,
+  LayoutGrid,
+  List,
+  Phone,
+  UserCheck
 } from 'lucide-react';
 
 export default function ContactsTab({
@@ -35,9 +43,9 @@ export default function ContactsTab({
   setNewMeeting,
   handleScheduleMeeting,
 }) {
-  const supportiveCount = votersList.filter((c) => c.status === 'Supportive').length;
-  const undecidedCount = votersList.filter((c) => c.status === 'Undecided').length;
-  const needsInfoCount = votersList.filter((c) => c.status === 'Needs Info').length;
+  const [selectedContactForOptions, setSelectedContactForOptions] = useState(null);
+  const [copiedPhone, setCopiedPhone] = useState(false);
+  const [viewMode, setViewMode] = useState('cards'); // 'cards' (default modern) or 'table'
 
   return (
     <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1400px', margin: '0 auto', paddingBottom: '2rem' }}>
@@ -108,48 +116,9 @@ export default function ContactsTab({
 
         return (
           <>
-            {/* 4 Quick Stat Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
-              <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderTop: '3.5px solid #0284c7', borderRadius: '12px', padding: '14px 18px' }}>
-                <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '700' }}>
-                  {isMr ? 'एकूण नोंदवलेले मतदार' : 'Total Voters in Directory'}
-                </div>
-                <div style={{ fontSize: '24px', fontWeight: '900', color: '#0f172a', marginTop: '4px' }}>
-                  {votersList.length}
-                </div>
-              </div>
-
-              <div style={{ background: '#ffffff', border: '1px solid #bbf7d0', borderTop: '3.5px solid #16a34a', borderRadius: '12px', padding: '14px 18px' }}>
-                <div style={{ fontSize: '12px', color: '#15803d', fontWeight: '700' }}>
-                  {isMr ? 'अनुकूल मतदार (Supportive)' : 'Supportive Voters'}
-                </div>
-                <div style={{ fontSize: '24px', fontWeight: '900', color: '#15803d', marginTop: '4px' }}>
-                  {supportiveCount}
-                </div>
-              </div>
-
-              <div style={{ background: '#ffffff', border: '1px solid #fed7aa', borderTop: '3.5px solid #ea580c', borderRadius: '12px', padding: '14px 18px' }}>
-                <div style={{ fontSize: '12px', color: '#c2410c', fontWeight: '700' }}>
-                  {isMr ? 'अनिर्णित मतदार (Undecided)' : 'Undecided / Swing'}
-                </div>
-                <div style={{ fontSize: '24px', fontWeight: '900', color: '#c2410c', marginTop: '4px' }}>
-                  {undecidedCount}
-                </div>
-              </div>
-
-              <div style={{ background: '#ffffff', border: '1px solid #fef08a', borderTop: '3.5px solid #ca8a04', borderRadius: '12px', padding: '14px 18px' }}>
-                <div style={{ fontSize: '12px', color: '#a16207', fontWeight: '700' }}>
-                  {isMr ? 'माहिती / भेट आवश्यक (Needs Info)' : 'Needs Follow-Up'}
-                </div>
-                <div style={{ fontSize: '24px', fontWeight: '900', color: '#a16207', marginTop: '4px' }}>
-                  {needsInfoCount}
-                </div>
-              </div>
-            </div>
-
-            {/* Filter and Search Bar */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: '#ffffff', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {/* Filter, Search Bar, and View Mode Switcher */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: '#ffffff', padding: '12px 16px', borderRadius: '14px', border: '1.5px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
                 {['All', 'Supportive', 'Undecided', 'Needs Info'].map((filterVal) => (
                   <button
                     key={filterVal}
@@ -172,124 +141,551 @@ export default function ContactsTab({
                 ))}
               </div>
 
-              <div className="worker-filter-input-wrap">
-                <Search size={14} color="#94a3b8" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
-                <input
-                  type="text"
-                  placeholder={isMr ? "नाव, फोन किंवा प्रभाग शोधा..." : "Search voters by name, phone, or ward..."}
-                  value={contactSearchQuery}
-                  onChange={(e) => setContactSearchQuery(e.target.value)}
-                  style={{
-                    width: '100%',
-                    padding: '7px 24px 7px 30px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '12px',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                />
-                {contactSearchQuery && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                {/* Search Input */}
+                <div className="worker-filter-input-wrap" style={{ position: 'relative', minWidth: '220px' }}>
+                  <Search size={14} color="#94a3b8" style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)' }} />
+                  <input
+                    type="text"
+                    placeholder={isMr ? "नाव, फोन किंवा प्रभाग शोधा..." : "Search voters by name, phone..."}
+                    value={contactSearchQuery}
+                    onChange={(e) => setContactSearchQuery(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '7px 24px 7px 30px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '12px',
+                      outline: 'none',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                  {contactSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setContactSearchQuery('')}
+                      style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '12px' }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* View Switcher: Cards vs Table */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '3px', background: '#f1f5f9', padding: '3px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                   <button
                     type="button"
-                    onClick={() => setContactSearchQuery('')}
-                    style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8', fontSize: '12px' }}
+                    onClick={() => setViewMode('cards')}
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: viewMode === 'cards' ? '#ffffff' : 'transparent',
+                      color: viewMode === 'cards' ? '#0284c7' : '#64748b',
+                      fontWeight: 750,
+                      fontSize: '11.5px',
+                      cursor: 'pointer',
+                      boxShadow: viewMode === 'cards' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    title={isMr ? 'कार्ड व्ह्यू' : 'Cards View'}
                   >
-                    ✕
+                    <LayoutGrid size={13} />
+                    <span>{isMr ? 'कार्ड' : 'Cards'}</span>
                   </button>
-                )}
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('table')}
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: viewMode === 'table' ? '#ffffff' : 'transparent',
+                      color: viewMode === 'table' ? '#0284c7' : '#64748b',
+                      fontWeight: 750,
+                      fontSize: '11.5px',
+                      cursor: 'pointer',
+                      boxShadow: viewMode === 'table' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}
+                    title={isMr ? 'टेबल व्ह्यू' : 'Table View'}
+                  >
+                    <List size={13} />
+                    <span>{isMr ? 'टेबल' : 'Table'}</span>
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Table Container */}
-            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-              <div style={{ overflowX: 'auto' }}>
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>{isMr ? 'मतदाराचे नाव' : 'Voter / Citizen Name'}</th>
-                      <th>{isMr ? 'मोबाईल नंबर' : 'Mobile Number'}</th>
-                      <th>{isMr ? 'बूथ / प्रभाग' : 'Booth / Ward'}</th>
-                      <th>{isMr ? 'राजकीय कल / स्थिती' : 'Political Sentiment'}</th>
-                      <th style={{ textAlign: 'right' }}>{isMr ? 'कृती' : 'Actions'}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredContacts.length > 0 ? (
-                      filteredContacts.map((contact, i) => (
-                        <tr key={contact.id || i}>
-                          <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                              <div style={{ width: '34px', height: '34px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem' }}>
-                                {contact.name.charAt(0)}
-                              </div>
-                              <div>
-                                <div style={{ fontWeight: 700, color: '#0f172a' }}>{contact.name}</div>
-                                <div style={{ fontSize: '11px', color: '#64748b' }}>
-                                  {contact.contacted ? (isMr ? '✓ संपर्क पूर्ण' : '✓ Contacted') : (isMr ? 'संपर्क बाकी' : 'Pending Contact')}
+            {/* 1. CARDS VIEW (PROPER, CLEAN, NO OVERLAPPING COLUMNS) */}
+            {viewMode === 'cards' && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
+                {filteredContacts.length > 0 ? (
+                  filteredContacts.map((contact, i) => (
+                    <div
+                      key={contact.id || i}
+                      style={{
+                        background: '#ffffff',
+                        border: '1.5px solid #e2e8f0',
+                        borderRadius: '16px',
+                        padding: '16px 18px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                        boxShadow: '0 2px 8px rgba(15, 23, 42, 0.03)',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {/* Top Row: Avatar + Name + Sentiment Badge */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div
+                            style={{
+                              width: '42px',
+                              height: '42px',
+                              borderRadius: '50%',
+                              background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                              color: '#1d4ed8',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 800,
+                              fontSize: '1rem',
+                              border: '1.5px solid #bfdbfe',
+                              flexShrink: 0
+                            }}
+                          >
+                            {contact.name.charAt(0)}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 850, fontSize: '15px', color: '#0f172a', lineHeight: 1.2 }}>
+                              {contact.name}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
+                              <span style={{ background: '#f8fafc', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', color: '#475569', fontWeight: 650, border: '1px solid #e2e8f0' }}>
+                                📍 {contact.ward}
+                              </span>
+                              <span style={{ fontSize: '11px', fontWeight: 700, color: contact.contacted ? '#16a34a' : '#ea580c' }}>
+                                {contact.contacted ? (isMr ? '✓ संपर्क पूर्ण' : '✓ Contacted') : (isMr ? '⏳ संपर्क बाकी' : '⏳ Pending')}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Sentiment Badge */}
+                        <span className={`badge-status ${contact.status === 'Supportive' ? 'status-completed' : contact.status === 'Undecided' ? 'status-pending' : 'status-progress'}`} style={{ flexShrink: 0, fontSize: '11.5px' }}>
+                          {contact.status === 'Supportive' ? (isMr ? '🟢 अनुकूल' : '🟢 Supportive') : contact.status === 'Needs Info' ? (isMr ? '🟡 माहिती आवश्यक' : '🟡 Needs Info') : contact.status === 'Opposed' ? (isMr ? '🔴 प्रतिकूल' : '🔴 Opposed') : (isMr ? '⚪ अनिर्णित' : '⚪ Undecided')}
+                        </span>
+                      </div>
+
+                      {/* Middle Details: Mobile Phone with Clickable Call */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', border: '1px solid #f1f5f9' }}>
+                        <a
+                          href={`tel:${contact.phone}`}
+                          style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0284c7', fontWeight: 750, fontSize: '13.5px', textDecoration: 'none' }}
+                          title={isMr ? "कॉल करा" : "Call voter"}
+                        >
+                          <PhoneCall size={15} color="#0284c7" />
+                          <span>{contact.phone}</span>
+                        </a>
+
+                        <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
+                          {isMr ? 'थेट संपर्क' : 'Direct Line'}
+                        </span>
+                      </div>
+
+                      {/* Bottom Action: Big Contact Options Trigger */}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedContactForOptions(contact)}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          padding: '10px 14px',
+                          background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '10px',
+                          fontSize: '13px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px rgba(2, 132, 199, 0.25)',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <PhoneCall size={15} />
+                        <span>{isMr ? 'संपर्क पर्याय (Contact Options)' : 'Contact Options'}</span>
+                        <ChevronDown size={14} />
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', background: '#ffffff', borderRadius: '14px', border: '1px solid #e2e8f0', color: '#64748b' }}>
+                    {isMr ? 'कोणताही मतदार संपर्क आढळला नाही.' : 'No voter contacts found matching criteria.'}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 2. TABLE VIEW (CLEAN, PROPER MIN-WIDTH, NO OVERLAPPING COLUMNS) */}
+            {viewMode === 'table' && (
+              <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1.5px solid #e2e8f0', borderRadius: '14px' }}>
+                <div style={{ overflowX: 'auto', width: '100%' }}>
+                  <table style={{ width: '100%', minWidth: '780px', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid #e2e8f0' }}>
+                        <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
+                          {isMr ? 'मतदाराचे नाव' : 'Voter / Citizen Name'}
+                        </th>
+                        <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
+                          {isMr ? 'मोबाईल नंबर' : 'Mobile Number'}
+                        </th>
+                        <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
+                          {isMr ? 'बूथ / प्रभाग' : 'Booth / Ward'}
+                        </th>
+                        <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
+                          {isMr ? 'राजकीय कल / स्थिती' : 'Political Sentiment'}
+                        </th>
+                        <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', textAlign: 'right' }}>
+                          {isMr ? 'संपर्क पर्याय' : 'Contact Action'}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredContacts.length > 0 ? (
+                        filteredContacts.map((contact, i) => (
+                          <tr key={contact.id || i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem', border: '1px solid #bfdbfe' }}>
+                                  {contact.name.charAt(0)}
+                                </div>
+                                <div>
+                                  <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '13.5px' }}>{contact.name}</div>
+                                  <div style={{ fontSize: '11px', color: contact.contacted ? '#16a34a' : '#ea580c', fontWeight: 650 }}>
+                                    {contact.contacted ? (isMr ? '✓ संपर्क पूर्ण' : '✓ Contacted') : (isMr ? '⏳ संपर्क बाकी' : '⏳ Pending')}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </td>
-                          <td style={{ color: '#334155', fontWeight: 600 }}>📞 {contact.phone}</td>
-                          <td>
-                            <span style={{ background: '#f8fafc', padding: '3px 8px', borderRadius: '6px', fontSize: '11.5px', border: '1px solid #e2e8f0', color: '#475569', fontWeight: 600 }}>
-                              {contact.ward}
-                            </span>
-                          </td>
-                          <td>
-                            <span className={`badge-status ${contact.status === 'Supportive' ? 'status-completed' : contact.status === 'Undecided' ? 'status-pending' : 'status-progress'}`}>
-                              {contact.status === 'Supportive' ? (isMr ? '🟢 अनुकूल' : '🟢 Supportive') : contact.status === 'Needs Info' ? (isMr ? '🟡 माहिती आवश्यक' : '🟡 Needs Info') : contact.status === 'Opposed' ? (isMr ? '🔴 प्रतिकूल' : '🔴 Opposed') : (isMr ? '⚪ अनिर्णित' : '⚪ Undecided')}
-                            </span>
-                          </td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            </td>
+                            <td style={{ padding: '12px 16px', color: '#0284c7', fontWeight: 700, fontSize: '13px', whiteSpace: 'nowrap' }}>
+                              <a href={`tel:${contact.phone}`} style={{ color: '#0284c7', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                <PhoneCall size={14} />
+                                <span>{contact.phone}</span>
+                              </a>
+                            </td>
+                            <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                              <span style={{ background: '#f8fafc', padding: '4px 10px', borderRadius: '6px', fontSize: '11.5px', border: '1px solid #e2e8f0', color: '#475569', fontWeight: 650 }}>
+                                📍 {contact.ward}
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
+                              <span className={`badge-status ${contact.status === 'Supportive' ? 'status-completed' : contact.status === 'Undecided' ? 'status-pending' : 'status-progress'}`}>
+                                {contact.status === 'Supportive' ? (isMr ? '🟢 अनुकूल' : '🟢 Supportive') : contact.status === 'Needs Info' ? (isMr ? '🟡 माहिती आवश्यक' : '🟡 Needs Info') : contact.status === 'Opposed' ? (isMr ? '🔴 प्रतिकूल' : '🔴 Opposed') : (isMr ? '⚪ अनिर्णित' : '⚪ Undecided')}
+                              </span>
+                            </td>
+                            <td style={{ padding: '12px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                               <button
-                                className="icon-btn"
-                                title={isMr ? "मतदार प्रत्यक्ष भेट नोंदवा" : "Record Doorstep Visit Log"}
-                                style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' }}
-                                onClick={() => {
-                                  setActiveVisitContact(contact);
-                                  setVisitFormData({
-                                    name: contact.name,
-                                    phone: contact.phone || '',
-                                    status: contact.status || 'Supportive',
-                                    notes: '',
-                                    location: currentCoords?.address || '',
-                                  });
+                                type="button"
+                                onClick={() => setSelectedContactForOptions(contact)}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  padding: '7px 14px',
+                                  background: '#0284c7',
+                                  color: '#ffffff',
+                                  border: 'none',
+                                  borderRadius: '8px',
+                                  fontSize: '12px',
+                                  fontWeight: 750,
+                                  cursor: 'pointer',
+                                  boxShadow: '0 2px 4px rgba(2, 132, 199, 0.2)'
                                 }}
                               >
-                                <CalendarCheck size={16} />
+                                <PhoneCall size={13} />
+                                <span>{isMr ? 'संपर्क पर्याय' : 'Contact Options'}</span>
+                                <ChevronDown size={12} />
                               </button>
-                              <button
-                                className="icon-btn icon-btn-primary"
-                                title={isMr ? "कॉल करा" : "Call Voter"}
-                                onClick={() => alert(`Calling ${contact.name} (${contact.phone})...`)}
-                              >
-                                <PhoneCall size={16} color="var(--primary)" />
-                              </button>
-                              <button
-                                className="icon-btn icon-btn-success"
-                                title={isMr ? "व्हॉट्सॲप संवाद" : "WhatsApp Chat"}
-                                onClick={() => alert(`Opening WhatsApp chat for ${contact.phone}...`)}
-                              >
-                                <MessageCircle size={16} color="var(--success)" />
-                              </button>
-                            </div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="5" style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
+                            {isMr ? 'कोणताही मतदार संपर्क आढळला नाही.' : 'No voter contacts found matching criteria.'}
                           </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="5" style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-                          {isMr ? 'कोणताही मतदार संपर्क आढळला नाही.' : 'No voter contacts found matching criteria.'}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* 3. DEDICATED "CONTACT OPTIONS" MODAL (POPUP WITH ALL OPTIONS) */}
+            {selectedContactForOptions && (
+              <div className="responsive-modal-overlay" style={{ zIndex: 1100 }}>
+                <div className="responsive-modal-content" style={{ maxWidth: '440px', padding: '20px', borderRadius: '20px' }}>
+                  {/* Modal Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '46px', height: '46px', borderRadius: '50%', background: '#eff6ff', color: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '1.1rem', border: '1.5px solid #bfdbfe' }}>
+                        {selectedContactForOptions.name.charAt(0)}
+                      </div>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 850, color: '#0f172a' }}>
+                          {selectedContactForOptions.name}
+                        </h3>
+                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span>📍 {selectedContactForOptions.ward}</span>
+                          <span>•</span>
+                          <span style={{ fontWeight: 700, color: '#0284c7' }}>📞 {selectedContactForOptions.phone}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedContactForOptions(null)}
+                      style={{ border: 'none', background: '#f1f5f9', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '16px', color: '#64748b' }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div style={{ fontSize: '12px', fontWeight: 750, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.4px', marginBottom: '12px' }}>
+                    {isMr ? 'उपलब्ध संपर्क पर्याय (Choose Contact Option):' : 'Available Contact Actions:'}
+                  </div>
+
+                  {/* All Contact Options */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {/* Option 1: Direct Phone Call */}
+                    <a
+                      href={`tel:${selectedContactForOptions.phone}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '13px 16px',
+                        borderRadius: '12px',
+                        background: '#ecfdf5',
+                        border: '1.5px solid #a7f3d0',
+                        color: '#065f46',
+                        textDecoration: 'none',
+                        fontWeight: 750,
+                        fontSize: '13.5px',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669' }}>
+                          <PhoneCall size={18} />
+                        </div>
+                        <div>
+                          <div>{isMr ? 'थेट फोन कॉल करा' : 'Direct Phone Call'}</div>
+                          <div style={{ fontSize: '11.5px', color: '#059669', fontWeight: 600 }}>{selectedContactForOptions.phone}</div>
+                        </div>
+                      </div>
+                      <span style={{ fontSize: '12px', background: '#059669', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontWeight: 750 }}>
+                        {isMr ? 'कॉल' : 'Call'}
+                      </span>
+                    </a>
+
+                    {/* Option 2: WhatsApp Chat */}
+                    <a
+                      href={`https://wa.me/91${(selectedContactForOptions.phone || '').replace(/[^0-9]/g, '')}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '13px 16px',
+                        borderRadius: '12px',
+                        background: '#f0fdf4',
+                        border: '1.5px solid #86efac',
+                        color: '#14532d',
+                        textDecoration: 'none',
+                        fontWeight: 750,
+                        fontSize: '13.5px',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#16a34a' }}>
+                          <MessageCircle size={18} />
+                        </div>
+                        <div>
+                          <div>{isMr ? 'व्हॉट्सॲप संवाद' : 'WhatsApp Message'}</div>
+                          <div style={{ fontSize: '11.5px', color: '#16a34a', fontWeight: 600 }}>{isMr ? 'थेट संदेश पाठवा' : 'Send WhatsApp Message'}</div>
+                        </div>
+                      </div>
+                      <span style={{ fontSize: '12px', background: '#16a34a', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontWeight: 750 }}>
+                        WhatsApp
+                      </span>
+                    </a>
+
+                    {/* Option 3: Record Doorstep Visit Log */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const c = selectedContactForOptions;
+                        setSelectedContactForOptions(null);
+                        setActiveVisitContact(c);
+                        setVisitFormData({
+                          name: c.name,
+                          phone: c.phone || '',
+                          status: c.status || 'Supportive',
+                          notes: '',
+                          location: currentCoords?.address || '',
+                        });
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '13px 16px',
+                        borderRadius: '12px',
+                        background: '#eff6ff',
+                        border: '1.5px solid #bfdbfe',
+                        color: '#1e40af',
+                        fontWeight: 750,
+                        fontSize: '13.5px',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
+                          <CalendarCheck size={18} />
+                        </div>
+                        <div>
+                          <div>{isMr ? 'प्रत्यक्ष भेट नोंदवा (Visit Log)' : 'Record Doorstep Visit Log'}</div>
+                          <div style={{ fontSize: '11.5px', color: '#2563eb', fontWeight: 600 }}>{isMr ? 'घरी भेट देऊन अभिप्राय नोंदवा' : 'Log meeting feedback & GPS'}</div>
+                        </div>
+                      </div>
+                      <span style={{ fontSize: '12px', background: '#2563eb', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontWeight: 750 }}>
+                        {isMr ? 'नोंदवा' : 'Log Visit'}
+                      </span>
+                    </button>
+
+                    {/* Option 4: Schedule Meeting */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const c = selectedContactForOptions;
+                        setSelectedContactForOptions(null);
+                        setContactTab('meetings');
+                        setIsSchedulingMeeting(true);
+                        setNewMeeting({
+                          ...newMeeting,
+                          title: isMr ? `${c.name} यांच्याशी संवाद बैठक` : `Outreach Meeting with ${c.name}`,
+                          location: c.ward || '',
+                        });
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '13px 16px',
+                        borderRadius: '12px',
+                        background: '#fffbeb',
+                        border: '1.5px solid #fde68a',
+                        color: '#92400e',
+                        fontWeight: 750,
+                        fontSize: '13.5px',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
+                          <Calendar size={18} />
+                        </div>
+                        <div>
+                          <div>{isMr ? 'मोहीम बैठक निश्चित करा' : 'Schedule Campaign Meeting'}</div>
+                          <div style={{ fontSize: '11.5px', color: '#b45309', fontWeight: 600 }}>{isMr ? 'बैठकीची तारीख व वेळ निश्चित करा' : 'Coordinate time & venue'}</div>
+                        </div>
+                      </div>
+                      <span style={{ fontSize: '12px', background: '#d97706', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontWeight: 750 }}>
+                        {isMr ? 'नियोजन' : 'Schedule'}
+                      </span>
+                    </button>
+
+                    {/* Option 5: Send Text SMS */}
+                    <a
+                      href={`sms:${selectedContactForOptions.phone}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '13px 16px',
+                        borderRadius: '12px',
+                        background: '#f8fafc',
+                        border: '1.5px solid #e2e8f0',
+                        color: '#334155',
+                        textDecoration: 'none',
+                        fontWeight: 750,
+                        fontSize: '13.5px',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
+                          <MessageSquare size={18} />
+                        </div>
+                        <div>
+                          <div>{isMr ? 'एसएमएस संदेश पाठवा' : 'Send Text SMS'}</div>
+                          <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>{isMr ? 'थेट मोबाईलवर एसएमएस' : 'Standard carrier message'}</div>
+                        </div>
+                      </div>
+                      <span style={{ fontSize: '12px', background: '#475569', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontWeight: 750 }}>
+                        SMS
+                      </span>
+                    </a>
+
+                    {/* Option 6: Copy Phone Number */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedContactForOptions.phone) {
+                          navigator.clipboard.writeText(selectedContactForOptions.phone);
+                          setCopiedPhone(true);
+                          setTimeout(() => setCopiedPhone(false), 2000);
+                        }
+                      }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        padding: '10px',
+                        borderRadius: '10px',
+                        background: copiedPhone ? '#dcfce7' : '#f1f5f9',
+                        border: copiedPhone ? '1.5px solid #86efac' : '1px solid #cbd5e1',
+                        color: copiedPhone ? '#15803d' : '#475569',
+                        fontSize: '12.5px',
+                        fontWeight: 750,
+                        cursor: 'pointer',
+                        marginTop: '4px'
+                      }}
+                    >
+                      {copiedPhone ? <Check size={16} /> : <Copy size={16} />}
+                      <span>{copiedPhone ? (isMr ? '✓ नंबर कॉपी झाला!' : '✓ Number Copied!') : (isMr ? 'मोबाईल नंबर कॉपी करा' : 'Copy Mobile Number')}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Visit Log Recording Modal */}
             {activeVisitContact && (
