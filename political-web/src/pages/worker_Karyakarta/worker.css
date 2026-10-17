@@ -539,19 +539,28 @@
   }
 }
 
-/* Header & Top Bar */
+/* Minimal Mobile Bar (Small screens <= 768px) */
+.worker-mobile-strip {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .worker-mobile-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 14px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+}
+
+/* Header & Top Bar (Retained for legacy if needed) */
 .worker-header {
-  height: 64px;
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: none;
 }
 
 .mobile-menu-btn,

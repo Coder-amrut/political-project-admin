@@ -5511,6 +5511,15 @@ export default function WorkerDashboard() {
         className={`worker-sidebar ${isCollapsed ? 'collapsed' : ''} ${isSidebarOpen ? 'mobile-open' : ''}`}
       >
         <div>
+          {/* Back Button in Sidebar */}
+          <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'flex-start' }}>
+            {user?.roles?.some((r) => r === 'ADMIN' || r === 'OFFICER') ? (
+              <BackButton fallbackPath="/admin" text={isCollapsed ? '' : (isMr ? 'परत' : 'Back')} />
+            ) : (
+              <BackButton fallbackPath="/" text={isCollapsed ? '' : (isMr ? 'मुख्य' : 'Home')} />
+            )}
+          </div>
+
           {/* Brand Header Card — Indian Flag Theme */}
           <div
             style={{
@@ -5661,41 +5670,121 @@ export default function WorkerDashboard() {
               </button>
             </div>
 
-            {/* Live Database Sync Status Bar (When Expanded) */}
-            {!isCollapsed && (
+            {/* Offline Alert in Sidebar (ONLY shown when offline) */}
+            {!isCollapsed && !isOnline && (
               <div
                 style={{
                   paddingTop: '6px',
-                  borderTop: '1px solid #e2e8f0',
+                  borderTop: '1px solid #fed7aa',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   fontSize: '11px',
+                  color: '#ea580c',
+                  fontWeight: '700',
                 }}
               >
                 <span
                   style={{
-                    color: '#059669',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '5px',
-                    fontWeight: '600',
                   }}
                 >
-                  <span
-                    style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '3px',
-                      background: '#10b981',
-                    }}
-                  />
-                  {isMr ? 'थेट डेटाबेस जोडणी' : 'Live Sync'}
+                  <WifiOff size={12} />
+                  {isMr ? 'तुम्ही ऑफलाइन आहात' : 'You are offline'}
                 </span>
-                <span style={{ color: '#94a3b8', fontSize: '10.5px' }}>v2.5 SaaS</span>
+                {offlineQueueCount > 0 && (
+                  <span style={{ fontSize: '10.5px', background: '#ffedd5', padding: '1px 6px', borderRadius: '4px', color: '#9a3412' }}>
+                    {offlineQueueCount} {isMr ? 'बाकी' : 'pending'}
+                  </span>
+                )}
               </div>
             )}
           </div>
+
+          {/* Change Language Button in Sidebar */}
+          {!isCollapsed ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: '#f1f5f9',
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                padding: '3px',
+                marginBottom: '12px',
+                gap: '2px',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => changeLanguage('en')}
+                style={{
+                  flex: 1,
+                  padding: '5px 0',
+                  borderRadius: '6px',
+                  border: 'none',
+                  fontSize: '11.5px',
+                  fontWeight: '750',
+                  cursor: 'pointer',
+                  background: language === 'en' ? '#ea580c' : 'transparent',
+                  color: language === 'en' ? '#ffffff' : '#475569',
+                  transition: 'all 0.15s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px',
+                }}
+              >
+                <span>🇬🇧</span>
+                <span>English</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => changeLanguage('mr')}
+                style={{
+                  flex: 1,
+                  padding: '5px 0',
+                  borderRadius: '6px',
+                  border: 'none',
+                  fontSize: '11.5px',
+                  fontWeight: '750',
+                  cursor: 'pointer',
+                  background: language === 'mr' ? '#ea580c' : 'transparent',
+                  color: language === 'mr' ? '#ffffff' : '#475569',
+                  transition: 'all 0.15s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '4px',
+                }}
+              >
+                <span>🇮🇳</span>
+                <span>मराठी</span>
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => changeLanguage(language === 'en' ? 'mr' : 'en')}
+              style={{
+                width: '100%',
+                padding: '6px 0',
+                borderRadius: '7px',
+                border: '1px solid #cbd5e1',
+                background: '#ffffff',
+                fontSize: '11px',
+                fontWeight: '800',
+                color: '#ea580c',
+                cursor: 'pointer',
+                marginBottom: '10px',
+              }}
+              title={language === 'en' ? 'मराठी निवडा' : 'Switch to English'}
+            >
+              {language === 'en' ? 'EN' : 'मरा'}
+            </button>
+          )}
 
           {/* Simple Search Bar (When Expanded) */}
           {!isCollapsed && (
@@ -5982,222 +6071,114 @@ export default function WorkerDashboard() {
           position: 'relative',
         }}
       >
-        {/* STICKY TOP HEADER BAR */}
-        <header
-          className="worker-header"
-        >
-          {/* Left: Mobile Menu Toggle + BackButton & Current Tab Title */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-            {/* 3-Dot Sidebar Toggle Button (Shows according to device changes / collapsed) */}
+        {/* Minimal Mobile Bar (Only visible on small mobile screens <= 768px) */}
+        <div className="worker-mobile-strip">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
               type="button"
-              className={`sidebar-dots-btn ${!isCollapsed ? 'desktop-hide' : ''}`}
-              onClick={() => {
-                if (typeof window !== 'undefined' && window.innerWidth <= 992) {
-                  setSidebarOpen(!isSidebarOpen);
-                } else {
-                  setIsCollapsed(!isCollapsed);
-                }
-              }}
-              title={isMr ? 'साइडबार मेनू (३ डॉट्स)' : 'Toggle Sidebar Menu (3 Dots)'}
+              className="sidebar-dots-btn"
+              onClick={() => setSidebarOpen(true)}
+              title={isMr ? 'मेनू (३ डॉट्स)' : 'Menu (3 Dots)'}
             >
               <MoreVertical size={20} />
             </button>
-
-            {user?.roles?.some((r) => r === 'ADMIN' || r === 'OFFICER') ? (
-              <BackButton fallbackPath="/admin" text={isMr ? 'परत' : 'Back'} />
-            ) : (
-              <BackButton fallbackPath="/" text={isMr ? 'मुख्य' : 'Home'} />
-            )}
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, overflow: 'hidden' }}>
-              <span style={{ fontSize: '15px', fontWeight: '800', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '220px' }}>
-                {isMr ? currentNav?.label_mr || activeTab : currentNav?.label_en || activeTab}
-              </span>
-              <span className="header-sub-divider" style={{ color: '#cbd5e1' }}>•</span>
-              <span className="header-sub-text" style={{ fontSize: '12px', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                {isMr ? 'बूथ कार्य संचलन' : 'Field Operations'}
-              </span>
-            </div>
+            <span style={{ fontSize: '14px', fontWeight: '800', color: '#0f172a' }}>
+              {isMr ? currentNav?.label_mr || activeTab : currentNav?.label_en || activeTab}
+            </span>
           </div>
+          {user?.roles?.some((r) => r === 'ADMIN' || r === 'OFFICER') ? (
+            <BackButton fallbackPath="/admin" text={isMr ? 'परत' : 'Back'} />
+          ) : (
+            <BackButton fallbackPath="/" text={isMr ? 'मुख्य' : 'Home'} />
+          )}
+        </div>
 
-          {/* Right: Network Status, Sync Button, Clock, Attendance Pill, Language Toggle, Profile */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, marginLeft: 'auto' }}>
-            {/* Live Network & Offline Sync Status Widget */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  padding: '5px 9px',
-                  borderRadius: '8px',
-                  fontSize: '11.5px',
-                  fontWeight: '700',
-                  background: isOnline ? '#ecfdf5' : '#fff7ed',
-                  border: isOnline ? '1px solid #a7f3d0' : '1px solid #fed7aa',
-                  color: isOnline ? '#059669' : '#ea580c',
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                }}
-                title={isOnline ? (isMr ? 'इंटरनेट जोडणी सक्रिय (Online)' : 'Connected to server') : (isMr ? 'ऑफलाइन मोड: माहिती डिव्हाइसवर साठवली जात आहे' : 'Offline mode: saving locally')}
-              >
-                {isOnline ? <Wifi size={13} style={{ flexShrink: 0 }} /> : <WifiOff size={13} style={{ flexShrink: 0 }} />}
-                <span className="header-online-text" style={{ whiteSpace: 'nowrap' }}>
-                  {isOnline
-                    ? (isMr ? 'ऑनलाइन' : 'Online')
-                    : (isMr ? 'ऑफलाइन' : 'Offline')}
-                </span>
-              </div>
-
-              {/* Offline Pending Sync Button */}
-              {offlineQueueCount > 0 && (
-                <button
-                  type="button"
-                  onClick={() => handleSyncQueue(false)}
-                  disabled={isSyncing}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '5px 9px',
-                    borderRadius: '8px',
-                    fontSize: '11.5px',
-                    fontWeight: '800',
-                    background: '#fef3c7',
-                    border: '1px solid #fde68a',
-                    color: '#b45309',
-                    cursor: isSyncing ? 'wait' : 'pointer',
-                    boxShadow: '0 1px 3px rgba(180, 83, 9, 0.1)',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0,
-                  }}
-                  title={isMr ? 'प्रलंबित ऑफलाइन नोंदी डेटाबेसमध्ये पाठवा' : 'Sync pending offline records'}
-                >
-                  <RefreshCw size={12} style={{ animation: isSyncing ? 'spin 1s linear infinite' : 'none', flexShrink: 0 }} />
-                  <span style={{ whiteSpace: 'nowrap' }}>
-                    {isSyncing
-                      ? (isMr ? 'सिंक...' : 'Syncing...')
-                      : (isMr ? `⚡ ${offlineQueueCount} सिंक` : `⚡ Sync (${offlineQueueCount})`)}
-                  </span>
-                </button>
-              )}
+        {/* Offline Alert Banner (ONLY shown when user is offline) */}
+        {!isOnline && (
+          <div
+            style={{
+              background: '#fff7ed',
+              borderBottom: '1px solid #fed7aa',
+              color: '#c2410c',
+              padding: '10px 20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              fontSize: '13px',
+              fontWeight: '700',
+              boxShadow: '0 2px 4px rgba(234, 88, 12, 0.04)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <WifiOff size={16} style={{ color: '#ea580c', flexShrink: 0 }} />
+              <span>
+                {isMr
+                  ? '⚠️ तुम्ही सध्या ऑफलाइन आहात. सर्व माहिती या डिव्हाइसवर सुरक्षित साठवली जात आहे.'
+                  : '⚠️ You are currently offline. All data is being saved securely to this device.'}
+              </span>
             </div>
-
-            {/* Live Indian Standard Time (IST) Clock */}
-            <LiveClock isMr={isMr} variant="header" />
-
-            {/* Live Attendance Status Pill */}
-            <div
-              onClick={() => setActiveTab('Attendance')}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '5px 10px',
-                borderRadius: '8px',
-                fontSize: '11.5px',
-                fontWeight: '700',
-                cursor: 'pointer',
-                background: attendanceState === 'Punched In' ? '#ecfdf5' : attendanceState === 'Completed' ? '#f0fdf4' : '#fff7ed',
-                border: attendanceState === 'Punched In' ? '1px solid #a7f3d0' : attendanceState === 'Completed' ? '#bbf7d0' : '1px solid #fed7aa',
-                color: attendanceState === 'Punched In' ? '#059669' : attendanceState === 'Completed' ? '#15803d' : '#ea580c',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-              }}
-              title={isMr ? 'हजेरी तपशील पहा' : 'View Attendance Details'}
-            >
+            {offlineQueueCount > 0 && (
               <span
                 style={{
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '3px',
-                  background: attendanceState === 'Punched In' ? '#10b981' : attendanceState === 'Completed' ? '#22c55e' : '#f97316',
-                  flexShrink: 0,
+                  background: '#ffedd5',
+                  padding: '3px 9px',
+                  borderRadius: '6px',
+                  fontSize: '11.5px',
+                  color: '#9a3412',
+                  fontWeight: '800',
+                  whiteSpace: 'nowrap',
                 }}
-              />
-              <span style={{ whiteSpace: 'nowrap' }}>
-                {attendanceState === 'Punched In'
-                  ? (isMr ? 'हजर (In)' : 'Punched In')
-                  : attendanceState === 'Completed'
-                    ? (isMr ? 'पूर्ण' : 'Completed')
-                    : (isMr ? 'हजेरी बाकी' : 'Not Checked In')}
+              >
+                {isMr ? `${offlineQueueCount} नोंदी प्रलंबित` : `${offlineQueueCount} pending`}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Connection Restored Sync Banner (ONLY when online and has queued items) */}
+        {isOnline && offlineQueueCount > 0 && (
+          <div
+            style={{
+              background: '#fef3c7',
+              borderBottom: '1px solid #fde68a',
+              color: '#92400e',
+              padding: '8px 20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '10px',
+              fontSize: '12.5px',
+              fontWeight: '700',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <RefreshCw size={14} style={{ color: '#b45309', animation: isSyncing ? 'spin 1s linear infinite' : 'none' }} />
+              <span>
+                {isMr
+                  ? `जोडणी पूर्ववत झाली. ${offlineQueueCount} ऑफलाइन नोंदी डेटाबेसमध्ये पाठवण्यासाठी सिंक करा.`
+                  : `Connection restored. Sync ${offlineQueueCount} pending offline records to database.`}
               </span>
             </div>
-
-            {/* Language Switcher (Compact & Responsive) */}
-            <div
+            <button
+              type="button"
+              onClick={() => handleSyncQueue(false)}
+              disabled={isSyncing}
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                background: '#ffffff',
-                border: '1px solid #cbd5e1',
-                borderRadius: '7px',
-                padding: '2px',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => changeLanguage('en')}
-                style={{
-                  padding: '3px 8px',
-                  borderRadius: '5px',
-                  border: 'none',
-                  fontSize: '11px',
-                  fontWeight: '750',
-                  cursor: 'pointer',
-                  background: language === 'en' ? '#c2410c' : 'transparent',
-                  color: language === 'en' ? '#ffffff' : '#475569',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <span className="lang-full-text">English</span>
-                <span className="lang-short-text">EN</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => changeLanguage('mr')}
-                style={{
-                  padding: '3px 8px',
-                  borderRadius: '5px',
-                  border: 'none',
-                  fontSize: '11px',
-                  fontWeight: '750',
-                  cursor: 'pointer',
-                  background: language === 'mr' ? '#c2410c' : 'transparent',
-                  color: language === 'mr' ? '#ffffff' : '#475569',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                <span className="lang-full-text">मराठी</span>
-                <span className="lang-short-text">MR</span>
-              </button>
-            </div>
-
-            {/* User Avatar Badge */}
-            <div
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #FF671F 0%, #ea580c 100%)',
+                background: '#ea580c',
                 color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: '800',
-                fontSize: '13px',
-                flexShrink: 0,
+                border: 'none',
+                borderRadius: '6px',
+                padding: '5px 12px',
+                fontSize: '12px',
+                fontWeight: '750',
+                cursor: isSyncing ? 'wait' : 'pointer',
               }}
-              title={profileData.fullName}
             >
-              {(profileData.fullName || user?.full_name || 'K').charAt(0)}
-            </div>
+              {isSyncing ? (isMr ? 'सिंक होत आहे...' : 'Syncing...') : (isMr ? 'आता सिंक करा' : 'Sync Now')}
+            </button>
           </div>
-        </header>
+        )}
 
         {/* PAGE CONTENT CONTAINER */}
         <div className="worker-content-container">
