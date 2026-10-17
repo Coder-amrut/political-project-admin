@@ -67,7 +67,7 @@ function Home() {
                 >
                   ⚡ महाराष्ट्र राज्य निवडणूक व मोहीम व्यासपीठ
                 </span>
-                <span
+                {/* <span
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -79,7 +79,7 @@ function Home() {
                 >
                   <span style={{ width: '7px', height: '7px', borderRadius: '4px', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
                   Live MySQL DB
-                </span>
+                </span> */}
               </div>
 
               <h1 style={{ margin: '0 0 8px 0', fontSize: '28px', fontWeight: '900', letterSpacing: '-0.5px' }}>

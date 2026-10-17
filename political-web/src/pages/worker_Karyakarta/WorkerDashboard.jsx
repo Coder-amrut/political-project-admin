@@ -1328,16 +1328,7 @@ export default function WorkerDashboard() {
         <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1400px', margin: '0 auto', paddingBottom: '2rem' }}>
           {/* Executive Subheader / Context Bar */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-            <div>
-              <div style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span>🚩 {isMr ? 'अधिकारी व बूथ डॅशबोर्ड' : 'Field Officer Overview Dashboard'}</span>
 
-                <span style={{ fontSize: '11px', background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe', padding: '2px 8px', borderRadius: '12px', fontWeight: '700' }}>
-                  🇮🇳 {profileData.assignedWard ? `${isMr ? 'प्रभाग' : 'Ward'} ${profileData.assignedWard}` : 'Sangli Central'}
-                </span>
-              </div>
-
-            </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <LiveClock isMr={isMr} variant="header" />
@@ -5388,24 +5379,18 @@ export default function WorkerDashboard() {
           label_mr: 'अधिकारी डॅशबोर्ड',
           label_en: 'Field Overview Dashboard',
           icon: LayoutDashboard,
-          badge: isMr ? 'थेट डेटा' : 'Live DB',
-          badgeTheme: 'live',
         },
         {
           id: 'Attendance',
           label_mr: 'डिजिटल उपस्थिती व सेल्फी पंच',
           label_en: 'Geo Attendance Desk',
           icon: CalendarCheck,
-          badge: attendanceState === 'Punched In' ? (isMr ? 'हजर' : 'Punched In') : isMr ? 'GPS थेट' : 'GPS Live',
-          badgeTheme: attendanceState === 'Punched In' ? 'live' : 'blue',
         },
         {
           id: 'Tasks',
           label_mr: 'नेमलेली कार्ये व जबाबदाऱ्या',
           label_en: 'Assigned Tasks',
           icon: ClipboardList,
-          badge: tasksList?.filter((t) => !t.completed)?.length > 0 ? `${tasksList.filter((t) => !t.completed).length} ${isMr ? 'बाकी' : 'Pending'}` : null,
-          badgeTheme: 'amber',
         },
         {
           id: 'Hierarchy',
@@ -5418,8 +5403,6 @@ export default function WorkerDashboard() {
           label_mr: 'अधिकारी प्रोफाइल व माहिती',
           label_en: 'Officer Profile',
           icon: User,
-          badge: isMr ? 'सक्रिय' : 'Active',
-          badgeTheme: 'amber',
         },
       ],
     },
@@ -5433,8 +5416,6 @@ export default function WorkerDashboard() {
           label_mr: 'कुटुंब व मतदार सर्वेक्षण',
           label_en: 'Household Survey Desk',
           icon: ClipboardCheck,
-          badge: surveysList.length > 0 ? `${surveysList.length} ${isMr ? 'फॉर्म' : 'Forms'}` : (isMr ? 'थेट' : 'Live'),
-          badgeTheme: 'purple',
         },
         {
           id: 'Contact & Meetings',
@@ -5447,8 +5428,6 @@ export default function WorkerDashboard() {
           label_mr: 'नागरिकांच्या समस्या व तक्रारी',
           label_en: 'Citizen Grievances',
           icon: AlertCircle,
-          badge: complaintsData?.filter((c) => c.status === 'Pending')?.length > 0 ? `${complaintsData.filter((c) => c.status === 'Pending').length} ${isMr ? 'नवीन' : 'Pending'}` : null,
-          badgeTheme: 'live',
         },
       ],
     },
@@ -5462,8 +5441,6 @@ export default function WorkerDashboard() {
           label_mr: 'डेमो EVM मतदान यंत्र',
           label_en: 'Digital EVM Voting Machine',
           icon: CheckSquare,
-          badge: isMr ? 'EVM थेट' : 'Live EVM',
-          badgeTheme: 'live',
         },
       ],
     },
@@ -5509,14 +5486,7 @@ export default function WorkerDashboard() {
         className={`worker-sidebar ${isCollapsed ? 'collapsed' : ''} ${isSidebarOpen ? 'mobile-open' : ''}`}
       >
         <div>
-          {/* Back Button in Sidebar */}
-          <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'flex-start' }}>
-            {user?.roles?.some((r) => r === 'ADMIN' || r === 'OFFICER') ? (
-              <BackButton fallbackPath="/admin" text={isCollapsed ? '' : (isMr ? 'परत' : 'Back')} />
-            ) : (
-              <BackButton fallbackPath="/" text={isCollapsed ? '' : (isMr ? 'मुख्य' : 'Home')} />
-            )}
-          </div>
+
 
           {/* Brand Header Card — Indian Flag Theme */}
           <div
@@ -5735,7 +5705,7 @@ export default function WorkerDashboard() {
                   gap: '4px',
                 }}
               >
-                <span>🇬🇧</span>
+
                 <span>English</span>
               </button>
               <button
@@ -5758,7 +5728,7 @@ export default function WorkerDashboard() {
                   gap: '4px',
                 }}
               >
-                <span>🇮🇳</span>
+
                 <span>मराठी</span>
               </button>
             </div>
