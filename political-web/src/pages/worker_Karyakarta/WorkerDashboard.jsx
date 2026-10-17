@@ -2222,29 +2222,6 @@ export default function WorkerDashboard() {
           position: 'relative',
         }}
       >
-        {/* Minimal Mobile Bar (Only visible on small mobile screens <= 768px) */}
-        <div className="worker-mobile-strip">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button
-              type="button"
-              className="sidebar-dots-btn"
-              onClick={() => setSidebarOpen(true)}
-              title={isMr ? 'मेनू (३ डॉट्स)' : 'Menu (3 Dots)'}
-            >
-              <MoreVertical size={20} />
-            </button>
-            <span style={{ fontSize: '14px', fontWeight: '800', color: '#0f172a' }}>
-              {isMr ? currentNav?.label_mr || activeTab : currentNav?.label_en || activeTab}
-            </span>
-          </div>
-          {activeTab !== 'Dashboard' && (
-            user?.roles?.some((r) => r === 'ADMIN' || r === 'OFFICER') ? (
-              <BackButton fallbackPath="/admin" text={isMr ? 'परत' : 'Back'} />
-            ) : (
-              <BackButton fallbackPath="/" text={isMr ? 'मुख्य' : 'Home'} />
-            )
-          )}
-        </div>
 
         {/* Offline Alert Banner (ONLY shown when user is offline) */}
         {!isOnline && (
