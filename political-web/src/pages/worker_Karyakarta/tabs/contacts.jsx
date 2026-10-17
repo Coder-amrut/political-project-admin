@@ -27,7 +27,7 @@ export default function ContactsTab({
   meetingsList = [],
   contactTab = 'contacts',
   setContactTab,
-  contactSentimentFilter = 'All',
+  contactSentimentFilter,
   setContactSentimentFilter,
   contactSearchQuery = '',
   setContactSearchQuery,
@@ -46,6 +46,7 @@ export default function ContactsTab({
   const [selectedContactForOptions, setSelectedContactForOptions] = useState(null);
   const [copiedPhone, setCopiedPhone] = useState(false);
   const [viewMode, setViewMode] = useState('cards'); // 'cards' (default modern) or 'table'
+  const [contactStatusFilter, setContactStatusFilter] = useState('All'); // 'All' | 'Contacted' | 'Pending'
 
   return (
     <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1400px', margin: '0 auto', paddingBottom: '2rem' }}>
@@ -57,7 +58,7 @@ export default function ContactsTab({
             <span>{isMr ? 'नागरिक संपर्क व बैठका' : 'Citizen Contacts & Outreach Meetings'}</span>
           </h1>
           <div className="page-subtitle">
-            {isMr ? 'मतदार संपर्क यादी, प्रत्यक्ष भेट नोंद आणि मोहिमेच्या बैठकांचे नियोजन.' : 'Voter directory, doorstep visit logging, voter sentiment tracking, and campaign meeting coordination.'}
+            {isMr ? 'मतदार संपर्क यादी, थेट फोन/व्हॉट्सॲप संवाद आणि मोहिमेच्या बैठकांचे नियोजन.' : 'Voter directory, direct phone & WhatsApp communication, and campaign meeting coordination.'}
           </div>
         </div>
 
@@ -102,15 +103,14 @@ export default function ContactsTab({
 
       {contactTab === 'contacts' && (() => {
         const filteredContacts = votersList.filter((contact) => {
-          const matchesSentiment = contactSentimentFilter === 'All' || contact.status === contactSentimentFilter;
-          if (!matchesSentiment) return false;
+          if (contactStatusFilter === 'Contacted' && !contact.contacted) return false;
+          if (contactStatusFilter === 'Pending' && contact.contacted) return false;
           if (!contactSearchQuery.trim()) return true;
           const q = contactSearchQuery.toLowerCase();
           return (
             (contact.name && contact.name.toLowerCase().includes(q)) ||
             (contact.phone && contact.phone.includes(q)) ||
-            (contact.ward && contact.ward.toLowerCase().includes(q)) ||
-            (contact.status && contact.status.toLowerCase().includes(q))
+            (contact.ward && contact.ward.toLowerCase().includes(q))
           );
         });
 
@@ -119,11 +119,15 @@ export default function ContactsTab({
             {/* Filter, Search Bar, and View Mode Switcher */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: '#ffffff', padding: '12px 16px', borderRadius: '14px', border: '1.5px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                {['All', 'Supportive', 'Undecided', 'Needs Info'].map((filterVal) => (
+                {[
+                  { key: 'All', label: isMr ? 'सर्व मतदार' : 'All Voters' },
+                  { key: 'Contacted', label: isMr ? '✓ संपर्क झालेले' : '✓ Contacted' },
+                  { key: 'Pending', label: isMr ? '⏳ संपर्क बाकी' : '⏳ Pending' }
+                ].map((item) => (
                   <button
-                    key={filterVal}
+                    key={item.key}
                     type="button"
-                    onClick={() => setContactSentimentFilter(filterVal)}
+                    onClick={() => setContactStatusFilter(item.key)}
                     style={{
                       padding: '6px 14px',
                       borderRadius: '8px',
@@ -131,12 +135,12 @@ export default function ContactsTab({
                       fontWeight: 700,
                       cursor: 'pointer',
                       border: 'none',
-                      background: contactSentimentFilter === filterVal ? '#0284c7' : '#f1f5f9',
-                      color: contactSentimentFilter === filterVal ? '#ffffff' : '#475569',
+                      background: contactStatusFilter === item.key ? '#0284c7' : '#f1f5f9',
+                      color: contactStatusFilter === item.key ? '#ffffff' : '#475569',
                       transition: 'all 0.15s ease'
                     }}
                   >
-                    {filterVal === 'All' ? (isMr ? 'सर्व मतदार' : 'All Voters') : filterVal === 'Supportive' ? (isMr ? '🟢 अनुकूल' : '🟢 Supportive') : filterVal === 'Undecided' ? (isMr ? '⚪ अनिर्णित' : '⚪ Undecided') : (isMr ? '🟡 माहिती आवश्यक' : '🟡 Needs Info')}
+                    {item.label}
                   </button>
                 ))}
               </div>
@@ -221,7 +225,7 @@ export default function ContactsTab({
               </div>
             </div>
 
-            {/* 1. CARDS VIEW (PROPER, CLEAN, NO OVERLAPPING COLUMNS) */}
+            {/* 1. CARDS VIEW (CLEAN, SPACIOUS, NO OVERLAPPING COLUMNS) */}
             {viewMode === 'cards' && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
                 {filteredContacts.length > 0 ? (
@@ -240,7 +244,7 @@ export default function ContactsTab({
                         transition: 'all 0.15s ease'
                       }}
                     >
-                      {/* Top Row: Avatar + Name + Sentiment Badge */}
+                      {/* Top Row: Avatar + Name + Contact Status Tag */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                           <div
@@ -269,16 +273,25 @@ export default function ContactsTab({
                               <span style={{ background: '#f8fafc', padding: '2px 8px', borderRadius: '6px', fontSize: '11px', color: '#475569', fontWeight: 650, border: '1px solid #e2e8f0' }}>
                                 📍 {contact.ward}
                               </span>
-                              <span style={{ fontSize: '11px', fontWeight: 700, color: contact.contacted ? '#16a34a' : '#ea580c' }}>
-                                {contact.contacted ? (isMr ? '✓ संपर्क पूर्ण' : '✓ Contacted') : (isMr ? '⏳ संपर्क बाकी' : '⏳ Pending')}
-                              </span>
                             </div>
                           </div>
                         </div>
 
-                        {/* Sentiment Badge */}
-                        <span className={`badge-status ${contact.status === 'Supportive' ? 'status-completed' : contact.status === 'Undecided' ? 'status-pending' : 'status-progress'}`} style={{ flexShrink: 0, fontSize: '11.5px' }}>
-                          {contact.status === 'Supportive' ? (isMr ? '🟢 अनुकूल' : '🟢 Supportive') : contact.status === 'Needs Info' ? (isMr ? '🟡 माहिती आवश्यक' : '🟡 Needs Info') : contact.status === 'Opposed' ? (isMr ? '🔴 प्रतिकूल' : '🔴 Opposed') : (isMr ? '⚪ अनिर्णित' : '⚪ Undecided')}
+                        {/* Contact Status Badge */}
+                        <span
+                          style={{
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            fontSize: '11px',
+                            fontWeight: 750,
+                            background: contact.contacted ? '#ecfdf5' : '#fff7ed',
+                            color: contact.contacted ? '#15803d' : '#c2410c',
+                            border: contact.contacted ? '1px solid #bbf7d0' : '1px solid #fed7aa',
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0
+                          }}
+                        >
+                          {contact.contacted ? (isMr ? '✓ संपर्क पूर्ण' : '✓ Contacted') : (isMr ? '⏳ संपर्क बाकी' : '⏳ Pending')}
                         </span>
                       </div>
 
@@ -338,7 +351,7 @@ export default function ContactsTab({
             {viewMode === 'table' && (
               <div className="card" style={{ padding: 0, overflow: 'hidden', border: '1.5px solid #e2e8f0', borderRadius: '14px' }}>
                 <div style={{ overflowX: 'auto', width: '100%' }}>
-                  <table style={{ width: '100%', minWidth: '780px', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead>
                       <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid #e2e8f0' }}>
                         <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
@@ -351,7 +364,7 @@ export default function ContactsTab({
                           {isMr ? 'बूथ / प्रभाग' : 'Booth / Ward'}
                         </th>
                         <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
-                          {isMr ? 'राजकीय कल / स्थिती' : 'Political Sentiment'}
+                          {isMr ? 'संपर्क स्थिती' : 'Contact Status'}
                         </th>
                         <th style={{ padding: '12px 16px', fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', textAlign: 'right' }}>
                           {isMr ? 'संपर्क पर्याय' : 'Contact Action'}
@@ -367,12 +380,7 @@ export default function ContactsTab({
                                 <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#eff6ff', color: '#1d4ed8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem', border: '1px solid #bfdbfe' }}>
                                   {contact.name.charAt(0)}
                                 </div>
-                                <div>
-                                  <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '13.5px' }}>{contact.name}</div>
-                                  <div style={{ fontSize: '11px', color: contact.contacted ? '#16a34a' : '#ea580c', fontWeight: 650 }}>
-                                    {contact.contacted ? (isMr ? '✓ संपर्क पूर्ण' : '✓ Contacted') : (isMr ? '⏳ संपर्क बाकी' : '⏳ Pending')}
-                                  </div>
-                                </div>
+                                <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '13.5px' }}>{contact.name}</div>
                               </div>
                             </td>
                             <td style={{ padding: '12px 16px', color: '#0284c7', fontWeight: 700, fontSize: '13px', whiteSpace: 'nowrap' }}>
@@ -387,8 +395,20 @@ export default function ContactsTab({
                               </span>
                             </td>
                             <td style={{ padding: '12px 16px', whiteSpace: 'nowrap' }}>
-                              <span className={`badge-status ${contact.status === 'Supportive' ? 'status-completed' : contact.status === 'Undecided' ? 'status-pending' : 'status-progress'}`}>
-                                {contact.status === 'Supportive' ? (isMr ? '🟢 अनुकूल' : '🟢 Supportive') : contact.status === 'Needs Info' ? (isMr ? '🟡 माहिती आवश्यक' : '🟡 Needs Info') : contact.status === 'Opposed' ? (isMr ? '🔴 प्रतिकूल' : '🔴 Opposed') : (isMr ? '⚪ अनिर्णित' : '⚪ Undecided')}
+                              <span
+                                style={{
+                                  padding: '4px 10px',
+                                  borderRadius: '20px',
+                                  fontSize: '11.5px',
+                                  fontWeight: 750,
+                                  background: contact.contacted ? '#ecfdf5' : '#fff7ed',
+                                  color: contact.contacted ? '#15803d' : '#c2410c',
+                                  border: contact.contacted ? '1px solid #bbf7d0' : '1px solid #fed7aa',
+                                  whiteSpace: 'nowrap',
+                                  display: 'inline-block'
+                                }}
+                              >
+                                {contact.contacted ? (isMr ? '✓ संपर्क पूर्ण' : '✓ Contacted') : (isMr ? '⏳ संपर्क बाकी' : '⏳ Pending')}
                               </span>
                             </td>
                             <td style={{ padding: '12px 16px', textAlign: 'right', whiteSpace: 'nowrap' }}>
@@ -489,7 +509,7 @@ export default function ContactsTab({
                           <PhoneCall size={18} />
                         </div>
                         <div>
-                          <div>{isMr ? 'थेट फोन कॉल करा' : 'Direct Phone Call'}</div>
+                          <div>{isMr ? 'फोन कॉल' : ' Calling'}</div>
                           <div style={{ fontSize: '11.5px', color: '#059669', fontWeight: 600 }}>{selectedContactForOptions.phone}</div>
                         </div>
                       </div>
@@ -532,126 +552,6 @@ export default function ContactsTab({
                       </span>
                     </a>
 
-                    {/* Option 3: Record Doorstep Visit Log */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const c = selectedContactForOptions;
-                        setSelectedContactForOptions(null);
-                        setActiveVisitContact(c);
-                        setVisitFormData({
-                          name: c.name,
-                          phone: c.phone || '',
-                          status: c.status || 'Supportive',
-                          notes: '',
-                          location: currentCoords?.address || '',
-                        });
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '13px 16px',
-                        borderRadius: '12px',
-                        background: '#eff6ff',
-                        border: '1.5px solid #bfdbfe',
-                        color: '#1e40af',
-                        fontWeight: 750,
-                        fontSize: '13.5px',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
-                          <CalendarCheck size={18} />
-                        </div>
-                        <div>
-                          <div>{isMr ? 'प्रत्यक्ष भेट नोंदवा (Visit Log)' : 'Record Doorstep Visit Log'}</div>
-                          <div style={{ fontSize: '11.5px', color: '#2563eb', fontWeight: 600 }}>{isMr ? 'घरी भेट देऊन अभिप्राय नोंदवा' : 'Log meeting feedback & GPS'}</div>
-                        </div>
-                      </div>
-                      <span style={{ fontSize: '12px', background: '#2563eb', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontWeight: 750 }}>
-                        {isMr ? 'नोंदवा' : 'Log Visit'}
-                      </span>
-                    </button>
-
-                    {/* Option 4: Schedule Meeting */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const c = selectedContactForOptions;
-                        setSelectedContactForOptions(null);
-                        setContactTab('meetings');
-                        setIsSchedulingMeeting(true);
-                        setNewMeeting({
-                          ...newMeeting,
-                          title: isMr ? `${c.name} यांच्याशी संवाद बैठक` : `Outreach Meeting with ${c.name}`,
-                          location: c.ward || '',
-                        });
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '13px 16px',
-                        borderRadius: '12px',
-                        background: '#fffbeb',
-                        border: '1.5px solid #fde68a',
-                        color: '#92400e',
-                        fontWeight: 750,
-                        fontSize: '13.5px',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
-                          <Calendar size={18} />
-                        </div>
-                        <div>
-                          <div>{isMr ? 'मोहीम बैठक निश्चित करा' : 'Schedule Campaign Meeting'}</div>
-                          <div style={{ fontSize: '11.5px', color: '#b45309', fontWeight: 600 }}>{isMr ? 'बैठकीची तारीख व वेळ निश्चित करा' : 'Coordinate time & venue'}</div>
-                        </div>
-                      </div>
-                      <span style={{ fontSize: '12px', background: '#d97706', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontWeight: 750 }}>
-                        {isMr ? 'नियोजन' : 'Schedule'}
-                      </span>
-                    </button>
-
-                    {/* Option 5: Send Text SMS */}
-                    <a
-                      href={`sms:${selectedContactForOptions.phone}`}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '13px 16px',
-                        borderRadius: '12px',
-                        background: '#f8fafc',
-                        border: '1.5px solid #e2e8f0',
-                        color: '#334155',
-                        textDecoration: 'none',
-                        fontWeight: 750,
-                        fontSize: '13.5px',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
-                          <MessageSquare size={18} />
-                        </div>
-                        <div>
-                          <div>{isMr ? 'एसएमएस संदेश पाठवा' : 'Send Text SMS'}</div>
-                          <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 600 }}>{isMr ? 'थेट मोबाईलवर एसएमएस' : 'Standard carrier message'}</div>
-                        </div>
-                      </div>
-                      <span style={{ fontSize: '12px', background: '#475569', color: '#fff', padding: '4px 10px', borderRadius: '8px', fontWeight: 750 }}>
-                        SMS
-                      </span>
-                    </a>
 
                     {/* Option 6: Copy Phone Number */}
                     <button
