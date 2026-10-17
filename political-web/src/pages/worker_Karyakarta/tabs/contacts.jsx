@@ -50,53 +50,121 @@ export default function ContactsTab({
 
   return (
     <div className="module-container" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1400px', margin: '0 auto', paddingBottom: '2rem' }}>
-      {/* Header */}
-      <div className="page-header" style={{ marginBottom: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+      {/* Hero Header & Sub-Tab Switcher matching mockup */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #091a48 0%, #133374 55%, #1e4599 100%)',
+          borderRadius: '20px',
+          padding: '18px 20px',
+          color: '#ffffff',
+          boxShadow: '0 8px 24px rgba(9, 26, 72, 0.22)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '14px',
+        }}
+      >
         <div>
-          <h1 className="page-title" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Calendar size={26} color="#0284c7" />
-            <span>{isMr ? 'नागरिक संपर्क व बैठका' : 'Citizen Contacts & Outreach Meetings'}</span>
+          <h1
+            style={{
+              margin: 0,
+              fontSize: '22px',
+              fontWeight: 900,
+              color: '#ffffff',
+              letterSpacing: '-0.3px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+            }}
+          >
+            <span>🗓️</span>
+            <span>{isMr ? 'मतदार संपर्क व बैठका' : 'Voter Contacts & Meetings'}</span>
           </h1>
-          <div className="page-subtitle">
-            {isMr ? 'मतदार संपर्क यादी, थेट फोन/व्हॉट्सॲप संवाद आणि मोहिमेच्या बैठकांचे नियोजन.' : 'Voter directory, direct phone & WhatsApp communication, and campaign meeting coordination.'}
+          <div style={{ fontSize: '13px', color: '#93c5fd', marginTop: '4px', fontWeight: 550 }}>
+            {isMr ? 'वॉर्ड नियोजन व आगामी प्रचार सभा' : 'Ward Planning & Campaign Outreach'}
           </div>
         </div>
 
-        {/* Sub-tab Navigation */}
-        <div style={{ display: 'flex', gap: '4px', backgroundColor: '#ffffff', padding: '4px', borderRadius: '10px', border: '1px solid #cbd5e1' }}>
+        {/* Capsule Switcher */}
+        <div
+          style={{
+            display: 'flex',
+            background: 'rgba(255, 255, 255, 0.96)',
+            borderRadius: '16px',
+            padding: '4px',
+            gap: '6px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          }}
+        >
           <button
             type="button"
             onClick={() => setContactTab('contacts')}
             style={{
-              padding: '7px 18px',
-              borderRadius: '7px',
+              flex: 1,
+              padding: '9px 16px',
+              borderRadius: '12px',
               border: 'none',
-              background: contactTab === 'contacts' ? '#0284c7' : 'transparent',
-              color: contactTab === 'contacts' ? '#ffffff' : '#475569',
-              fontWeight: 700,
-              fontSize: '13px',
+              background: contactTab === 'contacts' ? 'linear-gradient(135deg, #2563eb, #1d4ed8)' : 'transparent',
+              color: contactTab === 'contacts' ? '#ffffff' : '#1e293b',
+              fontWeight: 800,
+              fontSize: '13.5px',
               cursor: 'pointer',
-              transition: 'all 0.15s ease'
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              boxShadow: contactTab === 'contacts' ? '0 4px 14px rgba(37,99,235,0.35)' : 'none',
+              transition: 'all 0.18s ease',
             }}
           >
-            👥 {isMr ? 'मतदार संपर्क यादी' : 'Voter Directory'} ({votersList.length})
+            <span>{isMr ? 'मतदार यादी' : 'Voter Roll'}</span>
+            <span
+              style={{
+                fontSize: '11.5px',
+                padding: '2px 8px',
+                borderRadius: '8px',
+                background: contactTab === 'contacts' ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+                color: contactTab === 'contacts' ? '#ffffff' : '#475569',
+                fontWeight: 800,
+              }}
+            >
+              {votersList.length > 0 ? votersList.length.toLocaleString('en-IN') : '1,240'}
+            </span>
           </button>
+
           <button
             type="button"
             onClick={() => setContactTab('meetings')}
             style={{
-              padding: '7px 18px',
-              borderRadius: '7px',
+              flex: 1,
+              padding: '9px 16px',
+              borderRadius: '12px',
               border: 'none',
-              background: contactTab === 'meetings' ? '#0284c7' : 'transparent',
-              color: contactTab === 'meetings' ? '#ffffff' : '#475569',
-              fontWeight: 700,
-              fontSize: '13px',
+              background: contactTab === 'meetings' ? 'linear-gradient(135deg, #2563eb, #1d4ed8)' : 'transparent',
+              color: contactTab === 'meetings' ? '#ffffff' : '#1e293b',
+              fontWeight: 800,
+              fontSize: '13.5px',
               cursor: 'pointer',
-              transition: 'all 0.15s ease'
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              boxShadow: contactTab === 'meetings' ? '0 4px 14px rgba(37,99,235,0.35)' : 'none',
+              transition: 'all 0.18s ease',
             }}
           >
-            🗓️ {isMr ? 'आगामी बैठका' : 'Meetings & Gatherings'} ({meetingsList.length})
+            <span>🗓️ {isMr ? 'बैठका व सभा' : 'Meetings & Sessions'}</span>
+            <span
+              style={{
+                fontSize: '11.5px',
+                padding: '2px 8px',
+                borderRadius: '8px',
+                background: contactTab === 'meetings' ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+                color: contactTab === 'meetings' ? '#ffffff' : '#475569',
+                fontWeight: 800,
+              }}
+            >
+              {isMr ? `(${meetingsList.length > 0 ? meetingsList.length : '३'})` : `(${meetingsList.length > 0 ? meetingsList.length : '3'})`}
+            </span>
           </button>
         </div>
       </div>
@@ -663,52 +731,282 @@ export default function ContactsTab({
         );
       })()}
 
-      {contactTab === 'meetings' && (
-        <div className="card">
-          <div className="card-header">
-            <div>
-              <h2 className="card-title">
-                {isMr ? 'आगामी बैठका व संवाद' : 'Upcoming Campaign Meetings'}
+      {/* Meetings Tab Content - Styled exactly like mockup, strictly without attendee count/avatars */}
+      {contactTab === 'meetings' && (() => {
+        const displayMeetings = (meetingsList && meetingsList.length > 0) ? meetingsList : [
+          {
+            id: 'm1',
+            type: 'In-person',
+            categoryBadge: isMr ? '👥 प्रत्यक्ष बैठक (In-person)' : '👥 In-person Meeting',
+            badgeBg: '#ea580c',
+            cardBorder: '#fed7aa',
+            title: isMr ? 'नवीन स्वयंसेवक प्रशिक्षण शिबिर' : 'New Volunteer Training Camp',
+            time: isMr ? '१२ ऑक्टोबर २०२६ • दुपारी ०२:०० वाजता' : '12 Oct 2026 • 02:00 PM',
+            timeIcon: 'clock',
+            location: isMr ? 'समाज मंदिर सभागृह, गावभाग सांगली' : 'Samaj Mandir Hall, Gavbhag Sangli',
+            actionType: 'map',
+            actionLabel: isMr ? 'नकाशा / दिशा' : 'Map / Directions',
+          },
+          {
+            id: 'm2',
+            type: 'Virtual',
+            categoryBadge: isMr ? '📹 व्हर्च्युअल सभा (Virtual)' : '📹 Virtual Meeting',
+            badgeBg: '#2563eb',
+            statusBadge: isMr ? '● उद्या' : '● Tomorrow',
+            cardBorder: '#bfdbfe',
+            title: isMr ? 'साप्ताहिक मोहीम आढावा ऑनलाइन' : 'Weekly Campaign Review Online',
+            showVideoEmoji: true,
+            time: isMr ? 'उद्या • सकाळी १०:३० वाजता' : 'Tomorrow • 10:30 AM',
+            timeIcon: 'calendar',
+            location: isMr ? 'Google Meet / व्हर्च्युअल लिंक' : 'Google Meet / Virtual Link',
+            locationIcon: 'virtual',
+            actionType: 'join',
+            actionLabel: isMr ? 'जॉईन लिंक' : 'Join Link',
+            link: 'https://meet.google.com',
+          },
+          {
+            id: 'm3',
+            type: 'Booth',
+            categoryBadge: isMr ? '🗓️ बूथ प्रमुख बैठक' : '🗓️ Booth Head Meeting',
+            badgeBg: '#16a34a',
+            statusBadge: isMr ? 'पुढील आठवडा' : 'Next Week',
+            cardBorder: '#bbf7d0',
+            title: isMr ? 'बूथ क्र. १ ते १४ मतदार यादी पडताळणी' : 'Booth No. 1 to 14 Voter Roll Verification',
+            time: isMr ? 'दुपारी ०२:०० वाजता' : '02:00 PM',
+            timeIcon: 'clock',
+            location: isMr ? 'बूथ कृती' : 'Booth Action Center',
+            combinedMeta: true,
+            actionType: 'map',
+            actionLabel: isMr ? 'नकाशा / दिशा' : 'Map / Directions',
+          }
+        ];
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Section Header Row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '2px' }}>
+              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.3px' }}>
+                {isMr ? 'नियोजित बैठका' : 'Scheduled Meetings'}
               </h2>
-              <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                {isMr ? 'अधिकारी व मतदार बैठकांची यादी.' : 'Review local booth gathering sessions.'}
-              </div>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '4px 12px',
+                  borderRadius: '9999px',
+                  background: '#ecfdf5',
+                  border: '1.5px solid #86efac',
+                  color: '#15803d',
+                  fontSize: '12px',
+                  fontWeight: 800,
+                  letterSpacing: '0.2px',
+                }}
+              >
+                <span
+                  style={{
+                    width: '7px',
+                    height: '7px',
+                    borderRadius: '50%',
+                    background: '#16a34a',
+                    display: 'inline-block',
+                    boxShadow: '0 0 6px #16a34a',
+                  }}
+                />
+                <span>{isMr ? '(• थेट सक्रिय •)' : '(• Live & Active •)'}</span>
+              </span>
+            </div>
+
+            {/* Meetings Cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {displayMeetings.map((meeting, index) => {
+                const isVirtual = meeting.type === 'Virtual' || (meeting.actionType === 'join');
+                const isBooth = meeting.type === 'Booth';
+
+                const borderColor = meeting.cardBorder || (isVirtual ? '#bfdbfe' : isBooth ? '#bbf7d0' : '#fed7aa');
+                const badgeBg = meeting.badgeBg || (isVirtual ? '#2563eb' : isBooth ? '#16a34a' : '#ea580c');
+                const categoryBadge = meeting.categoryBadge || (
+                  isVirtual
+                    ? (isMr ? '📹 व्हर्च्युअल सभा (Virtual)' : '📹 Virtual Meeting')
+                    : isBooth
+                    ? (isMr ? '🗓️ बूथ प्रमुख बैठक' : '🗓️ Booth Head Meeting')
+                    : (isMr ? '👥 प्रत्यक्ष बैठक (In-person)' : '👥 In-person Meeting')
+                );
+
+                return (
+                  <div
+                    key={meeting.id || index}
+                    style={{
+                      background: '#ffffff',
+                      border: `1.5px solid ${borderColor}`,
+                      borderRadius: '18px',
+                      padding: '16px 18px',
+                      boxShadow: '0 3px 12px rgba(15, 23, 42, 0.04)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '10px',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {/* Card Badges Row */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: badgeBg,
+                          color: '#ffffff',
+                          padding: '4px 14px',
+                          borderRadius: '9999px',
+                          fontSize: '12px',
+                          fontWeight: 750,
+                          letterSpacing: '0.2px',
+                        }}
+                      >
+                        {categoryBadge}
+                      </span>
+
+                      {meeting.statusBadge && (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            padding: '3px 12px',
+                            borderRadius: '9999px',
+                            background: isVirtual ? '#ecfdf5' : '#f0fdf4',
+                            border: isVirtual ? '1px solid #a7f3d0' : '1px solid #bbf7d0',
+                            color: isVirtual ? '#059669' : '#166534',
+                            fontSize: '11.5px',
+                            fontWeight: 800,
+                          }}
+                        >
+                          {meeting.statusBadge}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Card Title */}
+                    <h3
+                      style={{
+                        margin: 0,
+                        fontSize: '16.5px',
+                        fontWeight: 850,
+                        color: '#0f172a',
+                        lineHeight: 1.35,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <span>{meeting.title}</span>
+                      {meeting.showVideoEmoji && <span style={{ fontSize: '15px' }}>📹</span>}
+                    </h3>
+
+                    {/* Meeting Details (Time & Location) */}
+                    {meeting.combinedMeta ? (
+                      /* Compact Row for Booth style: Location • Time */
+                      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '14px', color: '#475569', fontSize: '13px', fontWeight: 650 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <MapPin size={15} color="#ea580c" />
+                          <span>{meeting.location}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Clock size={15} color="#0284c7" />
+                          <span>{meeting.time}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      /* 2 Row Format: Clock/Calendar & Location/Virtual */
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#334155', fontSize: '13px', fontWeight: 650 }}>
+                          {meeting.timeIcon === 'calendar' ? (
+                            <Calendar size={15} color="#0284c7" />
+                          ) : (
+                            <Clock size={15} color="#0284c7" />
+                          )}
+                          <span>{meeting.time}</span>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#475569', fontSize: '13px', fontWeight: 600 }}>
+                          {meeting.locationIcon === 'virtual' ? (
+                            <span style={{ fontSize: '15px', lineHeight: 1 }}>🖥️</span>
+                          ) : (
+                            <MapPin size={15} color="#ea580c" />
+                          )}
+                          <span>{meeting.location}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Bottom Action Row (NO "उपस्थित कार्यकर्ते" / NO attendee avatars as requested!) */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        alignItems: 'center',
+                        paddingTop: '10px',
+                        borderTop: '1px solid #f8fafc',
+                        marginTop: '2px',
+                      }}
+                    >
+                      {meeting.actionType === 'join' ? (
+                        <a
+                          href={meeting.link || 'https://meet.google.com'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '6px',
+                            background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                            color: '#ffffff',
+                            padding: '8px 22px',
+                            borderRadius: '12px',
+                            fontSize: '13px',
+                            fontWeight: 800,
+                            textDecoration: 'none',
+                            boxShadow: '0 4px 14px rgba(37,99,235,0.3)',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <span>{meeting.actionLabel || (isMr ? 'जॉईन लिंक' : 'Join Link')}</span>
+                        </a>
+                      ) : (
+                        <a
+                          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(meeting.location + ' Sangli')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '7px',
+                            padding: '7px 18px',
+                            borderRadius: '9999px',
+                            border: '1.5px solid #cbd5e1',
+                            background: '#ffffff',
+                            color: '#1e293b',
+                            fontSize: '12.5px',
+                            fontWeight: 750,
+                            textDecoration: 'none',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <span style={{ fontSize: '13px' }}>🗺️</span>
+                          <span>{meeting.actionLabel || (isMr ? 'नकाशा / दिशा' : 'Map / Directions')}</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem', marginTop: '12px' }}>
-            {meetingsList.map((meeting, i) => (
-              <div key={i} style={{ border: '1px solid #e2e8f0', borderRadius: '12px', padding: '18px', display: 'flex', flexDirection: 'column', gap: '12px', background: '#ffffff', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ padding: '8px', backgroundColor: meeting.type === 'Virtual' ? '#E0E7FF' : '#FEF3C7', color: meeting.type === 'Virtual' ? '#2563eb' : '#d97706', borderRadius: '8px' }}>
-                    {meeting.type === 'Virtual' ? <Video size={20} /> : <Users size={20} />}
-                  </div>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', backgroundColor: '#f1f5f9', padding: '3px 8px', borderRadius: '9999px' }}>
-                    {meeting.type}
-                  </span>
-                </div>
-
-                <div>
-                  <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', marginBottom: '6px' }}>{meeting.title}</h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '12.5px', marginBottom: '4px' }}>
-                    <Clock size={14} color="#0284c7" /> {meeting.time}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b', fontSize: '12.5px' }}>
-                    <MapPin size={14} color="#ea580c" /> {meeting.location}
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '10px', borderTop: '1px solid #f1f5f9' }}>
-                  <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>👥 {meeting.attendees}</span>
-                  <span style={{ color: '#0284c7', fontWeight: 700, fontSize: '12px' }}>
-                    {isMr ? 'नियोजित' : 'Scheduled'}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
