@@ -254,6 +254,25 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <style>{`
+        .karyakarta-desktop-table {
+          display: block;
+        }
+        .karyakarta-mobile-cards {
+          display: none;
+        }
+        @media (max-width: 768px) {
+          .karyakarta-desktop-table {
+            display: none !important;
+          }
+          .karyakarta-mobile-cards {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px !important;
+            padding: 12px !important;
+          }
+        }
+      `}</style>
       {/* Toast Notification */}
       {toastMessage && (
         <div
@@ -397,181 +416,433 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
             ⏳ {isMr ? 'डेटाबेसमधून कार्यकर्त्यांची माहिती लोड होत आहे...' : 'Loading workers from database...'}
           </div>
         ) : (
-          <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
-            <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-              <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569', fontWeight: '700' }}>
-                  <th style={{ padding: '12px 16px' }}>{isMr ? 'कार्यकर्त्याचे नाव व आयडी' : 'Worker Name & ID'}</th>
-                  <th style={{ padding: '12px 14px' }}>{isMr ? 'संपर्क' : 'Contact'}</th>
-                  <th style={{ padding: '12px 14px' }}>{isMr ? 'नेमलेले कार्यक्षेत्र' : 'Assigned Area'}</th>
-                  <th style={{ padding: '12px 14px' }}>{isMr ? 'पूर्ण सर्वेक्षण' : 'Surveys Done'}</th>
-                  <th style={{ padding: '12px 14px' }}>{isMr ? 'आजचे काम' : "Today's Work"}</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'center' }}>{isMr ? 'थेट कृती' : 'Action'}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {workers.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
-                      {isMr ? 'कोणतेही कार्यकर्ते आढळले नाहीत.' : 'No workers found.'}
-                    </td>
+          <div style={{ width: '100%' }}>
+            {/* Desktop Table View (Laptop / Widescreen) */}
+            <div className="karyakarta-desktop-table" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', width: '100%' }}>
+              <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569', fontWeight: '700' }}>
+                    <th style={{ padding: '12px 14px' }}>{isMr ? 'कार्यकर्त्याचे नाव व आयडी' : 'Worker Name & ID'}</th>
+                    <th style={{ padding: '12px 6px 12px 10px', width: '160px', whiteSpace: 'nowrap' }}>{isMr ? 'संपर्क' : 'Contact'}</th>
+                    <th style={{ padding: '12px 14px 12px 6px' }}>{isMr ? 'नेमलेले कार्यक्षेत्र' : 'Assigned Area'}</th>
+                    <th style={{ padding: '12px 10px', width: '120px' }}>{isMr ? 'पूर्ण सर्वेक्षण' : 'Surveys Done'}</th>
+                    <th style={{ padding: '12px 10px', width: '110px' }}>{isMr ? 'आजचे काम' : "Today's Work"}</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center', width: '180px' }}>{isMr ? 'थेट कृती' : 'Action'}</th>
                   </tr>
-                ) : (
-                  workers.map((worker) => (
-                    <tr key={worker.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      {/* Name & ID Only (other info removed per user request) */}
-                      <td style={{ padding: '14px 16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                          <span style={{ fontWeight: '800', color: '#0f172a', fontSize: '14px' }}>
-                            {worker.name}
+                </thead>
+                <tbody>
+                  {workers.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+                        {isMr ? 'कोणतेही कार्यकर्ते आढळले नाहीत.' : 'No workers found.'}
+                      </td>
+                    </tr>
+                  ) : (
+                    workers.map((worker) => (
+                      <tr key={worker.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        {/* Name & ID */}
+                        <td style={{ padding: '14px 14px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span style={{ fontWeight: '800', color: '#0f172a', fontSize: '14px' }}>
+                              {worker.name}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: '11px',
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                background: '#eff6ff',
+                                color: '#1d4ed8',
+                                fontWeight: '700',
+                                border: '1px solid #bfdbfe',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                              }}
+                              title={isMr ? 'वापरकर्ता आयडी' : 'User ID'}
+                            >
+                              {isMr ? 'आयडी' : 'ID'}: #{worker.user_id || worker.id}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Phone / Contact - Minimized right padding */}
+                        <td style={{ padding: '14px 6px 14px 10px', width: '160px', whiteSpace: 'nowrap' }}>
+                          <div style={{ fontWeight: '700', color: '#1e293b' }}>
+                            {worker.phone}
+                          </div>
+                          {worker.email && (
+                            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                              {worker.email}
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Area - Minimized left padding directly next to Contact */}
+                        <td style={{ padding: '14px 14px 14px 6px', color: '#334155' }}>
+                          <div style={{ fontWeight: '600' }}>
+                            {isMr ? worker.assigned_area_mr : (worker.assigned_area_en || worker.assigned_area_mr)}
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                            {isMr ? 'कव्हरेज दर:' : 'Coverage:'} <strong style={{ color: '#0284c7' }}>{worker.coverage_pct}%</strong>
+                          </div>
+                        </td>
+
+                        {/* Total Surveys */}
+                        <td style={{ padding: '14px 10px' }}>
+                          <span style={{ fontSize: '16px', fontWeight: '800', color: '#16a34a' }}>
+                            {worker.total_surveys}
                           </span>
+                          <div style={{ fontSize: '11px', color: '#64748b' }}>{isMr ? 'कुटुंबे' : 'Households'}</div>
+                        </td>
+
+                        {/* Today's Surveys */}
+                        <td style={{ padding: '14px 10px' }}>
                           <span
                             style={{
-                              fontSize: '11px',
-                              padding: '2px 8px',
-                              borderRadius: '6px',
-                              background: '#eff6ff',
-                              color: '#1d4ed8',
+                              fontSize: '13px',
                               fontWeight: '700',
-                              border: '1px solid #bfdbfe',
-                              display: 'inline-flex',
-                              alignItems: 'center',
+                              color: worker.today_surveys > 20 ? '#15803d' : '#ea580c',
+                              background: worker.today_surveys > 20 ? '#dcfce7' : '#ffedd5',
+                              padding: '3px 8px',
+                              borderRadius: '6px',
                             }}
-                            title={isMr ? 'वापरकर्ता आयडी' : 'User ID'}
                           >
-                            {isMr ? 'आयडी' : 'ID'}: #{worker.user_id || worker.id}
+                            +{worker.today_surveys} {isMr ? 'आज' : 'today'}
                           </span>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Phone / Contact from users.phone */}
-                      <td style={{ padding: '14px 14px' }}>
-                        <div style={{ fontWeight: '700', color: '#1e293b' }}>
+                        {/* Actions */}
+                        <td style={{ padding: '14px 14px', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'center' }}>
+                            {/* Edit Worker Details & Role */}
+                            <button
+                              onClick={() => handleOpenEdit(worker)}
+                              title={isMr ? 'कार्यकर्त्याचे नाव व भूमिका बदला' : 'Edit Worker Name & Role'}
+                              style={{
+                                background: '#0284c7',
+                                color: '#ffffff',
+                                border: 'none',
+                                padding: '6px 10px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                fontWeight: '700',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              ✏️ {isMr ? 'बदला' : 'Edit'}
+                            </button>
+
+                            {/* WhatsApp */}
+                            <a
+                              href={`https://wa.me/91${worker.phone}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="WhatsApp"
+                              style={{
+                                background: '#25d366',
+                                color: '#ffffff',
+                                padding: '6px 9px',
+                                borderRadius: '6px',
+                                textDecoration: 'none',
+                                fontSize: '12px',
+                              }}
+                            >
+                              💬
+                            </a>
+
+                            {/* Call */}
+                            <a
+                              href={`tel:${worker.phone}`}
+                              title={isMr ? 'कॉल करा' : 'Call'}
+                              style={{
+                                background: '#2563eb',
+                                color: '#ffffff',
+                                padding: '6px 9px',
+                                borderRadius: '6px',
+                                textDecoration: 'none',
+                                fontSize: '12px',
+                              }}
+                            >
+                              📞
+                            </a>
+
+                            {/* Assign Task */}
+                            <button
+                              onClick={() => setSelectedWorkerForTask(worker)}
+                              title={isMr ? 'थेट कार्य सोपवा' : 'Assign Direct Task'}
+                              style={{
+                                background: '#f97316',
+                                color: '#ffffff',
+                                border: 'none',
+                                padding: '6px 10px',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                fontSize: '12px',
+                                fontWeight: '650',
+                              }}
+                            >
+                              ⚡ {isMr ? 'कार्य' : 'Task'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile View - One by One Container Cards (Screens <= 768px) */}
+            <div className="karyakarta-mobile-cards">
+              {workers.length === 0 ? (
+                <div style={{ padding: '32px 16px', textAlign: 'center', color: '#64748b' }}>
+                  {isMr ? 'कोणतेही कार्यकर्ते आढळले नाहीत.' : 'No workers found.'}
+                </div>
+              ) : (
+                workers.map((worker) => (
+                  <div
+                    key={worker.id}
+                    style={{
+                      background: '#ffffff',
+                      borderRadius: '12px',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                      padding: '14px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '10px',
+                    }}
+                  >
+                    {/* Header: Name, ID & Status */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ fontWeight: '800', color: '#0f172a', fontSize: '15px' }}>
+                          {worker.name}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            padding: '2px 7px',
+                            borderRadius: '6px',
+                            background: '#eff6ff',
+                            color: '#1d4ed8',
+                            fontWeight: '700',
+                            border: '1px solid #bfdbfe',
+                          }}
+                          title={isMr ? 'वापरकर्ता आयडी' : 'User ID'}
+                        >
+                          #{worker.user_id || worker.id}
+                        </span>
+                      </div>
+
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          padding: '2px 8px',
+                          borderRadius: '6px',
+                          fontWeight: '700',
+                          background: worker.status === 'active' ? '#dcfce7' : '#f1f5f9',
+                          color: worker.status === 'active' ? '#15803d' : '#64748b',
+                          border: worker.status === 'active' ? '1px solid #86efac' : '1px solid #cbd5e1',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {worker.status === 'active' ? (isMr ? '🟢 सक्रिय' : '🟢 Active') : (isMr ? '⚪ ऑफलाइन' : '⚪ Offline')}
+                      </span>
+                    </div>
+
+                    {/* Contact & Assigned Area - Compact Grid with minimal gap */}
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '8px',
+                        background: '#f8fafc',
+                        padding: '10px 12px',
+                        borderRadius: '9px',
+                        border: '1px solid #e2e8f0',
+                      }}
+                    >
+                      {/* Contact */}
+                      <div>
+                        <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span>📞</span> {isMr ? 'संपर्क' : 'Contact'}
+                        </div>
+                        <div style={{ fontWeight: '800', color: '#1e293b', fontSize: '13px', marginTop: '3px' }}>
                           {worker.phone}
                         </div>
                         {worker.email && (
-                          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                          <div
+                            style={{
+                              fontSize: '10.5px',
+                              color: '#64748b',
+                              marginTop: '1px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                            }}
+                            title={worker.email}
+                          >
                             {worker.email}
                           </div>
                         )}
-                      </td>
+                      </div>
 
-                      {/* Area */}
-                      <td style={{ padding: '14px 14px', color: '#334155' }}>
-                        <div style={{ fontWeight: '600' }}>
+                      {/* Assigned Area */}
+                      <div>
+                        <div style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span>📍</span> {isMr ? 'नेमलेले कार्यक्षेत्र' : 'Assigned Area'}
+                        </div>
+                        <div style={{ fontWeight: '800', color: '#0f172a', fontSize: '13px', marginTop: '3px' }}>
                           {isMr ? worker.assigned_area_mr : (worker.assigned_area_en || worker.assigned_area_mr)}
                         </div>
-                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                          {isMr ? 'कव्हरेज दर:' : 'Coverage:'} <strong>{worker.coverage_pct}%</strong>
+                        <div style={{ fontSize: '11px', color: '#0284c7', fontWeight: '700', marginTop: '1px' }}>
+                          {isMr ? 'कव्हरेज दर:' : 'Coverage:'} {worker.coverage_pct}%
                         </div>
-                      </td>
+                      </div>
+                    </div>
 
-                      {/* Total Surveys */}
-                      <td style={{ padding: '14px 14px' }}>
-                        <span style={{ fontSize: '16px', fontWeight: '800', color: '#16a34a' }}>
-                          {worker.total_surveys}
+                    {/* Performance Numbers: Surveys Done & Today's Work */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '8px',
+                        background: '#f0fdf4',
+                        padding: '8px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #bbf7d0',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '11.5px', fontWeight: '600', color: '#166534' }}>
+                          {isMr ? 'पूर्ण सर्वेक्षण:' : 'Surveys Done:'}
                         </span>
-                        <div style={{ fontSize: '11px', color: '#64748b' }}>{isMr ? 'कुटुंबे' : 'Households'}</div>
-                      </td>
-
-                      {/* Today's Surveys */}
-                      <td style={{ padding: '14px 14px' }}>
-                        <span
-                          style={{
-                            fontSize: '13px',
-                            fontWeight: '700',
-                            color: worker.today_surveys > 20 ? '#15803d' : '#ea580c',
-                            background: worker.today_surveys > 20 ? '#dcfce7' : '#ffedd5',
-                            padding: '3px 8px',
-                            borderRadius: '6px',
-                          }}
-                        >
-                          +{worker.today_surveys} {isMr ? 'आज' : 'today'}
+                        <span style={{ fontSize: '14.5px', fontWeight: '800', color: '#15803d' }}>
+                          {worker.total_surveys} {isMr ? 'कुटुंबे' : 'Households'}
                         </span>
-                      </td>
+                      </div>
 
-                      {/* Actions */}
-                      <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'center' }}>
-                          {/* Edit Worker Details & Role (User Table Save) */}
-                          <button
-                            onClick={() => handleOpenEdit(worker)}
-                            title={isMr ? 'कार्यकर्त्याचे नाव व भूमिका बदला' : 'Edit Worker Name & Role'}
-                            style={{
-                              background: '#0284c7',
-                              color: '#ffffff',
-                              border: 'none',
-                              padding: '6px 10px',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '12px',
-                              fontWeight: '700',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            ✏️ {isMr ? 'बदला' : 'Edit'}
-                          </button>
+                      <span
+                        style={{
+                          fontSize: '11.5px',
+                          fontWeight: '750',
+                          color: worker.today_surveys > 20 ? '#15803d' : '#c2410c',
+                          background: worker.today_surveys > 20 ? '#dcfce7' : '#ffedd5',
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          border: worker.today_surveys > 20 ? '1px solid #86efac' : '1px solid #fed7aa',
+                        }}
+                      >
+                        +{worker.today_surveys} {isMr ? 'आज' : 'today'}
+                      </span>
+                    </div>
 
-                          {/* WhatsApp */}
-                          <a
-                            href={`https://wa.me/91${worker.phone}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            title="WhatsApp"
-                            style={{
-                              background: '#25d366',
-                              color: '#ffffff',
-                              padding: '6px 9px',
-                              borderRadius: '6px',
-                              textDecoration: 'none',
-                              fontSize: '12px',
-                            }}
-                          >
-                            💬
-                          </a>
+                    {/* Action Buttons Row */}
+                    <div
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(4, 1fr)',
+                        gap: '6px',
+                        marginTop: '2px',
+                      }}
+                    >
+                      {/* Edit Worker Details & Role */}
+                      <button
+                        onClick={() => handleOpenEdit(worker)}
+                        title={isMr ? 'कार्यकर्त्याचे नाव व भूमिका बदला' : 'Edit Worker Name & Role'}
+                        style={{
+                          background: '#0284c7',
+                          color: '#ffffff',
+                          border: 'none',
+                          padding: '8px 4px',
+                          borderRadius: '7px',
+                          cursor: 'pointer',
+                          fontSize: '11.5px',
+                          fontWeight: '750',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '3px',
+                        }}
+                      >
+                        ✏️ {isMr ? 'बदला' : 'Edit'}
+                      </button>
 
-                          {/* Call */}
-                          <a
-                            href={`tel:${worker.phone}`}
-                            title={isMr ? 'कॉल करा' : 'Call'}
-                            style={{
-                              background: '#2563eb',
-                              color: '#ffffff',
-                              padding: '6px 9px',
-                              borderRadius: '6px',
-                              textDecoration: 'none',
-                              fontSize: '12px',
-                            }}
-                          >
-                            📞
-                          </a>
+                      {/* WhatsApp */}
+                      <a
+                        href={`https://wa.me/91${worker.phone}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        title="WhatsApp"
+                        style={{
+                          background: '#25d366',
+                          color: '#ffffff',
+                          padding: '8px 4px',
+                          borderRadius: '7px',
+                          textDecoration: 'none',
+                          fontSize: '12px',
+                          fontWeight: '700',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '3px',
+                        }}
+                      >
+                        💬 WA
+                      </a>
 
-                          {/* Assign Task */}
-                          <button
-                            onClick={() => setSelectedWorkerForTask(worker)}
-                            title={isMr ? 'थेट कार्य सोपवा' : 'Assign Direct Task'}
-                            style={{
-                              background: '#f97316',
-                              color: '#ffffff',
-                              border: 'none',
-                              padding: '6px 10px',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '12px',
-                              fontWeight: '650',
-                            }}
-                          >
-                            ⚡ {isMr ? 'कार्य' : 'Task'}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                      {/* Call */}
+                      <a
+                        href={`tel:${worker.phone}`}
+                        title={isMr ? 'कॉल करा' : 'Call'}
+                        style={{
+                          background: '#2563eb',
+                          color: '#ffffff',
+                          padding: '8px 4px',
+                          borderRadius: '7px',
+                          textDecoration: 'none',
+                          fontSize: '12px',
+                          fontWeight: '700',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '3px',
+                        }}
+                      >
+                        📞 {isMr ? 'कॉल' : 'Call'}
+                      </a>
+
+                      {/* Assign Task */}
+                      <button
+                        onClick={() => setSelectedWorkerForTask(worker)}
+                        title={isMr ? 'थेट कार्य सोपवा' : 'Assign Direct Task'}
+                        style={{
+                          background: '#f97316',
+                          color: '#ffffff',
+                          border: 'none',
+                          padding: '8px 4px',
+                          borderRadius: '7px',
+                          cursor: 'pointer',
+                          fontSize: '11.5px',
+                          fontWeight: '750',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '3px',
+                        }}
+                      >
+                        ⚡ {isMr ? 'कार्य' : 'Task'}
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -381,6 +381,28 @@ header,
   }
 }
 
+/* Karyakarta Performance Roster: Desktop Table vs Phone Container Cards */
+.karyakarta-desktop-table {
+  display: block;
+}
+
+.karyakarta-mobile-cards {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .karyakarta-desktop-table {
+    display: none !important;
+  }
+  .karyakarta-mobile-cards {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    padding: 12px !important;
+  }
+}
+
+
 /* ==========================================================================
    Universal Zero-Overflow & 100% Mobile Device Fit Guarantee
    ========================================================================== */
