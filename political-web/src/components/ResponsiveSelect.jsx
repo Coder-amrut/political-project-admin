@@ -21,7 +21,7 @@ export default function ResponsiveSelect({
   className = '',
   style = {},
   selectStyle = {},
-  menuMaxHeight = '65vh',
+  menuMaxHeight = '75vh',
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');

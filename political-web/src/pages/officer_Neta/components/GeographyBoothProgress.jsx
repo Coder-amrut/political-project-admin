@@ -447,7 +447,7 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
               value={selectedDistrict}
               options={districtOptions}
               isMr={isMr}
-              menuMaxHeight="65vh"
+              menuMaxHeight="75vh"
               onChange={(e) => {
                 setSelectedDistrict(e.target.value);
                 setSelectedTaluka('all');
@@ -467,7 +467,7 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
               value={selectedTaluka}
               options={talukaOptions}
               isMr={isMr}
-              menuMaxHeight="65vh"
+              menuMaxHeight="75vh"
               onChange={(e) => {
                 setSelectedTaluka(e.target.value);
                 setSelectedVillage('all');
@@ -486,7 +486,7 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
               value={selectedVillage}
               options={villageOptions}
               isMr={isMr}
-              menuMaxHeight="65vh"
+              menuMaxHeight="75vh"
               onChange={(e) => {
                 setSelectedVillage(e.target.value);
                 setSelectedWard('all');
@@ -504,7 +504,7 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
               value={selectedWard}
               options={wardOptions}
               isMr={isMr}
-              menuMaxHeight="65vh"
+              menuMaxHeight="75vh"
               onChange={(e) => {
                 setSelectedWard(e.target.value);
                 setSelectedBooth('all');
@@ -521,7 +521,7 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
               value={selectedBooth}
               options={boothOptions}
               isMr={isMr}
-              menuMaxHeight="65vh"
+              menuMaxHeight="75vh"
               onChange={(e) => {
                 const val = e.target.value;
                 setSelectedBooth(val);
