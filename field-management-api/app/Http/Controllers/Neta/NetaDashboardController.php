@@ -405,8 +405,7 @@ class NetaDashboardController extends Controller
             'nk.active_since',
             'nk.badges'
         )
-        ->orderBy(DB::raw('COALESCE(nk.total_surveys, 0)'), 'desc')
-        ->orderBy('u.full_name', 'asc')
+        ->orderBy('u.id', 'desc')
         ->get();
 
         $records->transform(function ($w) {
@@ -543,6 +542,8 @@ class NetaDashboardController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:150',
             'phone' => 'required|string|max:20|unique:users,phone',
+            'email' => 'required|email|max:150|unique:users,email',
+            'password' => 'required|string|min:6',
             'role_id' => 'nullable|integer|exists:roles,id',
             'role_name' => 'nullable|string',
             'status' => 'nullable|string',
@@ -576,8 +577,9 @@ class NetaDashboardController extends Controller
         $userId = DB::table('users')->insertGetId([
             'uuid' => (string) Str::uuid(),
             'full_name' => trim($request->name),
+            'email' => strtolower(trim($request->email)),
             'phone' => trim($request->phone),
-            'password_hash' => Hash::make('Worker@123'),
+            'password_hash' => Hash::make($request->password),
             'status' => $dbStatus,
             'registration_source' => 'ADMIN_CREATED',
             'created_at' => now(),

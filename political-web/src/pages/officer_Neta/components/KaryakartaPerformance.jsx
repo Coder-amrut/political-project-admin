@@ -38,6 +38,8 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
     name: '',
     role_id: 1,
     phone: '',
+    email: '',
+    password: '',
     status: 'active',
     assigned_area_mr: '',
   });
@@ -164,6 +166,8 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
       name: '',
       role_id: 1,
       phone: '',
+      email: '',
+      password: '',
       status: 'active',
       assigned_area_mr: '',
     });
@@ -176,6 +180,14 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
       alert(isMr ? 'कृपया नाव आणि फोन नंबर प्रविष्ट करा.' : 'Please enter name and phone number.');
       return;
     }
+    if (!newWorkerData.email.trim()) {
+      alert(isMr ? 'कृपया ईमेल आयडी प्रविष्ट करा.' : 'Please enter email address.');
+      return;
+    }
+    if (!newWorkerData.password || newWorkerData.password.length < 6) {
+      alert(isMr ? 'कृपया किमान ६ अक्षरी पासवर्ड प्रविष्ट करा.' : 'Please enter a password with at least 6 characters.');
+      return;
+    }
 
     setAddSubmitting(true);
     try {
@@ -183,6 +195,8 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
         name: newWorkerData.name.trim(),
         role_id: Number(newWorkerData.role_id),
         phone: newWorkerData.phone.trim(),
+        email: newWorkerData.email.trim(),
+        password: newWorkerData.password,
         status: newWorkerData.status,
         assigned_area_mr: newWorkerData.assigned_area_mr.trim() || (isMr ? 'सांगली कार्यक्षेत्र' : 'Sangli Area'),
       });
@@ -206,7 +220,9 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
       }
     } catch (err) {
       console.error('Failed to create worker in users table:', err);
-      const errMsg = err?.response?.data?.message || err?.message || (isMr ? 'कार्यकर्ता जोडताना त्रुटी आली.' : 'Failed to add worker.');
+      const errMsg = err?.response?.data?.errors
+        ? Object.values(err.response.data.errors).flat().join('\n')
+        : (err?.response?.data?.message || err?.message || (isMr ? 'कार्यकर्ता जोडताना त्रुटी आली.' : 'Failed to add worker.'));
       alert(errMsg);
     } finally {
       setAddSubmitting(false);
@@ -385,7 +401,7 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
             <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569', fontWeight: '700' }}>
-                  <th style={{ padding: '12px 16px' }}>{isMr ? 'कार्यकर्त्याचे नाव व भूमिका' : 'Worker Name & Role'}</th>
+                  <th style={{ padding: '12px 16px' }}>{isMr ? 'कार्यकर्त्याचे नाव व आयडी' : 'Worker Name & ID'}</th>
                   <th style={{ padding: '12px 14px' }}>{isMr ? 'संपर्क' : 'Contact'}</th>
                   <th style={{ padding: '12px 14px' }}>{isMr ? 'नेमलेले कार्यक्षेत्र' : 'Assigned Area'}</th>
                   <th style={{ padding: '12px 14px' }}>{isMr ? 'पूर्ण सर्वेक्षण' : 'Surveys Done'}</th>
@@ -403,76 +419,28 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
                 ) : (
                   workers.map((worker) => (
                     <tr key={worker.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      {/* Name & Role (from Users & Roles table) */}
+                      {/* Name & ID Only (other info removed per user request) */}
                       <td style={{ padding: '14px 16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                           <span style={{ fontWeight: '800', color: '#0f172a', fontSize: '14px' }}>
                             {worker.name}
                           </span>
                           <span
                             style={{
-                              fontSize: '10px',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              background: '#f1f5f9',
-                              color: '#64748b',
-                              fontWeight: '600',
+                              fontSize: '11px',
+                              padding: '2px 8px',
+                              borderRadius: '6px',
+                              background: '#eff6ff',
+                              color: '#1d4ed8',
+                              fontWeight: '700',
+                              border: '1px solid #bfdbfe',
+                              display: 'inline-flex',
+                              alignItems: 'center',
                             }}
                             title={isMr ? 'वापरकर्ता आयडी' : 'User ID'}
                           >
-                            {isMr ? 'आयडी' : 'ID'} #{worker.user_id || worker.id}
+                            {isMr ? 'आयडी' : 'ID'}: #{worker.user_id || worker.id}
                           </span>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
-                          <span
-                            style={{
-                              fontSize: '11px',
-                              fontWeight: '700',
-                              padding: '2px 8px',
-                              borderRadius: '12px',
-                              background: worker.role_name === 'OFFICER' ? '#e0e7ff' : '#ecfdf5',
-                              color: worker.role_name === 'OFFICER' ? '#3730a3' : '#065f46',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            <span>{worker.role_name === 'OFFICER' ? '👔' : '👷'}</span>
-                            <span>{isMr ? worker.role_mr : (worker.role_en || worker.role_mr)}</span>
-                          </span>
-
-                          <span
-                            style={{
-                              fontSize: '10px',
-                              background: '#f8fafc',
-                              color: '#475569',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              border: '1px solid #e2e8f0',
-                              fontWeight: '600',
-                            }}
-                          >
-                            {isMr ? (worker.role_name === 'OFFICER' ? 'अधिकारी' : 'कार्यकर्ता') : worker.role_name}
-                          </span>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '6px', marginTop: '5px' }}>
-                          {(worker.badges || []).map((b, i) => (
-                            <span
-                              key={i}
-                              style={{
-                                fontSize: '10px',
-                                background: '#eff6ff',
-                                color: '#1d4ed8',
-                                padding: '1px 6px',
-                                borderRadius: '4px',
-                                fontWeight: '600',
-                              }}
-                            >
-                              {b}
-                            </span>
-                          ))}
                         </div>
                       </td>
 
@@ -952,6 +920,52 @@ export default function KaryakartaPerformance({ lang = 'mr' }) {
                       fontSize: '13px',
                     }}
                   />
+                </div>
+
+                {/* Email & Password for direct user login */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>
+                      {isMr ? 'ईमेल आयडी * (लॉगिनसाठी)' : 'Email ID * (Login)'}
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={newWorkerData.email}
+                      onChange={(e) => setNewWorkerData({ ...newWorkerData, email: e.target.value })}
+                      placeholder={isMr ? 'उदा. worker@domain.com' : 'e.g. worker@domain.com'}
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '9px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '13px',
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#475569', marginBottom: '6px' }}>
+                      {isMr ? 'लॉगिन पासवर्ड *' : 'Login Password *'}
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      minLength={6}
+                      value={newWorkerData.password}
+                      onChange={(e) => setNewWorkerData({ ...newWorkerData, password: e.target.value })}
+                      placeholder={isMr ? 'किमान ६ अक्षरे' : 'Min 6 chars'}
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '9px 12px',
+                        borderRadius: '8px',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '13px',
+                      }}
+                    />
+                  </div>
                 </div>
 
                 {/* Status & Area */}
