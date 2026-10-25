@@ -26,6 +26,17 @@ export default function Citizen360CRM({ lang = 'mr' }) {
   const [showAddInteractionModal, setShowAddInteractionModal] = useState(false);
   const [showAddIssueModal, setShowAddIssueModal] = useState(false);
 
+  // Booth Options with Add Custom Booth support
+  const [availableBooths, setAvailableBooths] = useState([
+    'बूथ क्र. १ (माधवनगर पूर्व)',
+    'बूथ क्र. २ (माधवनगर पश्चिम)',
+    'बूथ क्र. ३ (वसंत कॉलनी)',
+    'बूथ क्र. ४ (गावभाग)',
+    'बूथ क्र. ५ (कुपवाड)',
+  ]);
+  const [isAddingCustomBooth, setIsAddingCustomBooth] = useState(false);
+  const [customBoothInput, setCustomBoothInput] = useState('');
+
   // Form states
   const [newCitizen, setNewCitizen] = useState({
     full_name_mr: '',
@@ -498,68 +509,81 @@ export default function Citizen360CRM({ lang = 'mr' }) {
         </div>
       )}
 
-      {/* Filter & Search Bar */}
+      {/* Filter & Search Bar (Streamlined - 'सर्व बूथ', 'सर्व राजकीय कल', 'सर्व प्रवर्ग' removed as requested) */}
       <div
         className="crm-filter-bar"
         style={{
           background: '#ffffff',
           borderRadius: '12px',
-          padding: '16px 20px',
+          padding: '14px 18px',
           border: '1px solid #e2e8f0',
           display: 'flex',
           gap: '12px',
-          flexWrap: 'wrap',
           alignItems: 'center',
           boxSizing: 'border-box',
           width: '100%',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
         }}
       >
-        <div style={{ flex: '1 1 260px', position: 'relative' }}>
+        <div style={{ flex: 1, position: 'relative' }}>
+          <span
+            style={{
+              position: 'absolute',
+              left: '14px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: '#94a3b8',
+              fontSize: '15px',
+              pointerEvents: 'none',
+            }}
+          >
+            🔍
+          </span>
           <input
             type="text"
-            placeholder={isMr ? '🔍 नाव, फोन, EPIC मतदार ओळखपत्र किंवा पत्त्याने शोधा...' : 'Search by name, phone, voter ID...'}
+            placeholder={isMr ? 'नाव, फोन, EPIC मतदार ओळखपत्र किंवा पत्त्याने नागरिक शोधा...' : 'Search by name, phone, voter ID or address...'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{
               width: '100%',
-              padding: '9px 14px',
+              padding: '10px 14px 10px 38px',
               borderRadius: '8px',
               border: '1px solid #cbd5e1',
-              fontSize: '13px',
+              fontSize: '13.5px',
               outline: 'none',
               boxSizing: 'border-box',
+              background: '#f8fafc',
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = '#2563eb';
+              e.target.style.background = '#ffffff';
+              e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.12)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '#cbd5e1';
+              e.target.style.background = '#f8fafc';
+              e.target.style.boxShadow = 'none';
             }}
           />
-        </div>
-
-        <div style={{ flex: '1 1 180px', minWidth: '150px' }}>
-          <ResponsiveSelect
-            value={boothFilter}
-            onChange={(e) => setBoothFilter(e.target.value)}
-            options={boothOptions}
-            isMr={isMr}
-            placeholder={isMr ? 'सर्व बूथ' : 'All Booths'}
-          />
-        </div>
-
-        <div style={{ flex: '1 1 170px', minWidth: '150px' }}>
-          <ResponsiveSelect
-            value={sentimentFilter}
-            onChange={(e) => setSentimentFilter(e.target.value)}
-            options={sentimentOptions}
-            isMr={isMr}
-            placeholder={isMr ? 'सर्व राजकीय कल' : 'All Sentiments'}
-          />
-        </div>
-
-        <div style={{ flex: '1 1 170px', minWidth: '150px' }}>
-          <ResponsiveSelect
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            options={categoryOptions}
-            isMr={isMr}
-            placeholder={isMr ? 'सर्व प्रवर्ग' : 'All Categories'}
-          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              style={{
+                position: 'absolute',
+                right: '12px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                fontSize: '14px',
+                color: '#94a3b8',
+                cursor: 'pointer',
+              }}
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 
@@ -1220,18 +1244,82 @@ export default function Citizen360CRM({ lang = 'mr' }) {
 
               <div className="crm-form-2col">
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'बूथ क्रमांक' : 'Booth Number'}</label>
-                  <select
-                    value={newCitizen.booth_no}
-                    onChange={(e) => setNewCitizen({ ...newCitizen, booth_no: e.target.value })}
-                    style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box', background: '#fff' }}
-                  >
-                    <option value="बूथ क्र. १">{isMr ? 'बूथ क्र. १ (माधवनगर पूर्व)' : 'Booth No. 1 (Madhavnagar East)'}</option>
-                    <option value="बूथ क्र. २">{isMr ? 'बूथ क्र. २ (माधवनगर पश्चिम)' : 'Booth No. 2 (Madhavnagar West)'}</option>
-                    <option value="बूथ क्र. ३">{isMr ? 'बूथ क्र. ३ (वसंत कॉलनी)' : 'Booth No. 3 (Vasant Colony)'}</option>
-                    <option value="बूथ क्र. ४">{isMr ? 'बूथ क्र. ४ (गावभाग)' : 'Booth No. 4 (Gavbhag)'}</option>
-                    <option value="बूथ क्र. ५">{isMr ? 'बूथ क्र. ५ (कुपवाड)' : 'Booth No. 5 (Kupwad)'}</option>
-                  </select>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>
+                      {isMr ? 'बूथ क्रमांक / नाव' : 'Booth Number / Name'}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingCustomBooth(!isAddingCustomBooth)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#2563eb',
+                        fontSize: '11.5px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        padding: '0 4px',
+                        textDecoration: 'underline',
+                      }}
+                    >
+                      {isAddingCustomBooth ? (isMr ? '✕ यादीतून निवडा' : '✕ Select from list') : (isMr ? '＋ नवीन बूथ जोडा' : '＋ Add Booth')}
+                    </button>
+                  </div>
+
+                  {!isAddingCustomBooth ? (
+                    <select
+                      value={newCitizen.booth_no}
+                      onChange={(e) => {
+                        if (e.target.value === '__ADD_NEW__') {
+                          setIsAddingCustomBooth(true);
+                        } else {
+                          setNewCitizen({ ...newCitizen, booth_no: e.target.value });
+                        }
+                      }}
+                      style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', marginTop: '4px', boxSizing: 'border-box', background: '#fff' }}
+                    >
+                      {availableBooths.map((b) => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                      <option value="__ADD_NEW__">＋ {isMr ? 'नवीन बूथ जोडा (Add New Booth)' : 'Add New Booth'}</option>
+                    </select>
+                  ) : (
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                      <input
+                        type="text"
+                        placeholder={isMr ? 'नवीन बूथचे नाव किंवा क्रमांक...' : 'Enter new booth name / no...'}
+                        value={customBoothInput}
+                        onChange={(e) => setCustomBoothInput(e.target.value)}
+                        style={{ flex: 1, padding: '9px 12px', borderRadius: '8px', border: '1.5px solid #2563eb', boxSizing: 'border-box', fontSize: '13px' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const val = customBoothInput.trim();
+                          if (val) {
+                            if (!availableBooths.includes(val)) {
+                              setAvailableBooths([...availableBooths, val]);
+                            }
+                            setNewCitizen({ ...newCitizen, booth_no: val });
+                            setCustomBoothInput('');
+                            setIsAddingCustomBooth(false);
+                          }
+                        }}
+                        style={{
+                          background: '#2563eb',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '0 14px',
+                          fontSize: '12px',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {isMr ? 'जोडा' : 'Add'}
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'राजकीय कल' : 'Political Sentiment'}</label>
