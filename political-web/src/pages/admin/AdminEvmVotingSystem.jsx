@@ -1,8 +1,19 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { workerApi } from '../workerApi';
-import voteSongAudio from '../../../assets/vote_song.mp3';
-import wrongSoundAudio from '../../../assets/wrong_sound.mp3';
-import { isNetworkOnline, enqueueOfflineItem } from '../offlineSyncManager';
+import { evmApi as workerApi } from './evmApi';
+import voteSongAudio from '../../assets/vote_song.mp3';
+import wrongSoundAudio from '../../assets/wrong_sound.mp3';
+
+const isNetworkOnline = () => (typeof navigator !== 'undefined' ? navigator.onLine : true);
+const enqueueOfflineItem = (type, payload) => {
+  try {
+    const raw = localStorage.getItem('admin_evm_offline_queue');
+    const queue = raw ? JSON.parse(raw) : [];
+    queue.push({ id: Date.now(), type, payload, timestamp: new Date().toISOString() });
+    localStorage.setItem('admin_evm_offline_queue', JSON.stringify(queue));
+  } catch (e) {
+    console.error('Offline enqueue failed:', e);
+  }
+};
 import {
   Check,
   Share2,

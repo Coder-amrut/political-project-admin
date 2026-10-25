@@ -6,8 +6,6 @@ import Register from '../pages/auth/Register';
 import Unauthorized from '../pages/Unauthorized';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import OfficerDashboard from '../pages/officer_Neta/OfficerDashboard';
-import WorkerDashboard from '../pages/worker_Karyakarta/WorkerDashboard';
-import KarkartaEvmVotingSystem from '../pages/worker_Karyakarta/components/KarkartaEvmVotingSystem';
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleRoute } from './RoleRoute';
 import { RoleName } from '../api/contracts';
@@ -19,23 +17,15 @@ function AppRoutes() {
       {/* Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route path="/register" element={<Login />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
-      <Route path="/evm-demo" element={
-        <div style={{ minHeight: '100vh', background: '#f3f4f6', padding: '16px' }}>
-          <div style={{ maxWidth: '1000px', margin: '0 auto 12px auto' }}>
-            <BackButton fallbackPath="/worker" />
-          </div>
-          <KarkartaEvmVotingSystem />
-        </div>
-      } />
 
       {/* Admin Protected Routes */}
       <Route
         path="/admin"
         element={
           <ProtectedRoute>
-            <RoleRoute allowedRoles={[RoleName.ADMIN, RoleName.OFFICER, RoleName.WORKER]}>
+            <RoleRoute allowedRoles={[RoleName.ADMIN, RoleName.OFFICER]}>
               <AdminDashboard />
             </RoleRoute>
           </ProtectedRoute>
@@ -60,18 +50,6 @@ function AppRoutes() {
           <ProtectedRoute>
             <RoleRoute allowedRoles={[RoleName.OFFICER, RoleName.ADMIN]}>
               <OfficerDashboard />
-            </RoleRoute>
-          </ProtectedRoute>
-        }
-      />
-
-      {/* Worker Protected Routes */}
-      <Route
-        path="/worker"
-        element={
-          <ProtectedRoute>
-            <RoleRoute allowedRoles={[RoleName.WORKER, RoleName.ADMIN, RoleName.SUPER_ADMIN]}>
-              <WorkerDashboard />
             </RoleRoute>
           </ProtectedRoute>
         }

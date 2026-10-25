@@ -41,6 +41,10 @@ Route::prefix('auth')->group(function () {
     // POST /api/auth/dev-login — Quick developer login without password for rapid testing
     Route::post('/dev-login', [AuthController::class, 'devLogin']);
 
+    // OTP endpoints for Worker login / registration
+    Route::post('/send-otp', [AuthController::class, 'sendOtp']);
+    Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
+
     // Authenticated-only auth endpoints
     Route::middleware('auth:sanctum')->group(function () {
 

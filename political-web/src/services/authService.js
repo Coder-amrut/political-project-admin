@@ -70,3 +70,21 @@ export const getCurrentUser = async () => {
   const response = await apiClient.get('/auth/me');
   return response.data.user;
 };
+
+/**
+ * Send OTP to phone number
+ * Endpoint: POST /api/auth/send-otp
+ */
+export const sendOtp = async (phone) => {
+  const response = await apiClient.post('/auth/send-otp', { phone });
+  return response.data;
+};
+
+/**
+ * Verify OTP
+ * Endpoint: POST /api/auth/verify-otp
+ */
+export const verifyOtp = async (phone, otp) => {
+  const response = await apiClient.post('/auth/verify-otp', { phone, otp });
+  return response.data;
+};

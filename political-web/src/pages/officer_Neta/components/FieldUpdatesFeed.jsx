@@ -95,20 +95,9 @@ export default function FieldUpdatesFeed({ lang = 'mr' }) {
         </div>
 
         <button
+          type="button"
           onClick={() => setShowAddForm(!showAddForm)}
-          style={{
-            background: '#1e3a8a',
-            color: '#ffffff',
-            border: 'none',
-            padding: '10px 18px',
-            borderRadius: '8px',
-            fontSize: '13px',
-            fontWeight: '700',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
+          className="btn-3d-blue"
         >
           <span>✏️</span> {showAddForm ? (isMr ? 'फॉर्म बंद करा' : 'Close Form') : (isMr ? 'नवीन वार्ता नोंदवा' : 'Post Update')}
         </button>

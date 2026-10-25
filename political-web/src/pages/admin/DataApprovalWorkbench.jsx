@@ -193,53 +193,185 @@ export default function DataApprovalWorkbench({ lang = 'mr' }) {
 
 
 
-      {/* Filters Bar */}
+      {/* 3D Animation & Royal Blue Theme Stylesheet Matching Sidebar */}
+      <style>{`
+        .tab-3d-active {
+          background: linear-gradient(180deg, #2b74f0 0%, #1e60d5 50%, #1754be 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.4) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.7) !important;
+          border-bottom: 3.5px solid #0f3a88 !important;
+          box-shadow: 0 4px 14px rgba(23, 84, 190, 0.45), 0 2px 4px rgba(0, 0, 0, 0.12), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.65) !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+          border-radius: 10px !important;
+          transform-style: preserve-3d;
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+        }
+        .tab-3d-active:hover {
+          transform: translateY(-2.5px) scale(1.02) !important;
+          box-shadow: 0 8px 22px rgba(23, 84, 190, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.85) !important;
+        }
+        .tab-3d-active:active {
+          transform: translateY(2px) scale(0.98) !important;
+          border-bottom: 1.5px solid #0f3a88 !important;
+          box-shadow: 0 2px 6px rgba(23, 84, 190, 0.35) !important;
+        }
+
+        .tab-3d-inactive {
+          background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+          color: #334155 !important;
+          border: 1px solid #cbd5e1 !important;
+          border-bottom: 3px solid #94a3b8 !important;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05), inset 0 1px 1px #ffffff !important;
+          border-radius: 10px !important;
+          transform-style: preserve-3d;
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+        }
+        .tab-3d-inactive:hover {
+          transform: translateY(-2px) !important;
+          color: #1e60d5 !important;
+          border-color: #93c5fd !important;
+          border-bottom-color: #3b82f6 !important;
+          box-shadow: 0 6px 16px rgba(30, 96, 213, 0.18), inset 0 1px 1px #ffffff !important;
+        }
+        .tab-3d-inactive:active {
+          transform: translateY(1.5px) !important;
+          border-bottom: 1.5px solid #94a3b8 !important;
+        }
+
+        .btn-3d-royal {
+          background: linear-gradient(180deg, #2b74f0 0%, #1e60d5 50%, #1754be 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.35) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+          border-bottom: 3px solid #0f3a88 !important;
+          box-shadow: 0 4px 12px rgba(23, 84, 190, 0.35), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.5) !important;
+          border-radius: 8px !important;
+          transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+        }
+        .btn-3d-royal:hover {
+          transform: translateY(-2px) scale(1.02) !important;
+          box-shadow: 0 7px 18px rgba(23, 84, 190, 0.52), inset 0 1.5px 2px rgba(255, 255, 255, 0.75) !important;
+        }
+        .btn-3d-royal:active {
+          transform: translateY(1.5px) scale(0.98) !important;
+          border-bottom: 1.5px solid #0f3a88 !important;
+        }
+
+        .btn-3d-green {
+          background: linear-gradient(180deg, #10b981 0%, #059669 50%, #047857 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.35) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+          border-bottom: 3.5px solid #045230 !important;
+          box-shadow: 0 4px 14px rgba(5, 150, 105, 0.38), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.5) !important;
+          border-radius: 8px !important;
+          transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+        }
+        .btn-3d-green:hover:not(:disabled) {
+          transform: translateY(-2px) scale(1.02) !important;
+          box-shadow: 0 8px 20px rgba(5, 150, 105, 0.55), inset 0 1.5px 2px rgba(255, 255, 255, 0.75) !important;
+        }
+        .btn-3d-green:active:not(:disabled) {
+          transform: translateY(1.5px) scale(0.98) !important;
+          border-bottom: 1.5px solid #045230 !important;
+        }
+
+        .btn-3d-red {
+          background: linear-gradient(180deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.35) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+          border-bottom: 3.5px solid #7f1d1d !important;
+          box-shadow: 0 4px 14px rgba(220, 38, 38, 0.38), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.5) !important;
+          border-radius: 8px !important;
+          transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+        }
+        .btn-3d-red:hover {
+          transform: translateY(-2px) scale(1.02) !important;
+          box-shadow: 0 8px 20px rgba(220, 38, 38, 0.55), inset 0 1.5px 2px rgba(255, 255, 255, 0.75) !important;
+        }
+        .btn-3d-red:active {
+          transform: translateY(1.5px) scale(0.98) !important;
+          border-bottom: 1.5px solid #7f1d1d !important;
+        }
+      `}</style>
+
+      {/* Filters Bar with Royal Blue Symmetry */}
       <div
         style={{
           background: '#ffffff',
-          borderRadius: '12px',
-          padding: '16px 20px',
-          border: '1px solid #e2e8f0',
+          borderRadius: '14px',
+          padding: '16px 22px',
+          border: '1px solid #cbd5e1',
+          boxShadow: '0 4px 18px rgba(23, 84, 190, 0.05)',
           display: 'flex',
-          gap: '12px',
+          gap: '14px',
           flexWrap: 'wrap',
           alignItems: 'center',
         }}
       >
-        <div style={{ flex: '1 1 240px' }}>
+        <div style={{ flex: '1 1 260px' }}>
           <input
             type="text"
-            placeholder={isMr ? '🔍 नाव, मतदार ओळखपत्र, फोन किंवा अधिकाऱ्याचे नाव...' : 'Search submissions...'}
+            placeholder={isMr ? '🔍 नाव, मतदार ओळखपत्र, फोन किंवा कार्यकर्त्याचे नाव...' : 'Search submissions...'}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+            style={{
+              width: '100%',
+              padding: '10px 14px',
+              borderRadius: '9px',
+              border: '1.5px solid #cbd5e1',
+              fontSize: '13px',
+              boxSizing: 'border-box',
+              outline: 'none',
+              transition: 'all 0.15s ease',
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = '#1e60d5';
+              e.target.style.boxShadow = '0 0 0 3px rgba(30, 96, 213, 0.15)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '#cbd5e1';
+              e.target.style.boxShadow = 'none';
+            }}
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
+        {/* 3D Animated Tabs Matching Sidebar Royal Blue */}
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
           {[
             { key: 'PENDING_APPROVAL', label_mr: 'मंजुरी प्रलंबित', label_en: 'Pending Review' },
             { key: 'APPROVED', label_mr: 'मंजूर झालेले', label_en: 'Approved' },
             { key: 'REJECTED', label_mr: 'नामंजूर', label_en: 'Rejected' },
             { key: 'all', label_mr: 'सर्व नोंदी', label_en: 'All Submissions' },
-          ].map((st) => (
-            <button
-              key={st.key}
-              onClick={() => setStatusFilter(st.key)}
-              style={{
-                padding: '7px 14px',
-                borderRadius: '8px',
-                fontSize: '12px',
-                fontWeight: '700',
-                cursor: 'pointer',
-                border: statusFilter === st.key ? 'none' : '1px solid #cbd5e1',
-                background: statusFilter === st.key ? '#1d4ed8' : '#ffffff',
-                color: statusFilter === st.key ? '#ffffff' : '#475569',
-              }}
-            >
-              {isMr ? st.label_mr : st.label_en}
-            </button>
-          ))}
+          ].map((st) => {
+            const isActive = statusFilter === st.key;
+            return (
+              <button
+                key={st.key}
+                type="button"
+                className={isActive ? 'tab-3d-active' : 'tab-3d-inactive'}
+                onClick={() => setStatusFilter(st.key)}
+                style={{
+                  padding: '9px 18px',
+                  fontSize: '12.5px',
+                  fontWeight: '800',
+                  userSelect: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <span>{isMr ? st.label_mr : st.label_en}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -261,7 +393,7 @@ export default function DataApprovalWorkbench({ lang = 'mr' }) {
                   <th style={{ padding: '12px 16px' }}>{isMr ? 'कोड व नागरिक' : 'Code & Citizen'}</th>
                   <th style={{ padding: '12px 16px' }}>{isMr ? 'मतदार ओळखपत्र / फोन' : 'Voter ID / Phone'}</th>
                   <th style={{ padding: '12px 16px' }}>{isMr ? 'बूथ व परिसर' : 'Booth & Area'}</th>
-                  <th style={{ padding: '12px 16px' }}>{isMr ? 'सादरकर्ता अधिकारी' : 'Submitted By'}</th>
+                  <th style={{ padding: '12px 16px' }}>{isMr ? 'सादरकर्ता कार्यकर्ता' : 'Submitted By'}</th>
                   <th style={{ padding: '12px 16px' }}>{isMr ? 'सद्यस्थिती' : 'Status'}</th>
                   <th style={{ padding: '12px 16px', textAlign: 'right' }}>{isMr ? 'कृती' : 'Action'}</th>
                 </tr>
@@ -298,16 +430,14 @@ export default function DataApprovalWorkbench({ lang = 'mr' }) {
 
                     <td style={{ padding: '14px 16px', textAlign: 'right' }}>
                       <button
+                        type="button"
+                        className={sub.status === 'PENDING_APPROVAL' ? 'btn-3d-royal' : 'tab-3d-inactive'}
                         onClick={() => openReview(sub)}
                         style={{
-                          background: sub.status === 'PENDING_APPROVAL' ? '#1d4ed8' : '#eff6ff',
-                          color: sub.status === 'PENDING_APPROVAL' ? '#ffffff' : '#1d4ed8',
-                          border: '1px solid #bfdbfe',
-                          padding: '6px 14px',
-                          borderRadius: '6px',
+                          padding: '7px 16px',
                           fontSize: '12px',
-                          fontWeight: '700',
-                          cursor: 'pointer',
+                          fontWeight: '800',
+                          userSelect: 'none'
                         }}
                       >
                         {sub.status === 'PENDING_APPROVAL' ? (isMr ? 'तपासा व मंजूर करा' : 'Review & Approve') : (isMr ? 'तपशील पहा / दुरुस्ती' : 'View / Edit')}
@@ -344,12 +474,13 @@ export default function DataApprovalWorkbench({ lang = 'mr' }) {
             style={{
               background: '#ffffff',
               borderRadius: '16px',
-              maxWidth: '680px',
+              maxWidth: 'min(680px, 96vw)',
               width: '100%',
               maxHeight: '90vh',
               overflowY: 'auto',
               boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
-              padding: '24px',
+              padding: '24px 20px',
+              boxSizing: 'border-box',
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -545,8 +676,9 @@ export default function DataApprovalWorkbench({ lang = 'mr' }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', paddingTop: '14px', borderTop: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '10px' }}>
                   <button
                     type="button"
+                    className="tab-3d-inactive"
                     onClick={() => setIsEditing(true)}
-                    style={{ background: '#ffffff', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', color: '#334155' }}
+                    style={{ padding: '8px 18px', fontSize: '12.5px', fontWeight: '800' }}
                   >
                     {isMr ? '✏️ माहिती दुरुस्त करा' : '✏️ Edit & Correct'}
                   </button>
@@ -554,17 +686,19 @@ export default function DataApprovalWorkbench({ lang = 'mr' }) {
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <button
                       type="button"
+                      className="btn-3d-red"
                       onClick={() => setShowRejectModal(true)}
-                      style={{ background: '#fee2e2', border: '1px solid #fca5a5', padding: '8px 16px', borderRadius: '8px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', color: '#b91c1c' }}
+                      style={{ padding: '8px 18px', fontSize: '12.5px', fontWeight: '800' }}
                     >
                       {isMr ? '✕ नामंजूर करा' : '✕ Reject'}
                     </button>
 
                     <button
                       type="button"
+                      className="btn-3d-green"
                       disabled={actionBusy}
                       onClick={() => handleApprove(selectedSub.id)}
-                      style={{ background: '#10b981', border: 'none', padding: '8px 20px', borderRadius: '8px', fontSize: '12px', fontWeight: '700', cursor: 'pointer', color: '#ffffff' }}
+                      style={{ padding: '8px 22px', fontSize: '12.5px', fontWeight: '800' }}
                     >
                       {actionBusy ? (isMr ? 'मंजूर होत आहे...' : 'Approving...') : (isMr ? '✓ मंजूर करा व सिंक करा' : '✓ Approve & Sync')}
                     </button>
@@ -610,8 +744,8 @@ export default function DataApprovalWorkbench({ lang = 'mr' }) {
             </h3>
             <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b' }}>
               {isMr
-                ? 'अधिकाऱ्याला ही नोंद का नाकारली याचे स्पष्ट कारण द्या, जेणेकरून ते दुरुस्त करून पुन्हा पाठवू शकतील.'
-                : 'Provide a clear rejection reason so the field officer can correct and resubmit.'}
+                ? 'कार्यकर्त्याला ही नोंद का नाकारली याचे स्पष्ट कारण द्या, जेणेकरून ते दुरुस्त करून पुन्हा पाठवू शकतील.'
+                : 'Provide a clear rejection reason so the field worker can correct and resubmit.'}
             </p>
 
             <form onSubmit={handleReject}>
@@ -627,15 +761,17 @@ export default function DataApprovalWorkbench({ lang = 'mr' }) {
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '12px' }}>
                 <button
                   type="button"
+                  className="tab-3d-inactive"
                   onClick={() => setShowRejectModal(false)}
-                  style={{ padding: '8px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', cursor: 'pointer' }}
+                  style={{ padding: '8px 16px', fontSize: '12.5px', fontWeight: '800' }}
                 >
                   {isMr ? 'रद्द करा' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
+                  className="btn-3d-red"
                   disabled={actionBusy}
-                  style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#dc2626', color: '#fff', fontWeight: '700', cursor: 'pointer' }}
+                  style={{ padding: '8px 20px', fontSize: '12.5px', fontWeight: '800' }}
                 >
                   {actionBusy ? (isMr ? 'नोंद होत आहे...' : 'Processing...') : (isMr ? 'नामंजूर करा' : 'Confirm Rejection')}
                 </button>
@@ -772,18 +908,13 @@ export default function DataApprovalWorkbench({ lang = 'mr' }) {
             {/* OK Button */}
             <button
               type="button"
+              className="btn-3d-green"
               onClick={() => setApprovalSuccessModal(null)}
               style={{
                 width: '100%',
-                padding: '11px',
-                borderRadius: '8px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
-                color: '#ffffff',
+                padding: '12px',
                 fontSize: '14px',
-                fontWeight: '750',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(22, 163, 74, 0.25)',
+                fontWeight: '800',
               }}
             >
               ✓ {isMr ? 'समजले / ठीक आहे' : 'Done / OK'}

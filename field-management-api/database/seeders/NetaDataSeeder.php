@@ -452,11 +452,33 @@ class NetaDataSeeder extends Seeder
             $districtEn = $b['district_en'] ?? 'Sangli';
             $assemblyMr = $b['assembly_mr'] ?? '२८२ - सांगली';
             $assemblyEn = $b['assembly_en'] ?? '282 - Sangli';
+            $popMap = [
+                'माधवनगर पूर्व' => 1750,
+                'माधवनगर पश्चिम' => 1510,
+                'वसंत कॉलनी प्रभाग ४' => 1920,
+                'गावभाग प्रभाग ७' => 2030,
+                'कुपवाड प्रभाग ११' => 2170,
+                'गणपती पेठ व्यापारी पेठ' => 1820,
+                'बुधगाव ग्रामपंचायत' => 1980,
+                'विश्रामबाग प्रभाग २' => 2230,
+                'बामणी ग्रामपंचायत' => 1370,
+                'संजयनगर प्रभाग ९' => 2120,
+                'मिरज पश्चिम प्रभाग' => 1780,
+                'स्टेशन रोड प्रभाग ३' => 2060,
+                'इस्लामपूर नगरपरिषद प्रभाग ५' => 1970,
+                'उरुण ग्रामपंचायत' => 1710,
+                'तासगाव शहर प्रभाग २' => 2180,
+                'राजारामपुरी प्रभाग ८' => 2290,
+                'उंब्रज प्रभाग १' => 2090,
+            ];
+            $totalPopulation = $b['total_population'] ?? ($popMap[$b['village_mr']] ?? (int)round(($b['total_voters'] ?? 1000) * 1.54));
+
             DB::table('neta_booth_progress')->insert(array_merge([
                 'district_mr' => $districtMr,
                 'district_en' => $districtEn,
                 'assembly_mr' => $assemblyMr,
                 'assembly_en' => $assemblyEn,
+                'total_population' => $totalPopulation,
                 'created_at' => now(),
                 'updated_at' => now(),
             ], $b));

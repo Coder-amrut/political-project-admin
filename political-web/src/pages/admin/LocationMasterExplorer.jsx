@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import apiClient from '../../api/axios';
 
 const I18N = {
@@ -60,11 +60,320 @@ const I18N = {
   },
 };
 
+export const INDIAN_STATES_ALL = [
+  { state_code: '27', state_name: 'Maharashtra', state_name_mr: 'महाराष्ट्र' },
+  { state_code: '28', state_name: 'Andhra Pradesh', state_name_mr: 'आंध्र प्रदेश' },
+  { state_code: '12', state_name: 'Arunachal Pradesh', state_name_mr: 'अरुणाचल प्रदेश' },
+  { state_code: '18', state_name: 'Assam', state_name_mr: 'आसाम' },
+  { state_code: '10', state_name: 'Bihar', state_name_mr: 'बिहार' },
+  { state_code: '22', state_name: 'Chhattisgarh', state_name_mr: 'छत्तीसगड' },
+  { state_code: '30', state_name: 'Goa', state_name_mr: 'गोवा' },
+  { state_code: '24', state_name: 'Gujarat', state_name_mr: 'गुजरात' },
+  { state_code: '06', state_name: 'Haryana', state_name_mr: 'हरियाणा' },
+  { state_code: '02', state_name: 'Himachal Pradesh', state_name_mr: 'हिमाचल प्रदेश' },
+  { state_code: '20', state_name: 'Jharkhand', state_name_mr: 'झारखंड' },
+  { state_code: '29', state_name: 'Karnataka', state_name_mr: 'कर्नाटक' },
+  { state_code: '32', state_name: 'Kerala', state_name_mr: 'केरळ' },
+  { state_code: '23', state_name: 'Madhya Pradesh', state_name_mr: 'मध्य प्रदेश' },
+  { state_code: '14', state_name: 'Manipur', state_name_mr: 'मणिपूर' },
+  { state_code: '17', state_name: 'Meghalaya', state_name_mr: 'मेघालय' },
+  { state_code: '15', state_name: 'Mizoram', state_name_mr: 'मिझोराम' },
+  { state_code: '13', state_name: 'Nagaland', state_name_mr: 'नागालँड' },
+  { state_code: '21', state_name: 'Odisha', state_name_mr: 'ओडिशा' },
+  { state_code: '03', state_name: 'Punjab', state_name_mr: 'पंजाब' },
+  { state_code: '08', state_name: 'Rajasthan', state_name_mr: 'राजस्थान' },
+  { state_code: '11', state_name: 'Sikkim', state_name_mr: 'सिक्कीम' },
+  { state_code: '33', state_name: 'Tamil Nadu', state_name_mr: 'तमिळनाडू' },
+  { state_code: '36', state_name: 'Telangana', state_name_mr: 'तेलंगणा' },
+  { state_code: '16', state_name: 'Tripura', state_name_mr: 'त्रिपुरा' },
+  { state_code: '09', state_name: 'Uttar Pradesh', state_name_mr: 'उत्तर प्रदेश' },
+  { state_code: '05', state_name: 'Uttarakhand', state_name_mr: 'उत्तराखंड' },
+  { state_code: '19', state_name: 'West Bengal', state_name_mr: 'पश्चिम बंगाल' },
+  { state_code: '35', state_name: 'Andaman and Nicobar Islands', state_name_mr: 'अंदमान आणि निकोबार' },
+  { state_code: '04', state_name: 'Chandigarh', state_name_mr: 'चंदिगढ' },
+  { state_code: '26', state_name: 'Dadra and Nagar Haveli and Daman and Diu', state_name_mr: 'दादरा व नगर हवेली आणि दमण व दीव' },
+  { state_code: '07', state_name: 'Delhi', state_name_mr: 'दिल्ली' },
+  { state_code: '01', state_name: 'Jammu and Kashmir', state_name_mr: 'जम्मू आणि काश्मीर' },
+  { state_code: '37', state_name: 'Ladakh', state_name_mr: 'लडाख' },
+  { state_code: '31', state_name: 'Lakshadweep', state_name_mr: 'लक्षद्वीप' },
+  { state_code: '34', state_name: 'Puducherry', state_name_mr: 'पुद्दुचेरी' },
+];
+
+function SearchableSelect({
+  label,
+  value,
+  onChange,
+  options = [],
+  placeholder = '-- Select --',
+  disabled = false,
+  language = 'en',
+  emptyText = 'No options found',
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const wrapperRef = useRef(null);
+  const searchInputRef = useRef(null);
+
+  // Close on outside click (mouse & touch)
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  // Focus search input when open
+  useEffect(() => {
+    if (isOpen) {
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+      }
+    } else {
+      setSearch('');
+    }
+  }, [isOpen]);
+
+  // Close on Escape key
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen]);
+
+  // Filter options
+  const filteredOptions = useMemo(() => {
+    if (!search.trim()) return options;
+    const term = search.toLowerCase().trim();
+    return options.filter((opt) =>
+      String(opt.label || opt.name || '').toLowerCase().includes(term) ||
+      String(opt.value || opt.code || '').toLowerCase().includes(term)
+    );
+  }, [options, search]);
+
+  const selectedOption = useMemo(() => {
+    return options.find((opt) => String(opt.value) === String(value));
+  }, [options, value]);
+
+  const displayLabel = selectedOption ? selectedOption.label : placeholder;
+
+  return (
+    <div
+      ref={wrapperRef}
+      style={{
+        position: 'relative',
+        width: '100%',
+        minWidth: 0,
+        zIndex: isOpen ? 50 : 1,
+      }}
+    >
+      {label && (
+        <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: '#334155', marginBottom: 6 }}>
+          {label}
+        </label>
+      )}
+
+      {/* Trigger Button */}
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={() => !disabled && setIsOpen((prev) => !prev)}
+        style={{
+          width: '100%',
+          padding: '9.5px 12px',
+          border: isOpen ? '1.5px solid #2563eb' : '1.5px solid #cbd5e1',
+          borderRadius: 9,
+          fontSize: 13.5,
+          color: disabled ? '#94a3b8' : selectedOption && selectedOption.value !== '' ? '#0f172a' : '#64748b',
+          background: disabled ? '#f1f5f9' : '#ffffff',
+          boxSizing: 'border-box',
+          cursor: disabled ? 'not-allowed' : 'pointer',
+          outline: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
+          boxShadow: isOpen ? '0 0 0 3px rgba(37, 99, 235, 0.15)' : 'none',
+          transition: 'all 0.15s ease',
+          textAlign: 'left',
+          fontFamily: 'inherit',
+        }}
+      >
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: selectedOption && selectedOption.value !== '' ? 650 : 400 }}>
+          {displayLabel}
+        </span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke={isOpen ? '#2563eb' : '#64748b'}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{
+            flexShrink: 0,
+            transition: 'transform 0.2s ease',
+            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+          }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      {/* Popover Dropdown Panel */}
+      {isOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 5px)',
+            left: 0,
+            right: 0,
+            zIndex: 9999,
+            background: '#ffffff',
+            border: '1.5px solid #93c5fd',
+            borderRadius: 10,
+            boxShadow: '0 12px 28px -4px rgba(15, 23, 42, 0.22), 0 4px 10px -2px rgba(15, 23, 42, 0.08)',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: '260px',
+            animation: 'fadeInDropdown 0.15s ease-out',
+          }}
+        >
+          {/* Search Box inside dropdown */}
+          {options.length > 5 && (
+            <div
+              style={{
+                padding: '8px 10px',
+                background: '#f8fafc',
+                borderBottom: '1px solid #e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                flexShrink: 0,
+              }}
+            >
+              <span style={{ fontSize: 13, color: '#94a3b8' }}>🔍</span>
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={language === 'mr' ? 'नाव किंवा कोडने शोधा...' : 'Search by name or code...'}
+                style={{
+                  width: '100%',
+                  border: 'none',
+                  background: 'transparent',
+                  outline: 'none',
+                  fontSize: 12.5,
+                  color: '#0f172a',
+                  fontFamily: 'inherit',
+                }}
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  style={{
+                    border: 'none',
+                    background: 'transparent',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    padding: 0,
+                    fontSize: 14,
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Scrollable list */}
+          <div
+            style={{
+              overflowY: 'auto',
+              padding: '4px',
+              flex: 1,
+              WebkitOverflowScrolling: 'touch',
+            }}
+          >
+            {filteredOptions.length === 0 ? (
+              <div style={{ padding: '12px 14px', fontSize: 12.5, color: '#94a3b8', textAlign: 'center' }}>
+                {emptyText}
+              </div>
+            ) : (
+              filteredOptions.map((opt) => {
+                const isSelected = String(opt.value) === String(value);
+                return (
+                  <div
+                    key={String(opt.value)}
+                    onClick={() => {
+                      onChange(opt.value);
+                      setIsOpen(false);
+                    }}
+                    style={{
+                      padding: '8.5px 12px',
+                      borderRadius: 7,
+                      fontSize: 13,
+                      color: isSelected ? '#1e40af' : '#1e293b',
+                      background: isSelected ? '#eff6ff' : 'transparent',
+                      fontWeight: isSelected ? 750 : 500,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 8,
+                      transition: 'background 0.12s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) e.currentTarget.style.background = '#f8fafc';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {opt.label}
+                    </span>
+                    {isSelected && (
+                      <span style={{ color: '#2563eb', fontWeight: 800, fontSize: 13 }}>✓</span>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function LocationMasterExplorer({ language = 'en' }) {
   const t = I18N[language] || I18N.en;
 
   // Selected hierarchy
-  const [states, setStates] = useState([]);
+  const [states, setStates] = useState(INDIAN_STATES_ALL);
   const [selectedStateCode, setSelectedStateCode] = useState('27'); // 27 = Maharashtra
 
   const [districts, setDistricts] = useState([]);
@@ -86,14 +395,20 @@ function LocationMasterExplorer({ language = 'en' }) {
   const [page, setPage] = useState(1);
   const pageSize = 50;
 
-  // 1. Load States on mount
+  // 1. Load States on mount from backend API and merge Marathi names
   useEffect(() => {
     apiClient.get('/master-data/states')
       .then(({ data }) => {
         const list = data.data || [];
-        setStates(list);
-        if (list.length > 0 && !selectedStateCode) {
-          setSelectedStateCode(list[0].state_code || '27');
+        if (list.length > 0) {
+          const merged = list.map((st) => {
+            const match = INDIAN_STATES_ALL.find((x) => String(x.state_code) === String(st.state_code));
+            return {
+              ...st,
+              state_name_mr: match?.state_name_mr || st.state_name_mr || st.state_name,
+            };
+          });
+          setStates(merged);
         }
       })
       .catch(() => {});
@@ -103,18 +418,30 @@ function LocationMasterExplorer({ language = 'en' }) {
   useEffect(() => {
     if (!selectedStateCode) {
       setDistricts([]);
+      setSelectedDistrictCode('');
+      setTalukas([]);
+      setSelectedTalukaCode('');
+      setTableData([]);
       return;
     }
+
+    if (String(selectedStateCode) !== '27') {
+      // Non-Maharashtra state selected - clear sub-hierarchies
+      setDistricts([]);
+      setSelectedDistrictCode('');
+      setTalukas([]);
+      setSelectedTalukaCode('');
+      setTableData([]);
+      return;
+    }
+
     apiClient.get('/master-data/districts')
       .then(({ data }) => {
         const list = data.data || [];
         setDistricts(list);
-        // If current district not in list, pick default Sangli (494) or first
         if (list.length > 0) {
           const sangli = list.find((d) => String(d.district_code) === '494');
-          if (!selectedDistrictCode) {
-            setSelectedDistrictCode(sangli ? '494' : String(list[0].district_code));
-          }
+          setSelectedDistrictCode(sangli ? '494' : String(list[0].district_code));
         }
       })
       .catch((err) => setError(err.message || 'Could not load districts'));
@@ -209,6 +536,12 @@ function LocationMasterExplorer({ language = 'en' }) {
   const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
 
   // Selected names for breadcrumbs
+  const selectedStateName = useMemo(() => {
+    const s = states.find((x) => String(x.state_code) === String(selectedStateCode));
+    if (!s) return language === 'mr' ? 'महाराष्ट्र' : 'Maharashtra';
+    return language === 'mr' && s.state_name_mr ? s.state_name_mr : (s.state_name || s.name);
+  }, [states, selectedStateCode, language]);
+
   const selectedDistrictName = useMemo(() => {
     const d = districts.find((x) => String(x.district_code) === String(selectedDistrictCode));
     return d ? (d.district_name || d.name_en) : '';
@@ -218,6 +551,52 @@ function LocationMasterExplorer({ language = 'en' }) {
     const t = talukas.find((x) => String(x.taluka_code) === String(selectedTalukaCode));
     return t ? t.taluka_name : '';
   }, [talukas, selectedTalukaCode]);
+
+  // Formatted Options for Custom Searchable Selects
+  const stateOptions = useMemo(() => {
+    return states.map((s) => {
+      const label = language === 'mr' && s.state_name_mr ? s.state_name_mr : (s.state_name || s.name);
+      return {
+        value: String(s.state_code || s.id),
+        label: `${label} (${s.state_code})`,
+      };
+    });
+  }, [states, language]);
+
+  const districtOptions = useMemo(() => {
+    const defaultPlaceholder = String(selectedStateCode) !== '27'
+      ? (language === 'mr' ? '-- इतर राज्यांचा डेटा उपलब्ध नाही --' : '-- No District Data for Selected State --')
+      : (language === 'mr' ? '-- जिल्हा निवडा --' : '-- Select District --');
+
+    const list = [
+      { value: '', label: defaultPlaceholder }
+    ];
+
+    districts.forEach((d) => {
+      list.push({
+        value: String(d.district_code),
+        label: `${d.district_name || d.name_en} (${d.district_code})`,
+      });
+    });
+
+    return list;
+  }, [districts, selectedStateCode, language]);
+
+  const talukaOptions = useMemo(() => {
+    const defaultPlaceholder = selectedDistrictCode ? t.allTalukas : t.selectDistrictFirst;
+    const list = [
+      { value: '', label: defaultPlaceholder }
+    ];
+
+    talukas.forEach((tk) => {
+      list.push({
+        value: String(tk.taluka_code),
+        label: `${tk.taluka_name} (${tk.taluka_code})`,
+      });
+    });
+
+    return list;
+  }, [talukas, selectedDistrictCode, t]);
 
   // Quick Action Handler to Drill Down
   const handleDrillDownToVillages = (talukaCode) => {
@@ -254,11 +633,11 @@ function LocationMasterExplorer({ language = 'en' }) {
   const styles = {
     card: {
       background: '#fff',
-      border: '1px solid #e2e8f0',
-      borderRadius: 12,
-      padding: '22px 24px',
+      border: '1px solid #cbd5e1',
+      borderRadius: 14,
+      padding: '24px 26px',
       marginBottom: 20,
-      boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+      boxShadow: '0 4px 20px rgba(23, 84, 190, 0.05)',
       fontFamily: "'Inter', 'Noto Sans Devanagari', 'Mukta', -apple-system, sans-serif",
     },
     filterBar: {
@@ -267,7 +646,7 @@ function LocationMasterExplorer({ language = 'en' }) {
       gap: 14,
       background: '#f8fafc',
       padding: '16px 18px',
-      borderRadius: 10,
+      borderRadius: 12,
       border: '1px solid #e2e8f0',
       marginBottom: 18,
     },
@@ -280,15 +659,16 @@ function LocationMasterExplorer({ language = 'en' }) {
     },
     select: {
       width: '100%',
-      padding: '9px 12px',
-      border: '1px solid #cbd5e1',
-      borderRadius: 8,
+      padding: '9.5px 12px',
+      border: '1.5px solid #cbd5e1',
+      borderRadius: 9,
       fontSize: 13.5,
       color: '#0f172a',
       background: '#fff',
       boxSizing: 'border-box',
       cursor: 'pointer',
       outline: 'none',
+      transition: 'all 0.15s ease',
     },
     input: {
       width: '100%',
@@ -370,7 +750,111 @@ function LocationMasterExplorer({ language = 'en' }) {
   };
 
   return (
-    <div style={styles.card}>
+    <div className="admin-card-responsive loc-master-card" style={{ ...styles.card, width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+      {/* 3D Animations & Royal Blue Dashboard-Matched Theme */}
+      <style>{`
+        @keyframes fadeInDropdown {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 640px) {
+          .loc-master-card {
+            padding: 14px 10px !important;
+          }
+        }
+        .loc-tab-3d-active {
+          background: linear-gradient(180deg, #2b74f0 0%, #1e60d5 50%, #1754be 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.4) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.7) !important;
+          border-bottom: 3.5px solid #0f3a88 !important;
+          box-shadow: 0 4px 14px rgba(23, 84, 190, 0.45), 0 2px 4px rgba(0, 0, 0, 0.12), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.65) !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+          border-radius: 10px !important;
+          transform-style: preserve-3d;
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+        }
+        .loc-tab-3d-active:hover {
+          transform: translateY(-2.5px) scale(1.02) !important;
+          box-shadow: 0 8px 22px rgba(23, 84, 190, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.85) !important;
+        }
+        .loc-tab-3d-active:active {
+          transform: translateY(2px) scale(0.98) !important;
+          border-bottom: 1.5px solid #0f3a88 !important;
+          box-shadow: 0 2px 6px rgba(23, 84, 190, 0.35) !important;
+        }
+
+        .loc-tab-3d-inactive {
+          background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+          color: #334155 !important;
+          border: 1px solid #cbd5e1 !important;
+          border-bottom: 3px solid #94a3b8 !important;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05), inset 0 1px 1px #ffffff !important;
+          border-radius: 10px !important;
+          transform-style: preserve-3d;
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+        }
+        .loc-tab-3d-inactive:hover {
+          transform: translateY(-2px) !important;
+          color: #1e60d5 !important;
+          border-color: #93c5fd !important;
+          border-bottom-color: #3b82f6 !important;
+          box-shadow: 0 6px 16px rgba(30, 96, 213, 0.18), inset 0 1px 1px #ffffff !important;
+        }
+        .loc-tab-3d-inactive:active {
+          transform: translateY(1.5px) !important;
+          border-bottom: 1.5px solid #94a3b8 !important;
+        }
+
+        .loc-btn-3d-sm {
+          background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%) !important;
+          color: #1e60d5 !important;
+          border: 1px solid #bfdbfe !important;
+          border-bottom: 2.5px solid #93c5fd !important;
+          box-shadow: 0 2px 4px rgba(30, 96, 213, 0.08) !important;
+          border-radius: 6px !important;
+          transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+          font-weight: 750 !important;
+        }
+        .loc-btn-3d-sm:hover {
+          transform: translateY(-1.5px) !important;
+          background: #eff6ff !important;
+          border-color: #60a5fa !important;
+          border-bottom-color: #2563eb !important;
+          box-shadow: 0 4px 10px rgba(30, 96, 213, 0.2) !important;
+        }
+        .loc-btn-3d-sm:active {
+          transform: translateY(1px) !important;
+          border-bottom: 1px solid #2563eb !important;
+        }
+
+        .btn-3d-export {
+          background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+          color: #0f172a !important;
+          border: 1px solid #cbd5e1 !important;
+          border-bottom: 3px solid #94a3b8 !important;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06), inset 0 1px 1px #ffffff !important;
+          border-radius: 8px !important;
+          transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+          font-weight: 700 !important;
+        }
+        .btn-3d-export:hover {
+          transform: translateY(-2px) !important;
+          color: #1e60d5 !important;
+          border-color: #93c5fd !important;
+          border-bottom-color: #3b82f6 !important;
+          box-shadow: 0 6px 14px rgba(30, 96, 213, 0.18) !important;
+        }
+        .btn-3d-export:active {
+          transform: translateY(1.5px) !important;
+          border-bottom: 1.5px solid #94a3b8 !important;
+        }
+      `}</style>
+
       {/* Title & Info Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
         <div>
@@ -382,13 +866,13 @@ function LocationMasterExplorer({ language = 'en' }) {
           </p>
         </div>
 
-        {/* Breadcrumb Indicators */}
+        {/* Breadcrumb Indicators with Royal Blue Symmetry */}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <span style={styles.badge('#f1f5f9', '#334155')}>
-            {language === 'mr' ? 'राज्य:' : 'State:'} <b>{language === 'mr' ? 'महाराष्ट्र (२७)' : 'Maharashtra (27)'}</b>
+          <span style={styles.badge('#f1f5f9', '#1e293b')}>
+            {language === 'mr' ? 'राज्य:' : 'State:'} <b>{selectedStateName} ({selectedStateCode})</b>
           </span>
           {selectedDistrictName && (
-            <span style={styles.badge('#eff6ff', '#1d4ed8')}>
+            <span style={styles.badge('#eff6ff', '#1754be')}>
               {language === 'mr' ? 'जिल्हा:' : 'District:'} <b>{selectedDistrictName} ({selectedDistrictCode})</b>
             </span>
           )}
@@ -401,112 +885,110 @@ function LocationMasterExplorer({ language = 'en' }) {
       </div>
 
       {/* CASCADING FILTER BAR (State -> District -> Taluka) */}
-      <div style={styles.filterBar}>
+      <div style={{ ...styles.filterBar, width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', position: 'relative' }}>
         {/* 1. STATE SELECTOR */}
-        <div>
-          <label style={styles.label}>{t.stateLabel}</label>
-          <select
-            value={selectedStateCode}
-            onChange={(e) => setSelectedStateCode(e.target.value)}
-            style={styles.select}
-          >
-            {states.length > 0 ? (
-              states.map((s) => (
-                <option key={s.state_code || s.id} value={s.state_code || s.id}>
-                  {s.state_name || s.name || (language === 'mr' ? 'महाराष्ट्र' : 'Maharashtra')} ({s.state_code || '27'})
-                </option>
-              ))
-            ) : (
-              <option value="27">{language === 'mr' ? 'महाराष्ट्र (२७)' : 'Maharashtra (27)'}</option>
-            )}
-          </select>
-        </div>
+        <SearchableSelect
+          label={t.stateLabel}
+          value={selectedStateCode}
+          onChange={(val) => setSelectedStateCode(val)}
+          options={stateOptions}
+          language={language}
+          placeholder={language === 'mr' ? 'राज्य निवडा' : 'Select State'}
+          emptyText={language === 'mr' ? 'राज्य आढळले नाही' : 'No state found'}
+        />
 
         {/* 2. DISTRICT SELECTOR */}
-        <div>
-          <label style={styles.label}>{t.districtLabel}</label>
-          <select
-            value={selectedDistrictCode}
-            onChange={(e) => setSelectedDistrictCode(e.target.value)}
-            style={styles.select}
-          >
-            <option value="">{language === 'mr' ? '-- जिल्हा निवडा --' : '-- Select District --'}</option>
-            {districts.map((d) => (
-              <option key={d.district_code} value={d.district_code}>
-                {d.district_name || d.name_en} ({d.district_code})
-              </option>
-            ))}
-          </select>
-        </div>
+        <SearchableSelect
+          label={t.districtLabel}
+          value={selectedDistrictCode}
+          onChange={(val) => setSelectedDistrictCode(val)}
+          options={districtOptions}
+          language={language}
+          placeholder={language === 'mr' ? '-- जिल्हा निवडा --' : '-- Select District --'}
+          disabled={districts.length === 0}
+          emptyText={language === 'mr' ? 'जिल्हा आढळला नाही' : 'No district found'}
+        />
 
         {/* 3. TALUKA SELECTOR */}
-        <div>
-          <label style={styles.label}>{t.talukaLabel}</label>
-          <select
-            disabled={!selectedDistrictCode}
-            value={selectedTalukaCode}
-            onChange={(e) => setSelectedTalukaCode(e.target.value)}
-            style={{
-              ...styles.select,
-              background: !selectedDistrictCode ? '#f1f5f9' : '#fff',
-              cursor: !selectedDistrictCode ? 'not-allowed' : 'pointer',
-            }}
-          >
-            <option value="">{selectedDistrictCode ? t.allTalukas : t.selectDistrictFirst}</option>
-            {talukas.map((tk) => (
-              <option key={tk.taluka_code} value={tk.taluka_code}>
-                {tk.taluka_name} ({tk.taluka_code})
-              </option>
-            ))}
-          </select>
-        </div>
+        <SearchableSelect
+          label={t.talukaLabel}
+          value={selectedTalukaCode}
+          onChange={(val) => setSelectedTalukaCode(val)}
+          options={talukaOptions}
+          language={language}
+          placeholder={selectedDistrictCode ? t.allTalukas : t.selectDistrictFirst}
+          disabled={!selectedDistrictCode}
+          emptyText={language === 'mr' ? 'तालुका आढळला नाही' : 'No taluka found'}
+        />
       </div>
 
       {/* CATEGORY SWITCHER TABS & SEARCH */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 16 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <button
             type="button"
+            className={activeCategory === 'talukas' ? 'loc-tab-3d-active' : 'loc-tab-3d-inactive'}
             onClick={() => setActiveCategory('talukas')}
-            style={styles.categoryTab(activeCategory === 'talukas')}
+            style={{ padding: '8px 18px', fontSize: 13, fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 6, userSelect: 'none' }}
           >
             {t.catTalukas} ({talukas.length})
           </button>
           <button
             type="button"
+            className={activeCategory === 'villages' ? 'loc-tab-3d-active' : 'loc-tab-3d-inactive'}
             onClick={() => setActiveCategory('villages')}
-            style={styles.categoryTab(activeCategory === 'villages')}
+            style={{ padding: '8px 18px', fontSize: 13, fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 6, userSelect: 'none' }}
           >
             {t.catVillages}
           </button>
           <button
             type="button"
+            className={activeCategory === 'local_bodies' ? 'loc-tab-3d-active' : 'loc-tab-3d-inactive'}
             onClick={() => setActiveCategory('local_bodies')}
-            style={styles.categoryTab(activeCategory === 'local_bodies')}
+            style={{ padding: '8px 18px', fontSize: 13, fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 6, userSelect: 'none' }}
           >
             {t.catLocalBodies}
           </button>
           <button
             type="button"
+            className={activeCategory === 'districts' ? 'loc-tab-3d-active' : 'loc-tab-3d-inactive'}
             onClick={() => setActiveCategory('districts')}
-            style={styles.categoryTab(activeCategory === 'districts')}
+            style={{ padding: '8px 18px', fontSize: 13, fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 6, userSelect: 'none' }}
           >
             {t.catDistricts} ({districts.length})
           </button>
         </div>
 
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
           <input
             placeholder={t.searchPlaceholder}
             value={searchTerm}
             onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
-            style={{ ...styles.input, width: 230, padding: '7px 11px', fontSize: 13 }}
+            style={{
+              ...styles.input,
+              width: 240,
+              padding: '8px 14px',
+              fontSize: 13,
+              borderRadius: 9,
+              border: '1.5px solid #cbd5e1',
+              outline: 'none',
+              transition: 'all 0.15s ease'
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = '#1e60d5';
+              e.target.style.boxShadow = '0 0 0 3px rgba(30, 96, 213, 0.15)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '#cbd5e1';
+              e.target.style.boxShadow = 'none';
+            }}
           />
           {filteredData.length > 0 && (
             <button
               type="button"
+              className="btn-3d-export"
               onClick={handleExportCsv}
-              style={{ ...styles.btnSecondary, padding: '7px 12px' }}
+              style={{ padding: '8px 16px', fontSize: 12.5, display: 'inline-flex', alignItems: 'center', gap: 6, userSelect: 'none' }}
             >
               📥 {t.exportCsv}
             </button>
@@ -547,6 +1029,12 @@ function LocationMasterExplorer({ language = 'en' }) {
       {loading ? (
         <div style={{ padding: '40px 20px', textAlign: 'center', color: '#64748b', fontSize: 14 }}>
           ⏳ {t.loading}
+        </div>
+      ) : String(selectedStateCode) !== '27' ? (
+        <div style={{ padding: '36px 20px', textAlign: 'center', background: '#f8fafc', borderRadius: 8, border: '1px dashed #94a3b8', color: '#475569', fontSize: 13 }}>
+          ℹ️ {language === 'mr'
+            ? `निवडलेले राज्य "${selectedStateName}" चे स्थानिक जिल्हे, तालुके व गावे या प्रणालीमध्ये समाविष्ट नाहीत. सध्या फक्त महाराष्ट्र (२७) चे सर्व ३६ जिल्हे उपलब्ध आहेत.`
+            : `Districts, talukas and villages for "${selectedStateName}" are not configured yet. Currently only Maharashtra (27) full master data is loaded.`}
         </div>
       ) : filteredData.length === 0 ? (
         <div style={{ padding: '36px 20px', textAlign: 'center', background: '#fafafa', borderRadius: 8, border: '1px dashed #cbd5e1', color: '#64748b', fontSize: 13 }}>
@@ -618,18 +1106,20 @@ function LocationMasterExplorer({ language = 'en' }) {
                     {/* TALUKA QUICK DRILL-DOWN ACTIONS */}
                     {activeCategory === 'talukas' && (
                       <td style={styles.td}>
-                        <div style={{ display: 'flex', gap: 6 }}>
+                        <div style={{ display: 'flex', gap: 8 }}>
                           <button
                             type="button"
+                            className="loc-btn-3d-sm"
                             onClick={() => handleDrillDownToVillages(row.taluka_code)}
-                            style={{ ...styles.btnSecondary, padding: '4px 8px', fontSize: 11.5 }}
+                            style={{ padding: '5px 12px', fontSize: 12, userSelect: 'none' }}
                           >
                             {t.viewVillagesBtn}
                           </button>
                           <button
                             type="button"
+                            className="loc-btn-3d-sm"
                             onClick={() => handleDrillDownToLocalBodies(row.taluka_code)}
-                            style={{ ...styles.btnSecondary, padding: '4px 8px', fontSize: 11.5 }}
+                            style={{ padding: '5px 12px', fontSize: 12, userSelect: 'none' }}
                           >
                             {t.viewLocalBodiesBtn}
                           </button>
@@ -654,20 +1144,36 @@ function LocationMasterExplorer({ language = 'en' }) {
               <>Page <b>{page}</b> of <b>{totalPages}</b></>
             )}
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
             <button
               type="button"
+              className="loc-tab-3d-inactive"
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              style={{ ...styles.btnSecondary, opacity: page <= 1 ? 0.5 : 1, cursor: page <= 1 ? 'not-allowed' : 'pointer' }}
+              style={{
+                padding: '6px 14px',
+                fontSize: 12.5,
+                fontWeight: 700,
+                opacity: page <= 1 ? 0.45 : 1,
+                cursor: page <= 1 ? 'not-allowed' : 'pointer',
+                userSelect: 'none'
+              }}
             >
               {language === 'mr' ? '← मागील' : '← Previous'}
             </button>
             <button
               type="button"
+              className="loc-tab-3d-inactive"
               disabled={page >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              style={{ ...styles.btnSecondary, opacity: page >= totalPages ? 0.5 : 1, cursor: page >= totalPages ? 'not-allowed' : 'pointer' }}
+              style={{
+                padding: '6px 14px',
+                fontSize: 12.5,
+                fontWeight: 700,
+                opacity: page >= totalPages ? 0.45 : 1,
+                cursor: page >= totalPages ? 'not-allowed' : 'pointer',
+                userSelect: 'none'
+              }}
             >
               {language === 'mr' ? 'पुढील →' : 'Next →'}
             </button>

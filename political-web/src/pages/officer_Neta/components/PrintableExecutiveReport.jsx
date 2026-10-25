@@ -13,6 +13,7 @@ export default function PrintableExecutiveReport({
   summaryStats = [],
   headers = [],
   rows = [],
+  sections = null,
   onClose,
   lang = 'mr',
 }) {
@@ -271,46 +272,115 @@ export default function PrintableExecutiveReport({
           </div>
         )}
 
-        {/* Main Data Table */}
-        <table
-          style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-            fontSize: '11px',
-            marginBottom: '30px',
-          }}
-        >
-          <thead>
-            <tr style={{ background: '#1e3a8a', color: '#ffffff', textAlign: 'left' }}>
-              <th style={{ padding: '8px 10px', width: '35px', textAlign: 'center' }}>#</th>
-              {headers.map((h, i) => (
-                <th key={i} style={{ padding: '8px 10px', fontWeight: '700' }}>
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, rIdx) => (
-              <tr
-                key={rIdx}
-                style={{
-                  borderBottom: '1px solid #cbd5e1',
-                  background: rIdx % 2 === 0 ? '#ffffff' : '#f8fafc',
-                }}
-              >
-                <td style={{ padding: '7px 10px', textAlign: 'center', fontWeight: '600', color: '#64748b' }}>
-                  {rIdx + 1}
-                </td>
-                {row.map((cell, cIdx) => (
-                  <td key={cIdx} style={{ padding: '7px 10px', color: '#1e293b' }}>
-                    {cell}
-                  </td>
+        {/* Multi-Section Dossier Tables (if sections provided) or Standard Single Table */}
+        {sections && sections.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '28px', marginBottom: '30px' }}>
+            {sections.map((sec, sIdx) => (
+              <div key={sIdx} style={{ pageBreakInside: 'avoid' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 12px',
+                    background: '#f1f5f9',
+                    borderLeft: '4px solid #1e3a8a',
+                    marginBottom: '10px',
+                    borderRadius: '0 6px 6px 0',
+                  }}
+                >
+                  <h3 style={{ margin: 0, fontSize: '13.5px', fontWeight: '800', color: '#1e3a8a' }}>
+                    {sec.title}
+                  </h3>
+                  {sec.rows && (
+                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '700' }}>
+                      {sec.rows.length} {isMr ? 'नोंदी' : 'records'}
+                    </span>
+                  )}
+                </div>
+
+                <table
+                  style={{
+                    width: '100%',
+                    borderCollapse: 'collapse',
+                    fontSize: '10.5px',
+                  }}
+                >
+                  <thead>
+                    <tr style={{ background: '#1e3a8a', color: '#ffffff', textAlign: 'left' }}>
+                      <th style={{ padding: '7px 8px', width: '30px', textAlign: 'center' }}>#</th>
+                      {sec.headers.map((h, i) => (
+                        <th key={i} style={{ padding: '7px 8px', fontWeight: '700' }}>
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sec.rows.map((row, rIdx) => (
+                      <tr
+                        key={rIdx}
+                        style={{
+                          borderBottom: '1px solid #cbd5e1',
+                          background: rIdx % 2 === 0 ? '#ffffff' : '#f8fafc',
+                        }}
+                      >
+                        <td style={{ padding: '6px 8px', textAlign: 'center', fontWeight: '600', color: '#64748b' }}>
+                          {rIdx + 1}
+                        </td>
+                        {row.map((cell, cIdx) => (
+                          <td key={cIdx} style={{ padding: '6px 8px', color: '#1e293b' }}>
+                            {cell}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              fontSize: '11px',
+              marginBottom: '30px',
+            }}
+          >
+            <thead>
+              <tr style={{ background: '#1e3a8a', color: '#ffffff', textAlign: 'left' }}>
+                <th style={{ padding: '8px 10px', width: '35px', textAlign: 'center' }}>#</th>
+                {headers.map((h, i) => (
+                  <th key={i} style={{ padding: '8px 10px', fontWeight: '700' }}>
+                    {h}
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row, rIdx) => (
+                <tr
+                  key={rIdx}
+                  style={{
+                    borderBottom: '1px solid #cbd5e1',
+                    background: rIdx % 2 === 0 ? '#ffffff' : '#f8fafc',
+                  }}
+                >
+                  <td style={{ padding: '7px 10px', textAlign: 'center', fontWeight: '600', color: '#64748b' }}>
+                    {rIdx + 1}
+                  </td>
+                  {row.map((cell, cIdx) => (
+                    <td key={cIdx} style={{ padding: '7px 10px', color: '#1e293b' }}>
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
 
         {/* Official Footer & Verification Sign-off */}
         <div

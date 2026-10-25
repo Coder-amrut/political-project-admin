@@ -30,7 +30,8 @@ import {
   CalendarDays,
   Printer,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  RotateCcw
 } from 'lucide-react';
 
 export default function UserAttendanceManager({ language = 'mr' }) {
@@ -59,10 +60,10 @@ export default function UserAttendanceManager({ language = 'mr' }) {
   const [policy, setPolicy] = useState({
     is_location_required: false,
     allow_anywhere: true,
-    location_name: 'सांगली मध्यवर्ती निवडणूक नियंत्रण कक्ष (Sangli Central HQ)',
-    address: 'स्टेशन रोड, विश्रामबाग जवळ, सांगली, महाराष्ट्र ४१६४१६',
-    latitude: 16.8524,
-    longitude: 74.5815,
+    location_name: 'Shambhara Footi Road मध्यवर्ती कार्यालय (Live HQ)',
+    address: 'Shambhara Footi Road, Viya Nagar, सांगली, महाराष्ट्र',
+    latitude: 16.846266,
+    longitude: 74.598727,
     radius_meters: 500,
     enforce_strict_geofence: true,
   });
@@ -457,7 +458,33 @@ export default function UserAttendanceManager({ language = 'mr' }) {
   };
 
   return (
-    <div style={{ padding: '24px', fontFamily: "'Inter', 'Noto Sans Devanagari', 'Mukta', sans-serif", color: '#0f172a' }}>
+    <div className="attendance-page-root" style={{ padding: '20px 24px', fontFamily: "'Inter', 'Noto Sans Devanagari', 'Mukta', sans-serif", color: '#0f172a', maxWidth: '100%', boxSizing: 'border-box' }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .attendance-page-root {
+            padding: 10px 8px !important;
+          }
+          .attendance-hero-card {
+            padding: 16px 14px !important;
+            border-radius: 12px !important;
+          }
+          .attendance-hero-card h1 {
+            font-size: 19px !important;
+            line-height: 1.3 !important;
+          }
+          .attendance-hero-actions {
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+          }
+          .attendance-hero-actions button {
+            width: 100% !important;
+            justify-content: center !important;
+            min-height: 44px !important;
+          }
+        }
+      `}</style>
       {/* Toast Notification */}
       {toast.show && (
         <div
@@ -486,6 +513,7 @@ export default function UserAttendanceManager({ language = 'mr' }) {
 
       {/* --- Header Section (Admin Command HQ Theme) --- */}
       <div
+        className="attendance-hero-card"
         style={{
           background: 'linear-gradient(135deg, #0b132b 0%, #1c2541 100%)',
           borderRadius: '16px',
@@ -498,18 +526,6 @@ export default function UserAttendanceManager({ language = 'mr' }) {
           overflow: 'hidden',
         }}
       >
-        {/* Tiranga Accent Strip */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '4px',
-            background: 'linear-gradient(90deg, #FF9933 0%, #FFFFFF 50%, #138808 100%)',
-          }}
-        />
-
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
@@ -537,35 +553,25 @@ export default function UserAttendanceManager({ language = 'mr' }) {
             </h1>
             <p style={{ margin: 0, color: '#94a3b8', fontSize: '14px', maxWidth: '640px' }}>
               {isMr
-                ? 'सर्व क्षेत्र अधिकाऱ्यांची व कर्मचाऱ्यांची पत्त्यासह दैनंदिन उपस्थिती तपासा. कोणत्याही वापरकर्त्यावर क्लिक करून त्यांची रोजची हजेरी वेळ व पत्ता पहा.'
-                : 'Monitor officer attendance with physical addresses. Click any user to review their everyday presentation history with time.'}
+                ? 'सर्व कार्यकर्त्यांची व अधिकाऱ्यांची पत्त्यासह दैनंदिन उपस्थिती तपासा. कोणत्याही वापरकर्त्यावर क्लिक करून त्यांची रोजची हजेरी वेळ व पत्ता पहा.'
+                : 'Monitor user attendance with physical addresses. Click any user to review their everyday presentation history with time.'}
             </p>
           </div>
 
           {/* Action Buttons in Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <div className="attendance-hero-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <button
+              type="button"
               onClick={() => setShowLocationSettings(true)}
+              className="btn-3d-blue"
               style={{
-                background: policy.is_location_required
-                  ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
-                  : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                color: '#ffffff',
-                border: 'none',
-                padding: '10px 18px',
+                padding: '9px 18px',
                 borderRadius: '10px',
-                fontWeight: 700,
                 fontSize: '13px',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
-                transition: 'all 0.2s ease',
               }}
             >
-              <MapPin size={16} />
-              {isMr ? 'स्थान निश्चित करा (Set Location for All)' : 'Set Location for All Users'}
+              <span>📍</span>
+              <span>{isMr ? 'उपस्थिती स्थान सेटिंग्स' : 'Attendance Location Settings'}</span>
             </button>
 
             <button
@@ -610,132 +616,79 @@ export default function UserAttendanceManager({ language = 'mr' }) {
             </button>
           </div>
         </div>
-
-        {/* --- Active Policy Alert Ribbon showing Location Name & Details --- */}
-        <div
-          style={{
-            marginTop: '20px',
-            padding: '14px 18px',
-            borderRadius: '10px',
-            backgroundColor: policy.is_location_required ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-            border: policy.is_location_required ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(59, 130, 246, 0.35)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '12px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-            <span
-              style={{
-                width: '10px',
-                height: '10px',
-                borderRadius: '50%',
-                backgroundColor: policy.is_location_required ? '#10b981' : '#38bdf8',
-                boxShadow: policy.is_location_required ? '0 0 10px #10b981' : '0 0 10px #38bdf8',
-                marginTop: '5px',
-              }}
-            />
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '13px', color: '#f8fafc' }}>
-                {policy.is_location_required ? (
-                  <>
-                    <span>📍 {isMr ? 'अनिवार्य स्थान नाव (Location Name): ' : 'Mandatory Location: '}</span>
-                    <strong style={{ color: '#34d399', fontSize: '14px', textDecoration: 'underline' }}>
-                      {policy.location_name || 'सांगली मध्यवर्ती कार्यालय'}
-                    </strong>
-                  </>
-                ) : (
-                  <span>🌐 {isMr ? 'मुक्त उपस्थिती धोरण सक्रिय (Anywhere Allowed):' : 'Flexible Anywhere Attendance Active:'}</span>
-                )}
-              </div>
-              <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: '3px' }}>
-                {policy.is_location_required ? (
-                  <>
-                    <strong>{isMr ? 'पत्ता: ' : 'Address: '}</strong>
-                    <span>{policy.address || 'सांगली'}</span> •{' '}
-                    <strong>{isMr ? 'जिओफेन्स त्रिज्या: ' : 'Radius: '}</strong>
-                    <span>{policy.radius_meters || 500} {isMr ? 'मीटर' : 'm'}</span>
-                    {policy.latitude && (
-                      <span style={{ marginLeft: '6px', fontFamily: 'monospace', color: '#94a3b8' }}>
-                        ({Number(policy.latitude).toFixed(4)}, {Number(policy.longitude).toFixed(4)})
-                      </span>
-                    )}
-                  </>
-                ) : (
-                  <span>
-                    {isMr
-                      ? 'कोणतेही स्थान बंधन नाही. सर्व कर्मचारी कोणत्याही ठिकाणाहून उपस्थिती नोंदवू शकतात.'
-                      : 'No specific location required. All users can punch attendance from any location.'}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <button
-              onClick={() => setShowLocationSettings(true)}
-              style={{
-                background: 'rgba(255, 255, 255, 0.12)',
-                border: '1px solid rgba(255, 255, 255, 0.25)',
-                color: '#ffffff',
-                padding: '6px 14px',
-                borderRadius: '8px',
-                fontSize: '12px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-              }}
-            >
-              <Sliders size={14} />
-              {isMr ? 'स्थान बदला / व्यवस्थापित करा' : 'Change Location / Policy'}
-            </button>
-          </div>
-        </div>
       </div>
 
-      {/* --- Live KPI Summary Cards --- */}
+      {/* --- Live KPI Summary Cards (All 6 in 1 Single Line) --- */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
-          gap: '16px',
+          gridTemplateColumns: 'repeat(6, minmax(0, 1fr))',
+          gap: '12px',
           marginBottom: '24px',
+          width: '100%',
         }}
       >
         {/* Total Staff */}
-        <div style={cardStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-              {isMr ? 'एकूण नोंदणीकृत कर्मचारी' : 'Total Registered Staff'}
+        <div
+          style={{
+            ...cardStyle,
+            padding: '14px 14px',
+            borderTop: '3.5px solid #64748b',
+            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            minWidth: 0,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 8px 18px rgba(0, 0, 0, 0.08)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'none';
+            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.03)';
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '4px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 750, color: '#64748b', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {isMr ? 'एकूण नोंदणीकृत' : 'Total Staff'}
             </span>
-            <div style={{ padding: '6px', borderRadius: '8px', background: '#f1f5f9', color: '#334155' }}>
-              <Users size={16} />
+            <div style={{ padding: '5px', borderRadius: '7px', background: '#f1f5f9', color: '#334155', flexShrink: 0 }}>
+              <Users size={15} />
             </div>
           </div>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a' }}>{stats.total_users || 0}</div>
-          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-            {isMr ? 'डेटाबेसमधील सक्रिय कर्मचारी' : 'Active users in database'}
+          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>{stats.total_users || 0}</div>
+          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {isMr ? 'डेटाबेसमधील कर्मचारी' : 'Active database users'}
           </div>
         </div>
 
         {/* Present Today */}
-        <div style={cardStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#059669', textTransform: 'uppercase' }}>
+        <div
+          style={{
+            ...cardStyle,
+            padding: '14px 14px',
+            borderTop: '3.5px solid #059669',
+            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            minWidth: 0,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 8px 18px rgba(5, 150, 105, 0.12)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'none';
+            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.03)';
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '4px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 750, color: '#059669', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {isMr ? 'आज उपस्थित (हजर)' : 'Present Today'}
             </span>
-            <div style={{ padding: '6px', borderRadius: '8px', background: '#ecfdf5', color: '#059669' }}>
-              <UserCheck size={16} />
+            <div style={{ padding: '5px', borderRadius: '7px', background: '#ecfdf5', color: '#059669', flexShrink: 0 }}>
+              <UserCheck size={15} />
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-            <div style={{ fontSize: '26px', fontWeight: 800, color: '#059669' }}>{stats.present_today || 0}</div>
-            <span style={{ fontSize: '13px', fontWeight: 700, color: '#10b981' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+            <div style={{ fontSize: '24px', fontWeight: 800, color: '#059669', lineHeight: 1.1 }}>{stats.present_today || 0}</div>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#10b981' }}>
               ({stats.attendance_percentage || 0}%)
             </span>
           </div>
@@ -752,218 +705,462 @@ export default function UserAttendanceManager({ language = 'mr' }) {
         </div>
 
         {/* Currently Active in Field (Punched In) */}
-        <div style={cardStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#d97706', textTransform: 'uppercase' }}>
-              {isMr ? 'सध्या ऑन-फील्ड (कामावर)' : 'Currently In-Field'}
+        <div
+          style={{
+            ...cardStyle,
+            padding: '14px 14px',
+            borderTop: '3.5px solid #d97706',
+            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            minWidth: 0,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 8px 18px rgba(217, 119, 6, 0.12)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'none';
+            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.03)';
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '4px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 750, color: '#d97706', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {isMr ? 'सध्या ऑन-फील्ड' : 'Currently In-Field'}
             </span>
-            <div style={{ padding: '6px', borderRadius: '8px', background: '#fffbeb', color: '#d97706' }}>
-              <Clock size={16} />
+            <div style={{ padding: '5px', borderRadius: '7px', background: '#fffbeb', color: '#d97706', flexShrink: 0 }}>
+              <Clock size={15} />
             </div>
           </div>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#d97706' }}>{stats.punched_in_now || 0}</div>
-          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-            {isMr ? 'Punch In केलेले (काम चालू)' : 'Punched in (Duty ongoing)'}
+          <div style={{ fontSize: '24px', fontWeight: 800, color: '#d97706', lineHeight: 1.1 }}>{stats.punched_in_now || 0}</div>
+          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {isMr ? 'Punch In (काम चालू)' : 'Punched in ongoing'}
           </div>
         </div>
 
         {/* Completed Shift */}
-        <div style={cardStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#2563eb', textTransform: 'uppercase' }}>
-              {isMr ? 'काम पूर्ण (Punched Out)' : 'Completed Shift'}
+        <div
+          style={{
+            ...cardStyle,
+            padding: '14px 14px',
+            borderTop: '3.5px solid #2563eb',
+            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            minWidth: 0,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 8px 18px rgba(37, 99, 235, 0.12)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'none';
+            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.03)';
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '4px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 750, color: '#2563eb', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {isMr ? 'काम पूर्ण (OUT)' : 'Completed Shift'}
             </span>
-            <div style={{ padding: '6px', borderRadius: '8px', background: '#eff6ff', color: '#2563eb' }}>
-              <CheckCircle2 size={16} />
+            <div style={{ padding: '5px', borderRadius: '7px', background: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+              <CheckCircle2 size={15} />
             </div>
           </div>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#2563eb' }}>{stats.completed_today || 0}</div>
-          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-            {isMr ? 'दिवसाचे काम पूर्ण नोंदवलेले' : 'Punched out after duty'}
+          <div style={{ fontSize: '24px', fontWeight: 800, color: '#2563eb', lineHeight: 1.1 }}>{stats.completed_today || 0}</div>
+          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {isMr ? 'दिवसाचे काम पूर्ण' : 'Punched out after duty'}
           </div>
         </div>
 
         {/* Absent */}
-        <div style={cardStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#ef4444', textTransform: 'uppercase' }}>
+        <div
+          style={{
+            ...cardStyle,
+            padding: '14px 14px',
+            borderTop: '3.5px solid #ef4444',
+            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            minWidth: 0,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 8px 18px rgba(239, 68, 68, 0.12)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'none';
+            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.03)';
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '4px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 750, color: '#ef4444', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {isMr ? 'हजेरी बाकी / गैरहजर' : 'Pending / Absent'}
             </span>
-            <div style={{ padding: '6px', borderRadius: '8px', background: '#fef2f2', color: '#ef4444' }}>
-              <UserX size={16} />
+            <div style={{ padding: '5px', borderRadius: '7px', background: '#fef2f2', color: '#ef4444', flexShrink: 0 }}>
+              <UserX size={15} />
             </div>
           </div>
-          <div style={{ fontSize: '26px', fontWeight: 800, color: '#ef4444' }}>{stats.absent_today || 0}</div>
-          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-            {isMr ? 'आज अजून हजेरी नाही' : 'Not punched today yet'}
+          <div style={{ fontSize: '24px', fontWeight: 800, color: '#ef4444', lineHeight: 1.1 }}>{stats.absent_today || 0}</div>
+          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {isMr ? 'आज हजेरी बाकी' : 'Not punched today'}
           </div>
         </div>
 
         {/* Location Compliance Ratio */}
-        <div style={cardStyle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#7c3aed', textTransform: 'uppercase' }}>
-              {isMr ? 'स्थान पडताळणी प्रमाण' : 'Geofence Compliance'}
+        <div
+          style={{
+            ...cardStyle,
+            padding: '14px 14px',
+            borderTop: '3.5px solid #7c3aed',
+            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            minWidth: 0,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 8px 18px rgba(124, 58, 237, 0.12)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'none';
+            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.03)';
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '4px' }}>
+            <span style={{ fontSize: '11px', fontWeight: 750, color: '#7c3aed', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {isMr ? 'स्थान पडताळणी' : 'Geofence Compliance'}
             </span>
-            <div style={{ padding: '6px', borderRadius: '8px', background: '#f5f3ff', color: '#7c3aed' }}>
-              <ShieldCheck size={16} />
+            <div style={{ padding: '5px', borderRadius: '7px', background: '#f5f3ff', color: '#7c3aed', flexShrink: 0 }}>
+              <ShieldCheck size={15} />
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-            <div style={{ fontSize: '24px', fontWeight: 800, color: '#7c3aed' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+            <div style={{ fontSize: '22px', fontWeight: 800, color: '#7c3aed', lineHeight: 1.1 }}>
               {stats.at_designated_location || 0}
             </div>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>
-              {isMr ? 'ठिकाणी' : 'At HQ'} / {stats.remote_anywhere || 0} {isMr ? 'मुक्त' : 'Remote'}
+            <span style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>
+              {isMr ? 'ठिकाणी' : 'HQ'} / {stats.remote_anywhere || 0} {isMr ? 'मुक्त' : 'Free'}
             </span>
           </div>
-          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {policy.is_location_required
-              ? isMr ? 'सर्व ठरवलेल्या ठिकाणी आवश्यक' : 'Mandatory place enforced'
-              : isMr ? 'कुठूनही हजेरीस मुभा' : 'Flexible location mode'}
+              ? isMr ? 'सर्व ठरवलेल्या ठिकाणी' : 'Mandatory place'
+              : isMr ? 'कुठूनही हजेरीस मुभा' : 'Flexible location'}
           </div>
         </div>
       </div>
 
-      {/* --- Filters & Search Toolbar --- */}
+      {/* --- Filters & Search Toolbar with 3D Tactile Styling & Royal Blue Palette --- */}
       <div
         style={{
           background: '#ffffff',
-          borderRadius: '14px',
-          padding: '18px 20px',
+          borderRadius: '16px',
+          padding: '16px 20px',
           marginBottom: '20px',
           border: '1px solid #e2e8f0',
-          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
+          borderTop: '3.5px solid #2563eb',
+          boxShadow: '0 8px 24px -4px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(0, 0, 0, 0.02)',
           display: 'flex',
-          flexWrap: 'wrap',
+          flexDirection: 'column',
           gap: '14px',
-          alignItems: 'center',
-          justifyContent: 'space-between',
         }}
       >
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', flex: 1 }}>
-          {/* Search Input */}
-          <div style={{ position: 'relative', minWidth: '260px', flex: '1 1 280px' }}>
-            <Search size={16} style={{ position: 'absolute', left: '12px', top: '11px', color: '#94a3b8' }} />
-            <input
-              type="text"
-              placeholder={isMr ? 'नाव, फोन किंवा पत्त्यानुसार शोधा...' : 'Search by name, phone, or address...'}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+        {/* Top Row: Date Selector Tabs (Left) + Search Bar & Manual Entry Button (Right) */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* Left Side: Date Selector Pills with 3D tactile buttons */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+            <div
               style={{
-                width: '100%',
-                boxSizing: 'border-box',
-                padding: '9px 12px 9px 36px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                fontSize: '13px',
-                outline: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: '#f1f5f9',
+                padding: '6px 8px',
+                borderRadius: '14px',
+                border: '1px solid #e2e8f0',
+                boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.06)',
               }}
-            />
+            >
+              <button
+                type="button"
+                onClick={() => setSelectedDateFilter('today')}
+                className={selectedDateFilter === 'today' ? 'tab-btn-3d-blue' : 'tab-btn-3d-inactive'}
+                style={{
+                  width: '135px',
+                  height: '42px',
+                  fontSize: '14.5px',
+                  fontWeight: 800,
+                  borderRadius: '10px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  padding: '0 10px',
+                }}
+              >
+                {isMr ? 'आज' : 'Today'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedDateFilter('yesterday')}
+                className={selectedDateFilter === 'yesterday' ? 'tab-btn-3d-blue' : 'tab-btn-3d-inactive'}
+                style={{
+                  width: '135px',
+                  height: '42px',
+                  fontSize: '14.5px',
+                  fontWeight: 800,
+                  borderRadius: '10px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  padding: '0 10px',
+                }}
+              >
+                {isMr ? 'काल' : 'Yesterday'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedDateFilter('all')}
+                className={selectedDateFilter === 'all' ? 'tab-btn-3d-blue' : 'tab-btn-3d-inactive'}
+                style={{
+                  width: '135px',
+                  height: '42px',
+                  fontSize: '14.5px',
+                  fontWeight: 800,
+                  borderRadius: '10px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  padding: '0 10px',
+                }}
+              >
+                {isMr ? 'सर्व दिवस' : 'All Time'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedDateFilter('custom')}
+                className={selectedDateFilter === 'custom' ? 'tab-btn-3d-blue' : 'tab-btn-3d-inactive'}
+                style={{
+                  width: '135px',
+                  height: '42px',
+                  fontSize: '14.5px',
+                  fontWeight: 800,
+                  borderRadius: '10px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  padding: '0 10px',
+                }}
+              >
+                <Calendar size={15} style={{ marginRight: '5px', flexShrink: 0 }} />
+                {isMr ? 'तारीख निवडा' : 'Custom'}
+              </button>
+            </div>
+
+            {selectedDateFilter === 'custom' && (
+              <input
+                type="date"
+                value={customDate}
+                onChange={(e) => setCustomDate(e.target.value)}
+                style={{
+                  padding: '10px 14px',
+                  borderRadius: '10px',
+                  border: '1.5px solid #2563eb',
+                  fontSize: '14px',
+                  color: '#0f172a',
+                  fontWeight: 650,
+                  background: '#ffffff',
+                  boxShadow: '0 2px 6px rgba(37, 99, 235, 0.12)',
+                }}
+              />
+            )}
           </div>
 
-          {/* Date Selector Pills */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#f8fafc', padding: '4px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+          {/* Right Side: Manual Entry 3D Button + Search Input (Search at the far right) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginLeft: 'auto' }}>
+            {/* Manual Entry 3D Button */}
             <button
-              onClick={() => setSelectedDateFilter('today')}
-              style={filterPillStyle(selectedDateFilter === 'today')}
-            >
-              {isMr ? 'आज' : 'Today'}
-            </button>
-            <button
-              onClick={() => setSelectedDateFilter('yesterday')}
-              style={filterPillStyle(selectedDateFilter === 'yesterday')}
-            >
-              {isMr ? 'काल' : 'Yesterday'}
-            </button>
-            <button
-              onClick={() => setSelectedDateFilter('all')}
-              style={filterPillStyle(selectedDateFilter === 'all')}
-            >
-              {isMr ? 'सर्व दिवस' : 'All Time'}
-            </button>
-            <button
-              onClick={() => setSelectedDateFilter('custom')}
-              style={filterPillStyle(selectedDateFilter === 'custom')}
-            >
-              <Calendar size={13} style={{ marginRight: '4px', verticalAlign: 'text-bottom' }} />
-              {isMr ? 'तारीख निवडा' : 'Custom'}
-            </button>
-          </div>
-
-          {selectedDateFilter === 'custom' && (
-            <input
-              type="date"
-              value={customDate}
-              onChange={(e) => setCustomDate(e.target.value)}
+              type="button"
+              onClick={() => setShowManualModal(true)}
+              className="tab-btn-3d-inactive"
               style={{
-                padding: '8px 12px',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                fontSize: '13px',
+                padding: '9px 18px',
+                fontSize: '13.5px',
+                fontWeight: 700,
+                borderRadius: '10px',
+                color: '#1d4ed8',
+                borderColor: '#93c5fd',
+                borderBottomColor: '#60a5fa',
+                background: 'linear-gradient(180deg, #ffffff 0%, #eff6ff 100%)',
+                whiteSpace: 'nowrap',
+                height: '42px',
               }}
-            />
-          )}
+            >
+              <FileText size={16} style={{ color: '#2563eb' }} />
+              {isMr ? 'मॅन्युअल नोंद / दुरुस्ती' : 'Manual Entry'}
+            </button>
 
-          {/* Role Filter */}
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            style={{
-              padding: '9px 12px',
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              fontSize: '13px',
-              background: '#ffffff',
-              color: '#334155',
-            }}
-          >
-            <option value="all">{isMr ? 'सर्व भूमिका (All Roles)' : 'All Roles'}</option>
-            <option value="WORKER">{isMr ? 'क्षेत्र अधिकारी (Field Officer)' : 'Field Officer'}</option>
-            <option value="OFFICER">{isMr ? 'अधिकारी / नेता (OFFICER)' : 'Officer'}</option>
-            <option value="ADMIN">{isMr ? 'प्रशासक (ADMIN)' : 'Admin'}</option>
-          </select>
-
-          {/* Compliance Filter */}
-          <select
-            value={complianceFilter}
-            onChange={(e) => setComplianceFilter(e.target.value)}
-            style={{
-              padding: '9px 12px',
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              fontSize: '13px',
-              background: '#ffffff',
-              color: '#334155',
-            }}
-          >
-            <option value="all">{isMr ? 'सर्व स्थान प्रकार' : 'All Compliance'}</option>
-            <option value="AT_REQUIRED_LOCATION">{isMr ? '✅ ठरवलेल्या ठिकाणी हजर' : 'At Required Location'}</option>
-            <option value="ANYWHERE_ALLOWED">{isMr ? '🌐 मुक्त हजेरी (Anywhere)' : 'Anywhere Allowed'}</option>
-            <option value="OUTSIDE_RADIUS">{isMr ? '⚠️ ठिकाणाबाहेर (Violation)' : 'Outside Geofence'}</option>
-          </select>
+            {/* Search Input on the Right (at the manual button's place) */}
+            <div style={{ position: 'relative', width: '290px' }}>
+              <Search size={17} style={{ position: 'absolute', left: '12px', top: '12px', color: '#2563eb' }} />
+              <input
+                type="text"
+                placeholder={isMr ? 'नाव, फोन किंवा पत्त्यानुसार शोधा...' : 'Search by name, phone, or address...'}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  padding: '10px 12px 10px 38px',
+                  borderRadius: '10px',
+                  border: '1.5px solid #cbd5e1',
+                  fontSize: '13.5px',
+                  fontWeight: 500,
+                  color: '#0f172a',
+                  outline: 'none',
+                  background: '#ffffff',
+                  boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.04)',
+                  transition: 'all 0.2s ease',
+                  height: '42px',
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#2563eb';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.15)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#cbd5e1';
+                  e.target.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.04)';
+                }}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  style={{
+                    position: 'absolute',
+                    right: '10px',
+                    top: '11px',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#94a3b8',
+                    padding: '2px',
+                  }}
+                >
+                  <X size={15} />
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            onClick={() => setShowManualModal(true)}
-            style={{
-              background: '#f8fafc',
-              border: '1px solid #cbd5e1',
-              color: '#334155',
-              padding: '8px 14px',
-              borderRadius: '8px',
-              fontWeight: 600,
-              fontSize: '13px',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <FileText size={15} />
-            {isMr ? 'मॅन्युअल नोंद / दुरुस्ती' : 'Manual Entry'}
-          </button>
+        {/* Bottom Filter Badges Row: Role and Location Compliance Aligned Together */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '12px',
+            alignItems: 'center',
+            paddingTop: '12px',
+            borderTop: '1px dashed #e2e8f0',
+          }}
+        >
+          <span style={{ fontSize: '12px', fontWeight: 750, color: '#475569', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <Filter size={14} style={{ color: '#2563eb' }} />
+            {isMr ? 'फिल्टर्स:' : 'Filters:'}
+          </span>
+
+          {/* Role Filter */}
+          <div style={{ position: 'relative' }}>
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              style={{
+                padding: '7px 14px',
+                borderRadius: '9px',
+                border: '1px solid #cbd5e1',
+                borderBottom: '2.5px solid #94a3b8',
+                fontSize: '12.5px',
+                fontWeight: 650,
+                background: '#ffffff',
+                color: roleFilter !== 'all' ? '#1d4ed8' : '#334155',
+                cursor: 'pointer',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
+                outline: 'none',
+              }}
+            >
+              <option value="all">{isMr ? 'सर्व भूमिका (All Roles)' : 'All Roles'}</option>
+              <option value="WORKER">{isMr ? 'कार्यकर्ता (WORKER)' : 'Worker'}</option>
+              <option value="OFFICER">{isMr ? 'अधिकारी / नेता (OFFICER)' : 'Officer'}</option>
+              <option value="ADMIN">{isMr ? 'प्रशासक (ADMIN)' : 'Admin'}</option>
+            </select>
+          </div>
+
+          {/* Compliance Filter */}
+          <div style={{ position: 'relative' }}>
+            <select
+              value={complianceFilter}
+              onChange={(e) => setComplianceFilter(e.target.value)}
+              style={{
+                padding: '7px 14px',
+                borderRadius: '9px',
+                border: '1px solid #cbd5e1',
+                borderBottom: '2.5px solid #94a3b8',
+                fontSize: '12.5px',
+                fontWeight: 650,
+                background: '#ffffff',
+                color: complianceFilter !== 'all' ? '#1d4ed8' : '#334155',
+                cursor: 'pointer',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
+                outline: 'none',
+              }}
+            >
+              <option value="all">{isMr ? 'सर्व स्थान प्रकार (All Compliance)' : 'All Compliance'}</option>
+              <option value="AT_REQUIRED_LOCATION">{isMr ? '✅ ठरवलेल्या ठिकाणी हजर' : 'At Required Location'}</option>
+              <option value="ANYWHERE_ALLOWED">{isMr ? '🌐 मुक्त हजेरी (Anywhere)' : 'Anywhere Allowed'}</option>
+              <option value="OUTSIDE_RADIUS">{isMr ? '⚠️ ठिकाणाबाहेर (Violation)' : 'Outside Geofence'}</option>
+            </select>
+          </div>
+
+          {/* Active Filter Clear indicator if applied */}
+          {(roleFilter !== 'all' || complianceFilter !== 'all' || searchQuery.trim() !== '' || selectedDateFilter !== 'all') && (
+            <button
+              type="button"
+              onClick={() => {
+                setRoleFilter('all');
+                setComplianceFilter('all');
+                setSearchQuery('');
+                setSelectedDateFilter('all');
+              }}
+              style={{
+                background: '#f8fafc',
+                border: '1px dashed #94a3b8',
+                borderRadius: '8px',
+                padding: '5px 12px',
+                fontSize: '12px',
+                fontWeight: 650,
+                color: '#64748b',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#ef4444';
+                e.currentTarget.style.borderColor = '#ef4444';
+                e.currentTarget.style.backgroundColor = '#fef2f2';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = '#64748b';
+                e.currentTarget.style.borderColor = '#94a3b8';
+                e.currentTarget.style.backgroundColor = '#f8fafc';
+              }}
+            >
+              <RotateCcw size={12} />
+              {isMr ? 'फिल्टर्स रीसेट करा' : 'Reset Filters'}
+            </button>
+          )}
+
+          <div style={{ marginLeft: 'auto', fontSize: '12px', fontWeight: 650, color: '#64748b' }}>
+            {isMr ? 'एकूण निकाल: ' : 'Total results: '}
+            <span style={{ color: '#2563eb', fontWeight: 800, fontSize: '13px' }}>{attendances.length}</span>
+          </div>
         </div>
       </div>
 
@@ -973,7 +1170,8 @@ export default function UserAttendanceManager({ language = 'mr' }) {
           background: '#ffffff',
           borderRadius: '16px',
           border: '1px solid #e2e8f0',
-          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
+          borderTop: '3.5px solid #2563eb',
+          boxShadow: '0 10px 30px -4px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(0, 0, 0, 0.02)',
           overflow: 'hidden',
         }}
       >
@@ -984,16 +1182,33 @@ export default function UserAttendanceManager({ language = 'mr' }) {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            backgroundColor: '#f8fafc',
+            backgroundColor: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
             flexWrap: 'wrap',
-            gap: '10px',
+            gap: '12px',
           }}
         >
           <div>
-            <h2 style={{ fontSize: '16px', fontWeight: 800, margin: 0, color: '#0f172a' }}>
-              {isMr ? 'वापरकर्ते उपस्थिती तपशील व पत्ता (User Attendance & Address Table)' : 'User Attendance & Address Registry'}
-            </h2>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                  color: '#2563eb',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1px solid #bfdbfe',
+                }}
+              >
+                <Users size={17} />
+              </div>
+              <h2 style={{ fontSize: '16.5px', fontWeight: 850, margin: 0, color: '#0f172a' }}>
+                {isMr ? 'वापरकर्ते उपस्थिती तपशील व पत्ता (User Attendance & Address Table)' : 'User Attendance & Address Registry'}
+              </h2>
+            </div>
+            <span style={{ fontSize: '12px', color: '#64748b', display: 'block', marginTop: '4px' }}>
               {isMr
                 ? `👉 कोणत्याही वापरकर्त्यावर क्लिक करून त्यांचा रोजचा हजेरी इतिहास पहा (एकूण ${attendances.length} नोंदी)`
                 : `👉 Click any user to review their everyday presentation history (Found ${attendances.length} records)`}
@@ -1004,14 +1219,27 @@ export default function UserAttendanceManager({ language = 'mr' }) {
             <span
               style={{
                 fontSize: '12px',
-                fontWeight: 600,
-                color: '#475569',
+                fontWeight: 700,
+                color: '#065f46',
+                background: '#ecfdf5',
+                padding: '5px 12px',
+                borderRadius: '20px',
+                border: '1px solid #a7f3d0',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
+                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.1)',
               }}
             >
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+              <span
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: '#10b981',
+                  boxShadow: '0 0 6px #10b981',
+                }}
+              />
               {isMr ? 'थेट डेटाबेस सिंक' : 'Live DB Sync'}
             </span>
           </div>
@@ -1021,40 +1249,80 @@ export default function UserAttendanceManager({ language = 'mr' }) {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
             <thead>
-              <tr style={{ background: '#f1f5f9', color: '#475569', borderBottom: '1px solid #cbd5e1' }}>
-                <th style={{ padding: '12px 18px', fontWeight: 700 }}>#</th>
-                <th style={{ padding: '12px 18px', fontWeight: 700 }}>
+              <tr
+                style={{
+                  background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
+                  color: '#1e293b',
+                  borderBottom: '2px solid #cbd5e1',
+                }}
+              >
+                <th style={{ padding: '13px 18px', fontWeight: 800 }}>#</th>
+                <th style={{ padding: '13px 18px', fontWeight: 800 }}>
                   {isMr ? 'वापरकर्ता तपशील (क्लिक करा)' : 'User Details (Click to View History)'}
                 </th>
-                <th style={{ padding: '12px 18px', fontWeight: 700 }}>{isMr ? 'तारीख व दिवस' : 'Date'}</th>
-                <th style={{ padding: '12px 18px', fontWeight: 700 }}>{isMr ? 'Punch In (हजेरी)' : 'Punch In'}</th>
-                <th style={{ padding: '12px 18px', fontWeight: 700 }}>{isMr ? 'Punch Out (निर्गमन)' : 'Punch Out'}</th>
-                <th style={{ padding: '12px 18px', fontWeight: 700, minWidth: '280px' }}>
+                <th style={{ padding: '13px 18px', fontWeight: 800 }}>{isMr ? 'तारीख व दिवस' : 'Date'}</th>
+                <th style={{ padding: '13px 18px', fontWeight: 800 }}>{isMr ? 'Punch In (हजेरी)' : 'Punch In'}</th>
+                <th style={{ padding: '13px 18px', fontWeight: 800 }}>{isMr ? 'Punch Out (निर्गमन)' : 'Punch Out'}</th>
+                <th style={{ padding: '13px 18px', fontWeight: 800, minWidth: '280px' }}>
                   {isMr ? 'उपस्थिती पत्ता व स्थान (Attendance Address)' : 'Attendance Address'}
                 </th>
-                <th style={{ padding: '12px 18px', fontWeight: 700 }}>{isMr ? 'स्थान पडताळणी' : 'Compliance'}</th>
-                <th style={{ padding: '12px 18px', fontWeight: 700 }}>{isMr ? 'स्थिती' : 'Status'}</th>
-                <th style={{ padding: '12px 18px', fontWeight: 700, textAlign: 'center' }}>{isMr ? 'दैनंदिन हजेरी' : 'Everyday History'}</th>
+                <th style={{ padding: '13px 18px', fontWeight: 800 }}>{isMr ? 'स्थान पडताळणी' : 'Compliance'}</th>
+                <th style={{ padding: '13px 18px', fontWeight: 800 }}>{isMr ? 'स्थिती' : 'Status'}</th>
+                <th style={{ padding: '13px 18px', fontWeight: 800, textAlign: 'center' }}>{isMr ? 'दैनंदिन हजेरी' : 'Everyday History'}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
                   <td colSpan={9} style={{ padding: '60px 20px', textAlign: 'center', color: '#64748b' }}>
-                    <RefreshCw size={28} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
-                    <div style={{ fontWeight: 600 }}>{isMr ? 'उपस्थिती नोंदी डेटाबेसमधून लोड होत आहेत...' : 'Loading attendance records from database...'}</div>
+                    <RefreshCw size={28} style={{ animation: 'spin 1s linear infinite', margin: '0 auto 12px', color: '#2563eb' }} />
+                    <div style={{ fontWeight: 700, fontSize: '14px', color: '#1e293b' }}>
+                      {isMr ? 'उपस्थिती नोंदी डेटाबेसमधून लोड होत आहेत...' : 'Loading attendance records from database...'}
+                    </div>
                   </td>
                 </tr>
               ) : attendances.length === 0 ? (
                 <tr>
                   <td colSpan={9} style={{ padding: '60px 20px', textAlign: 'center', color: '#64748b' }}>
-                    <Users size={36} style={{ margin: '0 auto 12px', color: '#cbd5e1' }} />
-                    <div style={{ fontWeight: 700, fontSize: '15px', color: '#334155' }}>
+                    <div
+                      style={{
+                        width: '64px',
+                        height: '64px',
+                        borderRadius: '50%',
+                        background: 'linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%)',
+                        border: '1.5px solid #bfdbfe',
+                        boxShadow: '0 4px 12px rgba(37, 99, 235, 0.12)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px',
+                        color: '#2563eb',
+                      }}
+                    >
+                      <Users size={32} />
+                    </div>
+                    <div style={{ fontWeight: 800, fontSize: '16px', color: '#0f172a' }}>
                       {isMr ? 'कोणतीही उपस्थिती नोंद आढळली नाही' : 'No attendance records found'}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                    <div style={{ fontSize: '13px', color: '#64748b', marginTop: '6px', maxWidth: '420px', margin: '6px auto 16px' }}>
                       {isMr ? 'निवडलेल्या तारीख किंवा निकषांनुसार डेटा उपलब्ध नाही.' : 'Try changing date or filters.'}
                     </div>
+                    {(roleFilter !== 'all' || complianceFilter !== 'all' || searchQuery.trim() !== '' || selectedDateFilter !== 'all') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRoleFilter('all');
+                          setComplianceFilter('all');
+                          setSearchQuery('');
+                          setSelectedDateFilter('all');
+                        }}
+                        className="tab-btn-3d-blue"
+                        style={{ padding: '8px 18px', fontSize: '13px', borderRadius: '10px' }}
+                      >
+                        <RotateCcw size={14} />
+                        {isMr ? 'सर्व फिल्टर्स रीसेट करा' : 'Reset All Filters'}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ) : (
@@ -1070,13 +1338,21 @@ export default function UserAttendanceManager({ language = 'mr' }) {
                       key={item.id || idx}
                       style={{
                         borderBottom: '1px solid #f1f5f9',
-                        transition: 'background-color 0.15s ease',
+                        transition: 'all 0.18s ease',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
-                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f8fafc';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(37,99,235,0.05)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.transform = 'none';
+                        e.currentTarget.style.boxShadow = 'none';
+                      }}
                     >
                       {/* Index */}
-                      <td style={{ padding: '14px 18px', color: '#94a3b8', fontWeight: 600 }}>{idx + 1}</td>
+                      <td style={{ padding: '14px 18px', color: '#94a3b8', fontWeight: 650 }}>{idx + 1}</td>
 
                       {/* User Info (Clickable for everyday presentation history) */}
                       <td
@@ -1337,23 +1613,16 @@ export default function UserAttendanceManager({ language = 'mr' }) {
                         </span>
                       </td>
 
-                      {/* Action: Open Everyday Presentation History */}
+                      {/* Action: Open Everyday Presentation History with 3D tactile button */}
                       <td style={{ padding: '14px 18px', textAlign: 'center', whiteSpace: 'nowrap' }}>
                         <button
+                          type="button"
                           onClick={() => handleOpenUserEverydayHistory(item.user_id, item.user_name)}
+                          className="btn-3d-blue"
                           style={{
-                            background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-                            border: '1px solid #93c5fd',
-                            borderRadius: '8px',
-                            padding: '6px 12px',
+                            padding: '6px 14px',
                             fontSize: '12px',
-                            fontWeight: 700,
-                            color: '#1d4ed8',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            boxShadow: '0 1px 3px rgba(37,99,235,0.1)',
+                            borderRadius: '8px',
                           }}
                         >
                           <CalendarDays size={14} />
@@ -1384,334 +1653,339 @@ export default function UserAttendanceManager({ language = 'mr' }) {
             if (e.target === e.currentTarget) e.preventDefault();
           }}
         >
-          <div style={{ ...modalContainerStyle, maxWidth: '660px' }}>
-            <div style={modalHeaderStyle}>
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '16px',
+              width: '100%',
+              maxWidth: '580px',
+              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)',
+              padding: '24px 28px',
+              boxSizing: 'border-box',
+              maxHeight: '92vh',
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '18px',
+            }}
+          >
+            {/* Header matching image */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
-                  {isMr ? '📍 उपस्थिती स्थान व जिओफेन्सिंग नियंत्रण धोरण' : '📍 Attendance Location & Geofence Policy'}
-                </h3>
-                <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                  {isMr
-                    ? 'अ‍ॅडमिनने स्थान ठरवल्यास सर्वांना तिथेच उपस्थिती द्यावी लागेल. स्थान न ठरवल्यास ते कोठूनही हजेरी देऊ शकतात.'
-                    : 'Set a mandatory location for attendance. If set, all users must go to this place; otherwise they can attend from anywhere.'}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '18px', lineHeight: 1 }}>📍</span>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#1e3a8a', letterSpacing: '-0.2px' }}>
+                    {isMr ? 'उपस्थिती स्थान सेटिंग्स' : 'Attendance Location Settings'}
+                  </h3>
+                </div>
+                <p style={{ margin: 0, fontSize: '13px', color: '#64748b', fontWeight: 500 }}>
+                  {isMr ? 'कर्मचाऱ्यांसाठी कार्यालयाचे स्थान आणि उपस्थिती नियम सेट करा.' : 'Set office location and attendance rules for employees.'}
                 </p>
               </div>
-              <button onClick={() => setShowLocationSettings(false)} style={closeBtnStyle}>
-                <X size={18} />
-              </button>
-            </div>
-
-            <div
-              style={{
-                padding: '24px',
-                overflowY: 'auto',
-                flex: '1 1 auto',
-                overscrollBehavior: 'contain',
-                WebkitOverflowScrolling: 'touch',
-              }}
-            >
-              {/* Big Mode Switch Toggle */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '12px',
-                  marginBottom: '20px',
-                  padding: '6px',
-                  backgroundColor: '#f1f5f9',
-                  borderRadius: '12px',
-                }}
-              >
-                {/* Option A: Anywhere Allowed */}
-                <button
-                  type="button"
-                  onClick={() => setPolicy((p) => ({ ...p, is_location_required: false, allow_anywhere: true }))}
-                  style={{
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    fontWeight: 700,
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '4px',
-                    backgroundColor: !policy.is_location_required ? '#ffffff' : 'transparent',
-                    color: !policy.is_location_required ? '#0284c7' : '#64748b',
-                    boxShadow: !policy.is_location_required ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <Compass size={20} />
-                  <span>{isMr ? '🌐 कुठूनही हजेरी मुभा' : '🌐 Anywhere Allowed'}</span>
-                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#94a3b8' }}>
-                    {isMr ? '(स्थान बंधन नाही)' : '(No location restriction)'}
-                  </span>
-                </button>
-
-                {/* Option B: Mandatory Specific Location */}
-                <button
-                  type="button"
-                  onClick={() => setPolicy((p) => ({ ...p, is_location_required: true, allow_anywhere: false }))}
-                  style={{
-                    padding: '12px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    fontWeight: 700,
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '4px',
-                    backgroundColor: policy.is_location_required ? '#ffffff' : 'transparent',
-                    color: policy.is_location_required ? '#15803d' : '#64748b',
-                    boxShadow: policy.is_location_required ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <MapPin size={20} />
-                  <span>{isMr ? '📍 ठरवलेले स्थान अनिवार्य' : '📍 Mandatory Specific Location'}</span>
-                  <span style={{ fontSize: '11px', fontWeight: 500, color: '#94a3b8' }}>
-                    {isMr ? '(सर्व कर्मचाऱ्यांसाठी हे स्थान अनिवार्य)' : '(Mandatory for all users)'}
-                  </span>
-                </button>
-              </div>
-
-              {/* Form Controls */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {/* Location Name Field — "Also show this location into name" */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                    <label style={formLabelStyle}>
-                      {isMr ? '📍 अनिवार्य स्थानाचे नाव (Location Name):' : '📍 Designated Location Name:'}
-                    </label>
-                    <span style={{ fontSize: '11px', color: '#64748b' }}>
-                      {isMr ? '(सर्व कर्मचाऱ्यांना हे नाव दिसेल)' : '(Visible to all users)'}
-                    </span>
-                  </div>
-                  <input
-                    type="text"
-                    value={policy.location_name || ''}
-                    placeholder="उदा. सांगली मध्यवर्ती निवडणूक कार्यालय"
-                    onChange={(e) => setPolicy({ ...policy, location_name: e.target.value })}
-                    style={{ ...formInputStyle, fontWeight: 700, color: '#1e3a8a', borderColor: '#93c5fd' }}
-                  />
-                </div>
-
-                {/* Detect My Current Location Box with Save Option for All Users */}
-                <div
-                  style={{
-                    backgroundColor: '#eff6ff',
-                    border: '1.5px dashed #60a5fa',
-                    borderRadius: '10px',
-                    padding: '14px 16px',
-                  }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '13px', color: '#1e40af', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <Crosshair size={16} />
-                        {isMr ? '🎯 अ‍ॅडमिनचे स्वतःचे चालू स्थान वापरा (Use My Own Location)' : '🎯 Use Admin Current Location'}
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
-                        {isMr
-                          ? 'आपण सध्या ज्या ठिकाणी आहात, ते स्थान सर्व कर्मचाऱ्यांसाठी अनिवार्य करा.'
-                          : 'Set your current device location as the mandatory checkpoint for all users.'}
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      <button
-                        type="button"
-                        onClick={handleDetectCurrentLocation}
-                        disabled={detectingGps}
-                        style={{
-                          background: '#ffffff',
-                          border: '1px solid #3b82f6',
-                          borderRadius: '8px',
-                          padding: '7px 12px',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          color: '#2563eb',
-                          cursor: detectingGps ? 'wait' : 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                        }}
-                      >
-                        <Crosshair size={14} style={{ animation: detectingGps ? 'spin 1s linear infinite' : 'none' }} />
-                        {detectingGps ? (isMr ? 'शोधत आहे...' : 'Detecting...') : (isMr ? 'स्थान शोधा' : 'Detect GPS')}
-                      </button>
-
-                      {/* Direct SAVE button when using own location */}
-                      {policy.latitude && policy.longitude && (
-                        <button
-                          type="button"
-                          onClick={() => handleSaveCurrentLocationForEveryone()}
-                          disabled={savingCurrentGpsForEveryone}
-                          style={{
-                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                            border: 'none',
-                            borderRadius: '8px',
-                            padding: '7px 14px',
-                            fontSize: '12px',
-                            fontWeight: 700,
-                            color: '#ffffff',
-                            cursor: savingCurrentGpsForEveryone ? 'wait' : 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            boxShadow: '0 2px 6px rgba(16, 185, 129, 0.3)',
-                          }}
-                        >
-                          <Check size={14} />
-                          {savingCurrentGpsForEveryone
-                            ? (isMr ? 'जतन करत आहे...' : 'Saving...')
-                            : (isMr ? '💾 हे स्थान सर्वांसाठी सेव्ह करा' : '💾 Save this Location for All Users')}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {gpsNotice && (
-                    <div style={{ marginTop: '8px', fontSize: '12px', color: '#047857', fontWeight: 600 }}>
-                      ✓ {gpsNotice}
-                    </div>
-                  )}
-                </div>
-
-                {/* Address */}
-                <div>
-                  <label style={formLabelStyle}>
-                    {isMr ? 'अधिकृत पत्ता (Official Address)' : 'Official Address'}
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={policy.address || ''}
-                    placeholder="उदा. स्टेशन रोड, विश्रामबाग जवळ, सांगली ४१६४१६"
-                    onChange={(e) => setPolicy({ ...policy, address: e.target.value })}
-                    style={{ ...formInputStyle, resize: 'vertical' }}
-                  />
-                </div>
-
-                {/* GPS Coordinates */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div>
-                    <label style={formLabelStyle}>{isMr ? 'अक्षांश (Latitude)' : 'Latitude'}</label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      value={policy.latitude || ''}
-                      placeholder="16.8524"
-                      onChange={(e) => setPolicy({ ...policy, latitude: e.target.value })}
-                      style={formInputStyle}
-                    />
-                  </div>
-                  <div>
-                    <label style={formLabelStyle}>{isMr ? 'रेखांश (Longitude)' : 'Longitude'}</label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      value={policy.longitude || ''}
-                      placeholder="74.5815"
-                      onChange={(e) => setPolicy({ ...policy, longitude: e.target.value })}
-                      style={formInputStyle}
-                    />
-                  </div>
-                </div>
-
-                {/* Radius Slider & Chips */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <label style={formLabelStyle}>
-                      {isMr ? 'जिओफेन्स मर्यादा (Allowed Radius around Location)' : 'Allowed Geofence Radius'}
-                    </label>
-                    <span style={{ fontSize: '13px', fontWeight: 800, color: '#2563eb' }}>
-                      {policy.radius_meters || 500} {isMr ? 'मीटर' : 'meters'}
-                    </span>
-                  </div>
-
-                  <input
-                    type="range"
-                    min="50"
-                    max="5000"
-                    step="50"
-                    value={policy.radius_meters || 500}
-                    onChange={(e) => setPolicy({ ...policy, radius_meters: parseInt(e.target.value, 10) })}
-                    style={{ width: '100%', accentColor: '#2563eb' }}
-                  />
-
-                  {/* Quick Radius Chips */}
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
-                    {[100, 250, 500, 1000, 2000].map((r) => (
-                      <button
-                        key={r}
-                        type="button"
-                        onClick={() => setPolicy({ ...policy, radius_meters: r })}
-                        style={{
-                          background: policy.radius_meters === r ? '#2563eb' : '#f1f5f9',
-                          color: policy.radius_meters === r ? '#ffffff' : '#475569',
-                          border: 'none',
-                          padding: '4px 10px',
-                          borderRadius: '6px',
-                          fontSize: '11px',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {r >= 1000 ? `${r / 1000} km` : `${r}m`}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Quick Presets for Sangli */}
-                <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
-                    {isMr ? 'त्वरित पूर्वनिर्धारित ठिकाणे निवडा:' : 'Quick Presets (Sangli Region):'}
-                  </span>
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
-                    {presets.map((preset, pIdx) => (
-                      <button
-                        key={pIdx}
-                        type="button"
-                        onClick={() => applyPresetLocation(preset)}
-                        style={{
-                          background: '#f8fafc',
-                          border: '1px solid #cbd5e1',
-                          padding: '5px 10px',
-                          borderRadius: '6px',
-                          fontSize: '11px',
-                          fontWeight: 600,
-                          color: '#334155',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        📍 {preset.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div style={modalFooterStyle}>
               <button
                 type="button"
                 onClick={() => setShowLocationSettings(false)}
                 style={{
-                  background: '#f1f5f9',
-                  border: '1px solid #cbd5e1',
-                  padding: '9px 18px',
-                  borderRadius: '8px',
-                  fontWeight: 600,
-                  fontSize: '13px',
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  fontSize: '20px',
                   cursor: 'pointer',
-                  color: '#475569',
+                  padding: '2px 6px',
+                  lineHeight: 1,
+                  borderRadius: '6px',
                 }}
+                onMouseOver={(e) => (e.currentTarget.style.color = '#ef4444')}
+                onMouseOut={(e) => (e.currentTarget.style.color = '#94a3b8')}
+                title={isMr ? 'बंद करा' : 'Close'}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* 1. स्थानाचा प्रकार */}
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 750, color: '#0f172a', marginBottom: '8px' }}>
+                {isMr ? '1. स्थानाचा प्रकार' : '1. Location Type'}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                {/* कोठूनही हजेरी (Option A) */}
+                <button
+                  type="button"
+                  onClick={() => setPolicy((p) => ({ ...p, is_location_required: false, allow_anywhere: true }))}
+                  style={{
+                    padding: '16px 12px',
+                    borderRadius: '8px',
+                    border: !policy.is_location_required ? '1.5px solid #3b82f6' : '1px solid #cbd5e1',
+                    background: !policy.is_location_required ? '#eff6ff' : '#ffffff',
+                    color: !policy.is_location_required ? '#2563eb' : '#475569',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    outline: 'none',
+                  }}
+                >
+                  <span style={{ fontSize: '20px', lineHeight: 1 }}>🌐</span>
+                  <span style={{ fontSize: '13.5px', fontWeight: !policy.is_location_required ? 750 : 600 }}>
+                    {isMr ? 'कोठूनही हजेरी' : 'Attendance from Anywhere'}
+                  </span>
+                </button>
+
+                {/* ठरावीक स्थान (Option B) */}
+                <button
+                  type="button"
+                  onClick={() => setPolicy((p) => ({ ...p, is_location_required: true, allow_anywhere: false }))}
+                  style={{
+                    padding: '16px 12px',
+                    borderRadius: '8px',
+                    border: policy.is_location_required ? '1.5px solid #3b82f6' : '1px solid #cbd5e1',
+                    background: policy.is_location_required ? '#eff6ff' : '#ffffff',
+                    color: policy.is_location_required ? '#2563eb' : '#475569',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    outline: 'none',
+                  }}
+                >
+                  <span style={{ fontSize: '20px', lineHeight: 1 }}>📍</span>
+                  <span style={{ fontSize: '13.5px', fontWeight: policy.is_location_required ? 750 : 600 }}>
+                    {isMr ? 'ठरावीक स्थान' : 'Fixed Location'}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* 2. कार्यालयाचे नाव */}
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 750, color: '#0f172a', marginBottom: '8px' }}>
+                {isMr ? '2. कार्यालयाचे नाव' : '2. Office Name'}
+              </div>
+              <input
+                type="text"
+                value={policy.location_name || ''}
+                placeholder={isMr ? 'Shambhara Footi Road मध्यवर्ती कार्यालय (Live HQ)' : 'Office / Headquarters Name'}
+                onChange={(e) => setPolicy({ ...policy, location_name: e.target.value })}
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  padding: '11px 14px',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: '#0f172a',
+                  background: '#ffffff',
+                  outline: 'none',
+                  transition: 'border-color 0.15s ease',
+                }}
+                onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+                onBlur={(e) => (e.target.style.borderColor = '#cbd5e1')}
+              />
+            </div>
+
+            {/* 3. अधिकृत पत्ता */}
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 750, color: '#0f172a', marginBottom: '8px' }}>
+                {isMr ? '3. अधिकृत पत्ता' : '3. Official Address'}
+              </div>
+              <input
+                type="text"
+                value={policy.address || ''}
+                placeholder={isMr ? 'Shambhara Footi Road, Viya Nagar, सांगली, महाराष्ट्र' : 'Full street address'}
+                onChange={(e) => setPolicy({ ...policy, address: e.target.value })}
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  padding: '11px 14px',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: '#0f172a',
+                  background: '#ffffff',
+                  marginBottom: '12px',
+                  outline: 'none',
+                  transition: 'border-color 0.15s ease',
+                }}
+                onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+                onBlur={(e) => (e.target.style.borderColor = '#cbd5e1')}
+              />
+
+              {/* Coordinates: Latitude & Longitude */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 650, color: '#0f172a', marginBottom: '5px' }}>
+                    Latitude
+                  </div>
+                  <input
+                    type="text"
+                    value={policy.latitude !== undefined && policy.latitude !== null ? policy.latitude : ''}
+                    placeholder="16.846266"
+                    onChange={(e) => setPolicy({ ...policy, latitude: e.target.value })}
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      padding: '10px 14px',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      fontSize: '13.5px',
+                      color: '#0f172a',
+                      background: '#ffffff',
+                      outline: 'none',
+                      transition: 'border-color 0.15s ease',
+                    }}
+                    onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+                    onBlur={(e) => (e.target.style.borderColor = '#cbd5e1')}
+                  />
+                </div>
+
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: 650, color: '#0f172a', marginBottom: '5px' }}>
+                    Longitude
+                  </div>
+                  <input
+                    type="text"
+                    value={policy.longitude !== undefined && policy.longitude !== null ? policy.longitude : ''}
+                    placeholder="74.598727"
+                    onChange={(e) => setPolicy({ ...policy, longitude: e.target.value })}
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      padding: '10px 14px',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      fontSize: '13.5px',
+                      color: '#0f172a',
+                      background: '#ffffff',
+                      outline: 'none',
+                      transition: 'border-color 0.15s ease',
+                    }}
+                    onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+                    onBlur={(e) => (e.target.style.borderColor = '#cbd5e1')}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 4. जिओफेन्स त्रिज्या */}
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: 750, color: '#0f172a', marginBottom: '8px' }}>
+                {isMr ? '4. जिओफेन्स त्रिज्या' : '4. Geofence Radius'}
+              </div>
+              <div style={{ marginBottom: '12px' }}>
+                <input
+                  type="text"
+                  value={policy.radius_meters ? `${policy.radius_meters} मीटर` : '500 मीटर'}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, '');
+                    setPolicy({ ...policy, radius_meters: digits ? parseInt(digits, 10) : '' });
+                  }}
+                  placeholder="500 मीटर"
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    padding: '11px 14px',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    color: '#0f172a',
+                    background: '#ffffff',
+                    outline: 'none',
+                    transition: 'border-color 0.15s ease',
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+                  onBlur={(e) => (e.target.style.borderColor = '#cbd5e1')}
+                />
+              </div>
+
+              {/* Action Buttons: Detect Location & Save Location */}
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={handleDetectCurrentLocation}
+                  disabled={detectingGps}
+                  style={{
+                    background: '#eff6ff',
+                    color: '#2563eb',
+                    border: '1px solid #bfdbfe',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '13px',
+                    fontWeight: 650,
+                    cursor: detectingGps ? 'wait' : 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.background = '#dbeafe')}
+                  onMouseOut={(e) => (e.currentTarget.style.background = '#eff6ff')}
+                >
+                  <span style={{ fontSize: '14px' }}>🎯</span>
+                  <span>{detectingGps ? (isMr ? 'शोधत आहे...' : 'Detecting...') : (isMr ? 'माझे स्थान शोधा' : 'Detect My Location')}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleSaveCurrentLocationForEveryone()}
+                  disabled={savingCurrentGpsForEveryone}
+                  style={{
+                    background: '#dcfce7',
+                    color: '#16a34a',
+                    border: '1px solid #bbf7d0',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '13px',
+                    fontWeight: 650,
+                    cursor: savingCurrentGpsForEveryone ? 'wait' : 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.background = '#bbf7d0')}
+                  onMouseOut={(e) => (e.currentTarget.style.background = '#dcfce7')}
+                >
+                  <span>✓</span>
+                  <span>{savingCurrentGpsForEveryone ? (isMr ? 'जतन करत आहे...' : 'Saving...') : (isMr ? 'स्थान सेव्ह करा' : 'Save Location')}</span>
+                </button>
+              </div>
+
+              {gpsNotice && (
+                <div style={{ marginTop: '8px', fontSize: '12px', color: '#047857', fontWeight: 600 }}>
+                  ✓ {gpsNotice}
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Footer Actions matching image */}
+            <div style={{ display: 'flex', gap: '14px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+              <button
+                type="button"
+                onClick={() => setShowLocationSettings(false)}
+                style={{
+                  flex: 1,
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  padding: '11px 20px',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  cursor: 'pointer',
+                  color: '#0f172a',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseOver={(e) => (e.currentTarget.style.background = '#f8fafc')}
+                onMouseOut={(e) => (e.currentTarget.style.background = '#ffffff')}
               >
                 {isMr ? 'रद्द करा' : 'Cancel'}
               </button>
@@ -1721,22 +1995,27 @@ export default function UserAttendanceManager({ language = 'mr' }) {
                 onClick={() => handleSavePolicy()}
                 disabled={savingPolicy}
                 style={{
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  flex: 2,
+                  background: '#2563eb',
                   color: '#ffffff',
                   border: 'none',
-                  padding: '9px 22px',
                   borderRadius: '8px',
+                  padding: '11px 24px',
                   fontWeight: 700,
-                  fontSize: '13px',
+                  fontSize: '14px',
                   cursor: savingPolicy ? 'wait' : 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+                  transition: 'all 0.15s ease',
                 }}
+                onMouseOver={(e) => (e.currentTarget.style.background = '#1d4ed8')}
+                onMouseOut={(e) => (e.currentTarget.style.background = '#2563eb')}
               >
-                {savingPolicy ? <RefreshCw size={15} style={{ animation: 'spin 1s linear infinite' }} /> : <Check size={15} />}
-                {isMr ? '💾 सर्व कर्मचाऱ्यांसाठी लागू करा (Save for All)' : 'Save & Enforce for All Users'}
+                <span>💾</span>
+                <span>{savingPolicy ? (isMr ? 'जतन होत आहे...' : 'Saving...') : (isMr ? 'सर्व कर्मचाऱ्यांसाठी सेव्ह करा' : 'Save for all employees')}</span>
               </button>
             </div>
           </div>
@@ -2129,7 +2408,7 @@ function ManualAttendanceModal({ isMr, users, onClose, onSuccess }) {
         if (e.target === e.currentTarget) e.preventDefault();
       }}
     >
-      <div style={{ ...modalContainerStyle, maxWidth: '520px' }}>
+      <div style={{ ...modalContainerStyle, maxWidth: 'min(520px, 96vw)', boxSizing: 'border-box' }}>
         <div style={modalHeaderStyle}>
           <div>
             <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800 }}>
@@ -2174,7 +2453,7 @@ function ManualAttendanceModal({ isMr, users, onClose, onSuccess }) {
             </select>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
             <div>
               <label style={formLabelStyle}>{isMr ? 'तारीख' : 'Date'}</label>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required style={formInputStyle} />
@@ -2190,7 +2469,7 @@ function ManualAttendanceModal({ isMr, users, onClose, onSuccess }) {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
             <div>
               <label style={formLabelStyle}>{isMr ? 'Punch In वेळ' : 'Punch In Time'}</label>
               <input type="text" value={punchIn} onChange={(e) => setPunchIn(e.target.value)} style={formInputStyle} />

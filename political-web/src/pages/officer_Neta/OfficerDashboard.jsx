@@ -12,8 +12,6 @@ import NotificationsAlerts from './components/NotificationsAlerts';
 import DataExportCenter from './components/DataExportCenter';
 import Citizen360CRM from './components/Citizen360CRM';
 import AdminChatbotDesk from '../admin/AdminChatbotDesk';
-import { netaApi } from './api/netaApi';
-import BackButton from '../../components/BackButton';
 import ErrorBoundary from '../../components/ErrorBoundary';
 
 export default function OfficerDashboard() {
@@ -25,6 +23,26 @@ export default function OfficerDashboard() {
   const [lang, setLang] = useState('mr'); // 'mr' (default) or 'en'
   const [overviewData, setOverviewData] = useState(null);
   const [unreadAlerts, setUnreadAlerts] = useState(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Escape key and background scroll lock for floating AI assistant
+  useEffect(() => {
+    if (!showFloatingChat) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setShowFloatingChat(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    if (window.innerWidth <= 768) {
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [showFloatingChat]);
 
   const isMr = lang === 'mr';
 
@@ -77,8 +95,12 @@ export default function OfficerDashboard() {
   }, [activeTab]);
 
   const handleLogout = async () => {
-    await logout();
-    navigate('/login', { replace: true });
+    try {
+      await logout();
+    } catch {
+      // Ignore if session was not active
+    }
+    navigate('/', { replace: true });
   };
 
   const totalBoothsCount = overviewData?.profile?.total_booths || 318;
@@ -211,16 +233,19 @@ export default function OfficerDashboard() {
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       </svg>
     ),
-  };
-
-  const badgeConfig = {
-    live: { bg: '#ecfdf5', border: '#a7f3d0', text: '#059669' },
-    blue: { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8' },
-    amber: { bg: '#fffbeb', border: '#fde68a', text: '#b45309' },
-    purple: { bg: '#faf5ff', border: '#e9d5ff', text: '#7e22ce' },
-    red: { bg: '#fef2f2', border: '#fecaca', text: '#b91c1c' },
-    indigo: { bg: '#eef2ff', border: '#c7d2fe', text: '#4338ca' },
-    teal: { bg: '#f0fdfa', border: '#99f6e4', text: '#0f766e' },
+    menu: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    ),
+    close: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18" />
+        <line x1="6" y1="6" x2="18" y2="18" />
+      </svg>
+    ),
   };
 
   // The 9 Navigation Options organized into 3 logical operational categories
@@ -234,25 +259,25 @@ export default function OfficerDashboard() {
           id: 'overview',
           label_mr: 'संपूर्ण क्षेत्राचा डॅशबोर्ड',
           label_en: 'Constituency Overview Dashboard',
+          short_label_mr: 'डॅशबोर्ड',
+          short_label_en: 'Dashboard',
           iconKey: 'overview',
-          badge: isMr ? 'थेट डेटा' : 'Live DB',
-          badgeTheme: 'live',
         },
         {
           id: 'ai_chatbot',
           label_mr: 'AI प्रचार व निवडणूक सहाय्यक',
           label_en: 'AI Campaign & Intelligence Desk',
+          short_label_mr: 'AI सहाय्यक',
+          short_label_en: 'AI Assistant',
           iconKey: 'chatbot',
-          badge: isMr ? 'AI थेट' : 'AI Live',
-          badgeTheme: 'live',
         },
         {
           id: 'geography_progress',
           label_mr: 'जिल्हा/विधानसभा/तालुका/गाव/बूथनिहाय प्रगती',
           label_en: 'Geography & Booth Progress',
+          short_label_mr: 'जिल्हा व बूथ प्रगती',
+          short_label_en: 'Geography & Booths',
           iconKey: 'geography_progress',
-          badge: `${totalBoothsCount} ${isMr ? 'बूथ' : 'Booths'}`,
-          badgeTheme: 'blue',
         },
       ],
     },
@@ -263,35 +288,35 @@ export default function OfficerDashboard() {
       items: [
         {
           id: 'workers_performance',
-          label_mr: 'अधिकाऱ्यांचे काम व कामगिरी डॅशबोर्ड',
-          label_en: 'Field Officer Performance',
+          label_mr: 'कार्यकर्त्यांचे काम व कामगिरी डॅशबोर्ड',
+          label_en: 'Karyakarta Work & Performance',
+          short_label_mr: 'कार्यकर्ते कामगिरी',
+          short_label_en: 'Workers Performance',
           iconKey: 'workers_performance',
-          badge: `${activeWorkersCount} ${isMr ? 'सक्रिय' : 'Active'}`,
-          badgeTheme: 'amber',
         },
         {
           id: 'crm_citizens',
           label_mr: 'नागरिक CRM ३६०° (मतदार संपर्क)',
           label_en: 'Citizen CRM 360° Profile',
+          short_label_mr: 'नागरिक CRM',
+          short_label_en: 'Citizens CRM',
           iconKey: 'crm_citizens',
-          badge: isMr ? 'CRM ३६०°' : 'CRM 360°',
-          badgeTheme: 'teal',
         },
         {
           id: 'meetings_tours',
           label_mr: 'बैठका व दौरे',
           label_en: 'Meetings & Field Tours',
+          short_label_mr: 'बैठका व दौरे',
+          short_label_en: 'Meetings & Tours',
           iconKey: 'meetings_tours',
-          badge: `${upcomingMeetingsCount} ${isMr ? 'आगामी' : 'Upcoming'}`,
-          badgeTheme: 'purple',
         },
         {
           id: 'pending_tasks',
           label_mr: 'प्रलंबित कामे व पाठपुरावा',
           label_en: 'Pending Tasks & Follow-ups',
+          short_label_mr: 'प्रलंबित कामे',
+          short_label_en: 'Pending Tasks',
           iconKey: 'pending_tasks',
-          badge: `${pendingTasksCount} ${isMr ? 'प्रलंबित' : 'Pending'}`,
-          badgeTheme: 'red',
         },
       ],
     },
@@ -304,25 +329,25 @@ export default function OfficerDashboard() {
           id: 'data_export',
           label_mr: 'डेटा बॅकअप व निर्यात',
           label_en: 'Data Backup & Export',
+          short_label_mr: 'डेटा एक्सपोर्ट',
+          short_label_en: 'Data Export',
           iconKey: 'data_export',
-          badge: isMr ? 'बॅकअप' : 'Backup',
-          badgeTheme: 'teal',
         },
         {
           id: 'field_updates',
           label_mr: 'फील्ड घडामोडी व थेट माहिती',
           label_en: 'Field Updates & Ground Pulse',
+          short_label_mr: 'फील्ड घडामोडी',
+          short_label_en: 'Field Updates',
           iconKey: 'field_updates',
-          badge: isMr ? 'थेट वार्ता' : 'Live Pulse',
-          badgeTheme: 'live',
         },
         {
           id: 'notifications',
           label_mr: 'सूचना व सतर्कता',
           label_en: 'Notifications & Alerts',
+          short_label_mr: 'सूचना व सतर्कता',
+          short_label_en: 'Notifications',
           iconKey: 'notifications',
-          badge: unreadAlerts > 0 ? `${unreadAlerts} ${isMr ? 'नवीन' : 'New'}` : null,
-          badgeTheme: 'red',
         },
       ],
     },
@@ -348,23 +373,193 @@ export default function OfficerDashboard() {
 
   return (
     <div
+      className="neta-dashboard-layout"
       style={{
-        minHeight: '100vh',
+        height: '100vh',
+        maxHeight: '100vh',
         background: '#f8fafc',
         color: '#0f172a',
         fontFamily: isMr ? "'Noto Sans Devanagari', 'Mukta', 'Inter', sans-serif" : "'Inter', 'Noto Sans Devanagari', 'Mukta', sans-serif",
         display: 'flex',
+        overflow: 'hidden',
+        width: '100%',
+        maxWidth: '100vw',
+        boxSizing: 'border-box',
       }}
     >
-      {/* SIMPLE & CLEAN LIGHT SAAS SIDEBAR */}
+      <style>{`
+        .neta-sidebar-search::placeholder {
+          color: rgba(255, 255, 255, 0.75) !important;
+        }
+
+        /* Desktop Title Display (No Duplication) */
+        .neta-title-desktop {
+          display: inline !important;
+        }
+        .neta-title-mobile {
+          display: none !important;
+        }
+
+        /* Separate Scrollbar Styling for Main Content */
+        .neta-main-body {
+          scrollbar-width: thin;
+          scrollbar-color: #cbd5e1 transparent;
+        }
+        .neta-main-body::-webkit-scrollbar {
+          width: 6px;
+        }
+        .neta-main-body::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .neta-main-body::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 4px;
+        }
+        .neta-main-body::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+
+        /* Mobile Drawer & Responsive Layout */
+        @media (max-width: 900px) {
+          .neta-dashboard-layout {
+            flex-direction: column !important;
+            height: 100vh !important;
+            overflow: hidden !important;
+          }
+          .neta-sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            bottom: 0 !important;
+            height: 100vh !important;
+            width: 290px !important;
+            max-width: 86vw !important;
+            z-index: 9999 !important;
+            transform: translateX(-100%);
+            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: 6px 0 30px rgba(0, 0, 0, 0.45) !important;
+          }
+          .neta-sidebar.mobile-open {
+            transform: translateX(0) !important;
+          }
+          .neta-backdrop {
+            display: block !important;
+            position: fixed !important;
+            inset: 0 !important;
+            background: rgba(15, 23, 42, 0.6) !important;
+            backdrop-filter: blur(4px) !important;
+            z-index: 9998 !important;
+            animation: fadeIn 0.2s ease !important;
+          }
+          .neta-hamburger-btn {
+            display: inline-flex !important;
+          }
+          .neta-mobile-close-btn {
+            display: inline-flex !important;
+          }
+          .neta-desktop-collapse-btn {
+            display: none !important;
+          }
+          .neta-header {
+            padding: 8px 12px !important;
+            flex-wrap: nowrap !important;
+            gap: 8px !important;
+            flex-shrink: 0 !important;
+          }
+          .neta-header-title {
+            font-size: 14.5px !important;
+            line-height: 1.25 !important;
+          }
+          .neta-title-desktop {
+            display: none !important;
+          }
+          .neta-title-mobile {
+            display: -webkit-box !important;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 13.5px !important;
+            line-height: 1.25 !important;
+            font-weight: 750 !important;
+          }
+          .neta-header-sub {
+            display: none !important;
+          }
+          .neta-time-badge {
+            display: none !important;
+          }
+          .neta-main-body {
+            padding: 12px 10px !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .neta-header {
+            padding: 8px 10px !important;
+            gap: 8px !important;
+          }
+          .neta-hamburger-btn {
+            width: 44px !important;
+            height: 44px !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+          }
+          .neta-lang-btn {
+            padding: 6px 10px !important;
+            font-size: 12px !important;
+            min-height: 44px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+          }
+          .neta-bell-btn {
+            width: 44px !important;
+            height: 44px !important;
+            min-width: 44px !important;
+            min-height: 44px !important;
+          }
+        }
+
+        @media (min-width: 901px) {
+          .neta-backdrop {
+            display: none !important;
+          }
+          .neta-hamburger-btn {
+            display: none !important;
+          }
+          .neta-mobile-close-btn {
+            display: none !important;
+          }
+          .neta-desktop-collapse-btn {
+            display: inline-flex !important;
+          }
+          .neta-title-desktop {
+            display: inline !important;
+          }
+          .neta-title-mobile {
+            display: none !important;
+          }
+        }
+      `}</style>
+
+      {/* Backdrop overlay for mobile drawer */}
+      {isMobileMenuOpen && (
+        <div
+          className="neta-backdrop"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* ROYAL BLUE THEMED SAAS SIDEBAR */}
       <aside
+        className={`neta-sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}
         style={{
           width: isCollapsed ? '72px' : '268px',
           minWidth: isCollapsed ? '72px' : '268px',
-          background: '#ffffff',
-          borderRight: '1px solid #e2e8f0',
-          boxShadow: '1px 0 3px rgba(0, 0, 0, 0.03)',
-          color: '#1e293b',
+          background: '#2f72d4',
+          borderRight: '1px solid rgba(255, 255, 255, 0.15)',
+          boxShadow: '2px 0 14px rgba(47, 114, 212, 0.25)',
+          color: '#ffffff',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -377,7 +572,7 @@ export default function OfficerDashboard() {
           overflowY: 'auto',
           overflowX: 'hidden',
           scrollbarWidth: 'thin',
-          scrollbarColor: '#cbd5e1 transparent',
+          scrollbarColor: 'rgba(255, 255, 255, 0.3) transparent',
           transition: 'width 0.2s ease, min-width 0.2s ease',
         }}
       >
@@ -399,7 +594,7 @@ export default function OfficerDashboard() {
               boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
             }}
           >
-            {/* Top Indian Tricolor Stripe */}
+            {/* Top Accent Stripe */}
             <div
               style={{
                 position: 'absolute',
@@ -407,47 +602,31 @@ export default function OfficerDashboard() {
                 left: 0,
                 right: 0,
                 height: '3px',
-                background: 'linear-gradient(90deg, #FF671F 0%, #FFFFFF 50%, #138808 100%)',
+                background: 'linear-gradient(90deg, #3b82f6 0%, #6366f1 100%)',
               }}
             />
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: isCollapsed ? 'center' : 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '9px', minWidth: 0 }}>
-                {/* Official Indian Flag Emblem with Ashoka Chakra */}
+                {/* Official Brand Emblem */}
                 <div
                   style={{
                     width: '36px',
                     height: '36px',
                     borderRadius: '8px',
-                    background: 'linear-gradient(135deg, #0f2b5c 0%, #000080 100%)',
+                    background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#ffffff',
                     flexShrink: 0,
-                    border: '1px solid rgba(255, 103, 31, 0.4)',
-                    boxShadow: '0 2px 8px rgba(0, 0, 128, 0.25)',
+                    border: '1px solid rgba(59, 130, 246, 0.4)',
+                    boxShadow: '0 2px 8px rgba(30, 58, 138, 0.25)',
+                    fontSize: '18px',
                   }}
-                  title={isMr ? 'भारत • नेता व जनसेवक कक्ष' : 'India • Political Command HQ'}
+                  title={isMr ? 'नेता व जनसेवक कक्ष' : 'Political Command HQ'}
                 >
-                  <svg width="22" height="15" viewBox="0 0 36 24" style={{ borderRadius: '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.35)' }}>
-                    <rect width="36" height="8" fill="#FF9933" />
-                    <rect y="8" width="36" height="8" fill="#FFFFFF" />
-                    <rect y="16" width="36" height="8" fill="#138808" />
-                    <circle cx="18" cy="12" r="3.2" fill="none" stroke="#000080" strokeWidth="0.7" />
-                    <circle cx="18" cy="12" r="0.7" fill="#000080" />
-                    {Array.from({ length: 24 }).map((_, i) => (
-                      <line
-                        key={i}
-                        x1="18"
-                        y1="12"
-                        x2={18 + 3.1 * Math.cos((i * 15 * Math.PI) / 180)}
-                        y2={12 + 3.1 * Math.sin((i * 15 * Math.PI) / 180)}
-                        stroke="#000080"
-                        strokeWidth="0.35"
-                      />
-                    ))}
-                  </svg>
+                  🏛️
                 </div>
 
                 {!isCollapsed && (
@@ -477,16 +656,17 @@ export default function OfficerDashboard() {
                       }}
                     >
                       {overviewData?.profile?.name_mr
-                        ? `🇮🇳 ${overviewData.profile.name_mr}`
-                        : (isMr ? '🇮🇳 भारत • महाराष्ट्र राज्य' : '🇮🇳 India • Maharashtra State')}
+                        ? `🏛️ ${overviewData.profile.name_mr}`
+                        : (isMr ? '🏛️ भारत • महाराष्ट्र राज्य' : '🏛️ India • Maharashtra State')}
                     </div>
                   </div>
                 )}
               </div>
 
-              {/* Collapse / Expand Toggle Button */}
+              {/* Collapse / Expand Toggle Button for Desktop */}
               <button
                 type="button"
+                className="neta-desktop-collapse-btn"
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 style={{
                   width: '26px',
@@ -514,6 +694,31 @@ export default function OfficerDashboard() {
                 title={isCollapsed ? (isMr ? 'विस्तृत करा' : 'Expand Sidebar') : (isMr ? 'संक्षिप्त करा' : 'Collapse Sidebar')}
               >
                 {isCollapsed ? Icons.expand : Icons.collapse}
+              </button>
+
+              {/* Close Button for Mobile Drawer */}
+              <button
+                type="button"
+                className="neta-mobile-close-btn"
+                onClick={() => setIsMobileMenuOpen(false)}
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '6px',
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  color: '#1e3a8a',
+                  display: 'none',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  padding: 0,
+                  flexShrink: 0,
+                  transition: 'all 0.15s ease',
+                }}
+                title={isMr ? 'मेनू बंद करा' : 'Close Menu'}
+              >
+                {Icons.close}
               </button>
             </div>
 
@@ -553,7 +758,7 @@ export default function OfficerDashboard() {
             )}
           </div>
 
-          {/* Simple Light Search Bar */}
+          {/* Search Bar on Blue Background */}
           {!isCollapsed && (
             <div
               style={{
@@ -567,7 +772,7 @@ export default function OfficerDashboard() {
                   left: '9px',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  color: '#94a3b8',
+                  color: 'rgba(255, 255, 255, 0.75)',
                   display: 'flex',
                   alignItems: 'center',
                 }}
@@ -576,28 +781,29 @@ export default function OfficerDashboard() {
               </span>
               <input
                 type="text"
+                className="neta-sidebar-search"
                 placeholder={isMr ? 'पर्याय शोधा...' : 'Search modules...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
                   width: '100%',
                   boxSizing: 'border-box',
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
+                  background: 'rgba(255, 255, 255, 0.18)',
+                  border: '1px solid rgba(255, 255, 255, 0.28)',
                   borderRadius: '6px',
                   padding: '6px 26px 6px 28px',
-                  color: '#0f172a',
+                  color: '#ffffff',
                   fontSize: '12px',
                   outline: 'none',
-                  transition: 'border-color 0.15s ease',
+                  transition: 'all 0.15s ease',
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = '#3b82f6';
-                  e.target.style.background = '#ffffff';
+                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.7)';
+                  e.target.style.background = 'rgba(255, 255, 255, 0.25)';
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor = '#e2e8f0';
-                  e.target.style.background = '#f8fafc';
+                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.28)';
+                  e.target.style.background = 'rgba(255, 255, 255, 0.18)';
                 }}
               />
               {searchQuery && (
@@ -611,7 +817,7 @@ export default function OfficerDashboard() {
                     transform: 'translateY(-50%)',
                     background: 'none',
                     border: 'none',
-                    color: '#94a3b8',
+                    color: 'rgba(255, 255, 255, 0.85)',
                     cursor: 'pointer',
                     fontSize: '13px',
                     padding: 0,
@@ -631,13 +837,13 @@ export default function OfficerDashboard() {
                 {!isCollapsed ? (
                   <div
                     style={{
-                      fontSize: '10px',
+                      fontSize: '10.5px',
                       fontWeight: '700',
-                      color: '#94a3b8',
+                      color: 'rgba(255, 255, 255, 0.72)',
                       letterSpacing: '0.6px',
                       textTransform: 'uppercase',
-                      padding: '0 6px',
-                      marginBottom: '4px',
+                      padding: '0 8px',
+                      marginBottom: '5px',
                     }}
                   >
                     {isMr ? sec.title_mr : sec.title_en}
@@ -646,45 +852,40 @@ export default function OfficerDashboard() {
                   <div
                     style={{
                       height: '1px',
-                      background: '#f1f5f9',
+                      background: 'rgba(255, 255, 255, 0.2)',
                       margin: '4px 2px',
                     }}
                   />
                 )}
 
                 {/* Items under Category */}
-                <nav style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <nav style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                   {sec.items.map((item) => {
                     const isSelected = activeTab === item.id;
-                    const badgeTheme = badgeConfig[item.badgeTheme] || badgeConfig.blue;
 
                     return (
                       <button
                         key={item.id}
                         type="button"
-                        onClick={() => setActiveTab(item.id)}
-                        title={
-                          isCollapsed
-                            ? `${isMr ? item.label_mr : item.label_en}${item.badge ? ` (${item.badge})` : ''}`
-                            : undefined
-                        }
+                        onClick={() => {
+                          setActiveTab(item.id);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        title={isCollapsed ? (isMr ? item.label_mr : item.label_en) : undefined}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
-                          justifyContent: isCollapsed ? 'center' : 'space-between',
+                          justifyContent: isCollapsed ? 'center' : 'flex-start',
                           width: '100%',
-                          padding: isCollapsed ? '8px 0' : '7px 9px',
+                          padding: isCollapsed ? '8px 0' : '8px 10px',
                           borderRadius: '8px',
                           border: isSelected
-                            ? '1px solid #fed7aa'
+                            ? '1px solid rgba(255, 255, 255, 0.35)'
                             : '1px solid transparent',
-                          borderLeft: isSelected
-                            ? '3.5px solid #FF671F'
-                            : '3.5px solid transparent',
                           background: isSelected
-                            ? 'linear-gradient(90deg, #fff7ed 0%, #ffffff 100%)'
+                            ? 'rgba(0, 0, 0, 0.18)'
                             : 'transparent',
-                          color: isSelected ? '#c2410c' : '#475569',
+                          color: '#ffffff',
                           fontWeight: isSelected ? '700' : '500',
                           fontSize: '12.5px',
                           cursor: 'pointer',
@@ -694,14 +895,14 @@ export default function OfficerDashboard() {
                         }}
                         onMouseOver={(e) => {
                           if (!isSelected) {
-                            e.currentTarget.style.background = '#f8fafc';
-                            e.currentTarget.style.color = '#0f172a';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.14)';
+                            e.currentTarget.style.color = '#ffffff';
                           }
                         }}
                         onMouseOut={(e) => {
                           if (!isSelected) {
                             e.currentTarget.style.background = 'transparent';
-                            e.currentTarget.style.color = '#475569';
+                            e.currentTarget.style.color = 'rgba(255, 255, 255, 0.92)';
                           }
                         }}
                       >
@@ -724,33 +925,17 @@ export default function OfficerDashboard() {
                               alignItems: 'center',
                               justifyContent: 'center',
                               background: isSelected
-                                ? '#ffedd5'
-                                : '#f8fafc',
-                              color: isSelected ? '#ea580c' : '#64748b',
+                                ? 'rgba(255, 255, 255, 0.22)'
+                                : 'rgba(255, 255, 255, 0.12)',
+                              color: isSelected ? '#fed7aa' : 'rgba(255, 255, 255, 0.92)',
                               border: isSelected
-                                ? '1px solid #fed7aa'
-                                : '1px solid #e2e8f0',
+                                ? '1px solid rgba(255, 255, 255, 0.35)'
+                                : '1px solid rgba(255, 255, 255, 0.18)',
                               flexShrink: 0,
                               position: 'relative',
                             }}
                           >
                             {Icons[item.iconKey] || Icons.overview}
-
-                            {/* Collapsed Indicator Dot */}
-                            {isCollapsed && item.badge && (
-                              <span
-                                style={{
-                                  position: 'absolute',
-                                  top: '-2px',
-                                  right: '-2px',
-                                  width: '7px',
-                                  height: '7px',
-                                  borderRadius: '3.5px',
-                                  background: item.badgeTheme === 'red' ? '#ef4444' : '#3b82f6',
-                                  border: '1px solid #ffffff',
-                                }}
-                              />
-                            )}
                           </span>
 
                           {!isCollapsed && (
@@ -761,32 +946,13 @@ export default function OfficerDashboard() {
                                 textOverflow: 'ellipsis',
                                 fontSize: '12.5px',
                                 lineHeight: 1.3,
+                                color: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.92)',
                               }}
                             >
                               {isMr ? item.label_mr : item.label_en}
                             </span>
                           )}
                         </div>
-
-                        {/* Smooth SaaS Pill Badge (When Expanded) */}
-                        {!isCollapsed && item.badge && (
-                          <span
-                            style={{
-                              fontSize: '10px',
-                              fontWeight: '600',
-                              padding: '2px 6px',
-                              borderRadius: '9999px',
-                              background: isSelected ? '#dbeafe' : badgeTheme.bg,
-                              color: isSelected ? '#1e40af' : badgeTheme.text,
-                              border: `1px solid ${isSelected ? '#bfdbfe' : badgeTheme.border}`,
-                              marginLeft: '6px',
-                              whiteSpace: 'nowrap',
-                              flexShrink: 0,
-                            }}
-                          >
-                            {item.badge}
-                          </span>
-                        )}
                       </button>
                     );
                   })}
@@ -802,8 +968,8 @@ export default function OfficerDashboard() {
             marginTop: '14px',
             padding: isCollapsed ? '8px 4px' : '10px',
             borderRadius: '10px',
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
+            background: 'rgba(0, 0, 0, 0.16)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: isCollapsed ? 'center' : 'stretch',
@@ -824,14 +990,14 @@ export default function OfficerDashboard() {
                 width: '34px',
                 height: '34px',
                 borderRadius: '8px',
-                background: '#dbeafe',
-                color: '#1d4ed8',
+                background: '#ffffff',
+                color: '#2f72d4',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontWeight: '700',
+                fontWeight: '800',
                 fontSize: '13px',
-                border: '1px solid #bfdbfe',
+                border: '1px solid rgba(255, 255, 255, 0.4)',
                 position: 'relative',
                 flexShrink: 0,
               }}
@@ -847,7 +1013,7 @@ export default function OfficerDashboard() {
                   height: '8px',
                   borderRadius: '4px',
                   background: '#10b981',
-                  border: '1.5px solid #ffffff',
+                  border: '1.5px solid #2f72d4',
                 }}
               />
             </div>
@@ -858,7 +1024,7 @@ export default function OfficerDashboard() {
                   style={{
                     fontSize: '12px',
                     fontWeight: '700',
-                    color: '#0f172a',
+                    color: '#ffffff',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -869,7 +1035,7 @@ export default function OfficerDashboard() {
                 <div
                   style={{
                     fontSize: '10.5px',
-                    color: '#64748b',
+                    color: 'rgba(255, 255, 255, 0.78)',
                     fontWeight: '500',
                     display: 'flex',
                     alignItems: 'center',
@@ -898,9 +1064,9 @@ export default function OfficerDashboard() {
                 onClick={() => navigate('/admin')}
                 style={{
                   flex: 1,
-                  background: '#ffffff',
-                  border: '1px solid #cbd5e1',
-                  color: '#334155',
+                  background: 'rgba(255, 255, 255, 0.18)',
+                  border: '1px solid rgba(255, 255, 255, 0.28)',
+                  color: '#ffffff',
                   padding: isCollapsed ? '6px 0' : '5px 6px',
                   borderRadius: '6px',
                   fontSize: '11px',
@@ -913,12 +1079,10 @@ export default function OfficerDashboard() {
                   transition: 'all 0.15s ease',
                 }}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.background = '#f1f5f9';
-                  e.currentTarget.style.color = '#0f172a';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.28)';
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.background = '#ffffff';
-                  e.currentTarget.style.color = '#334155';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)';
                 }}
                 title={isMr ? 'ॲडमिन डॅशबोर्ड' : 'Admin Dashboard'}
               >
@@ -928,12 +1092,12 @@ export default function OfficerDashboard() {
             )}
             <button
               type="button"
-              onClick={handleLogout}
+              onClick={() => navigate('/')}
               style={{
                 flex: 1,
-                background: '#ffffff',
-                border: '1px solid #fecaca',
-                color: '#dc2626',
+                background: 'rgba(255, 255, 255, 0.18)',
+                border: '1px solid rgba(255, 255, 255, 0.28)',
+                color: '#ffffff',
                 padding: isCollapsed ? '6px 0' : '5px 6px',
                 borderRadius: '6px',
                 fontSize: '11px',
@@ -946,24 +1110,67 @@ export default function OfficerDashboard() {
                 transition: 'all 0.15s ease',
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.background = '#fef2f2';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.28)';
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)';
+              }}
+              title={isMr ? 'मुख्य पृष्ठ' : 'Home'}
+            >
+              <span style={{ fontSize: '13px' }}>🏠</span>
+              {!isCollapsed && <span>{isMr ? 'मुख्य' : 'Home'}</span>}
+            </button>
+            <button
+              type="button"
+              onClick={handleLogout}
+              style={{
+                flex: 1,
+                background: 'rgba(239, 68, 68, 0.22)',
+                border: '1px solid rgba(239, 68, 68, 0.38)',
+                color: '#ffffff',
+                padding: isCollapsed ? '6px 0' : '5px 6px',
+                borderRadius: '6px',
+                fontSize: '11px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '4px',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.38)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.22)';
               }}
               title={isMr ? 'बाहेर पडा' : 'Logout'}
             >
               {Icons.logout}
-              {!isCollapsed && <span>{isMr ? 'बाहेर पडा' : 'Logout'}</span>}
+              {!isCollapsed && <span>{isMr ? 'बाहेर' : 'Exit'}</span>}
             </button>
           </div>
         </div>
       </aside>
 
-      {/* MAIN VIEW AREA */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: '100vh' }}>
-        {/* Top Header Bar */}
+      {/* MAIN VIEW AREA with Fixed Header & Independent Separate Scroll */}
+      <div
+        className="neta-main-wrapper"
+        style={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0,
+          height: '100vh',
+          maxHeight: '100vh',
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
+        {/* Top Header Bar (Stationary / Fixed at Top) */}
         <header
+          className="neta-header"
           style={{
             background: '#ffffff',
             borderBottom: '1px solid #e2e8f0',
@@ -975,9 +1182,10 @@ export default function OfficerDashboard() {
             top: 0,
             zIndex: 40,
             boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+            flexShrink: 0,
           }}
         >
-          {/* Top Indian National Flag (Tiranga) 3-Stripe Ribbon */}
+          {/* Top National Ribbon */}
           <div
             style={{
               position: 'absolute',
@@ -985,41 +1193,52 @@ export default function OfficerDashboard() {
               left: 0,
               right: 0,
               height: '3.5px',
-              background: 'linear-gradient(90deg, #FF671F 0%, #FF9933 33.3%, #FFFFFF 33.3%, #FFFFFF 66.6%, #138808 66.6%, #046A38 100%)',
+              background: 'linear-gradient(90deg, #3b82f6 0%, #6366f1 50%, #0ea5e9 100%)',
               zIndex: 10,
             }}
           />
 
-          {/* Active Title & Back Button */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <BackButton
-              lang={lang}
-              variant="default"
-              fallbackPath="/admin"
-              onBack={() => {
-                if (activeTab !== 'overview') {
-                  setActiveTab('overview');
-                } else if (window.history.length > 1) {
-                  navigate(-1);
-                } else {
-                  navigate('/admin');
-                }
+          {/* Active Title, Mobile Hamburger & Back Button */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+            {/* Hamburger Button for Mobile Drawer */}
+            <button
+              type="button"
+              className="neta-hamburger-btn"
+              onClick={() => setIsMobileMenuOpen(true)}
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '8px',
+                background: '#2f72d4',
+                color: '#ffffff',
+                border: 'none',
+                display: 'none',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                flexShrink: 0,
+                boxShadow: '0 2px 6px rgba(47, 114, 212, 0.35)',
               }}
-            />
-            <div>
-              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              title={isMr ? 'मेनू उघडा' : 'Open Menu'}
+            >
+              {Icons.menu}
+            </button>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div className="neta-header-sub" style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 {isMr ? 'महाराष्ट्र निवडणूक कक्ष' : 'Maharashtra Election Control Desk'}
               </div>
-              <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>
-                {isMr ? currentNav.label_mr : currentNav.label_en}
+              <h2 className="neta-header-title" style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>
+                <span className="neta-title-desktop">{isMr ? currentNav.label_mr : currentNav.label_en}</span>
+                <span className="neta-title-mobile">{isMr ? (currentNav.short_label_mr || currentNav.label_mr) : (currentNav.short_label_en || currentNav.label_en)}</span>
               </h2>
             </div>
           </div>
 
           {/* Right Header Utilities: Language Toggle, IST Clock & Notifications Bell */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
             {/* National Indian Flag & IST Time Badge */}
             <div
+              className="neta-time-badge"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -1030,24 +1249,7 @@ export default function OfficerDashboard() {
                 padding: '4px 9px',
               }}
             >
-              <svg width="20" height="14" viewBox="0 0 36 24" style={{ borderRadius: '2px', boxShadow: '0 1px 2px rgba(0,0,0,0.2)', flexShrink: 0 }}>
-                <rect width="36" height="8" fill="#FF9933" />
-                <rect y="8" width="36" height="8" fill="#FFFFFF" />
-                <rect y="16" width="36" height="8" fill="#138808" />
-                <circle cx="18" cy="12" r="3.2" fill="none" stroke="#000080" strokeWidth="0.7" />
-                <circle cx="18" cy="12" r="0.7" fill="#000080" />
-                {Array.from({ length: 24 }).map((_, i) => (
-                  <line
-                    key={i}
-                    x1="18"
-                    y1="12"
-                    x2={18 + 3.1 * Math.cos((i * 15 * Math.PI) / 180)}
-                    y2={12 + 3.1 * Math.sin((i * 15 * Math.PI) / 180)}
-                    stroke="#000080"
-                    strokeWidth="0.35"
-                  />
-                ))}
-              </svg>
+              <span style={{ fontSize: '13px', lineHeight: 1 }}>🌐</span>
               <span style={{ fontSize: '11.5px', fontWeight: '800', color: '#1e293b' }}>
                 {isMr ? 'भारत' : 'INDIA'}
               </span>
@@ -1055,6 +1257,7 @@ export default function OfficerDashboard() {
                 {istTimeFormatted.time}
               </span>
             </div>
+
             {/* Language Switcher Pill */}
             <div
               style={{
@@ -1066,14 +1269,16 @@ export default function OfficerDashboard() {
               }}
             >
               <button
+                type="button"
+                className="neta-lang-btn"
                 onClick={() => setLang('mr')}
                 style={{
                   border: 'none',
                   background: lang === 'mr' ? '#1e3a8a' : 'transparent',
                   color: lang === 'mr' ? '#ffffff' : '#475569',
-                  padding: '4px 10px',
+                  padding: '4px 8px',
                   borderRadius: '6px',
-                  fontSize: '12px',
+                  fontSize: '11.5px',
                   fontWeight: '700',
                   cursor: 'pointer',
                 }}
@@ -1081,14 +1286,16 @@ export default function OfficerDashboard() {
                 मराठी
               </button>
               <button
+                type="button"
+                className="neta-lang-btn"
                 onClick={() => setLang('en')}
                 style={{
                   border: 'none',
                   background: lang === 'en' ? '#1e3a8a' : 'transparent',
                   color: lang === 'en' ? '#ffffff' : '#475569',
-                  padding: '4px 10px',
+                  padding: '4px 8px',
                   borderRadius: '6px',
-                  fontSize: '12px',
+                  fontSize: '11.5px',
                   fontWeight: '700',
                   cursor: 'pointer',
                 }}
@@ -1099,19 +1306,22 @@ export default function OfficerDashboard() {
 
             {/* Notification Bell Icon */}
             <button
+              type="button"
+              className="neta-bell-btn"
               onClick={() => setActiveTab('notifications')}
               style={{
                 position: 'relative',
                 background: '#f8fafc',
                 border: '1px solid #e2e8f0',
-                width: '38px',
-                height: '38px',
+                width: '36px',
+                height: '36px',
                 borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '18px',
+                fontSize: '17px',
                 cursor: 'pointer',
+                flexShrink: 0,
               }}
               title="Notifications"
             >
@@ -1141,8 +1351,20 @@ export default function OfficerDashboard() {
           </div>
         </header>
 
-        {/* Dynamic Main Body Content */}
-        <main style={{ padding: '24px 28px', flex: 1 }}>
+        {/* Dynamic Main Body Content with Independent Separate Scroll */}
+        <main
+          className="neta-main-body"
+          style={{
+            padding: '24px 28px',
+            flex: 1,
+            minWidth: 0,
+            width: '100%',
+            boxSizing: 'border-box',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
           <ErrorBoundary key={activeTab}>
             {activeTab === 'overview' && (
               <AreaOverviewDashboard onNavigate={setActiveTab} lang={lang} />
@@ -1187,57 +1409,148 @@ export default function OfficerDashboard() {
           </ErrorBoundary>
         </main>
 
-        {/* Floating AI Political Campaign Assistant Launcher */}
-        <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 9999 }}>
-          {showFloatingChat ? (
-            <div
-              style={{
-                width: '440px',
-                maxWidth: 'calc(100vw - 32px)',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
-                borderRadius: '16px',
-                overflow: 'hidden',
-              }}
-            >
-              <AdminChatbotDesk
-                lang={lang}
-                isFloating={true}
-                onClose={() => setShowFloatingChat(false)}
-                onNavigateDesk={(deskId) => {
-                  setActiveTab(deskId);
-                  setShowFloatingChat(false);
-                }}
-              />
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setShowFloatingChat(true)}
-              style={{
-                background: 'linear-gradient(135deg, #c2410c 0%, #ea580c 100%)',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '50px',
-                padding: '12px 20px',
-                fontSize: '13.5px',
-                fontWeight: '750',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 8px 20px rgba(234, 88, 12, 0.35)',
-                transition: 'transform 0.15s ease',
-              }}
-              onMouseOver={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
-              onMouseOut={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-              title={isMr ? 'AI प्रचार सहाय्यक उघडा' : 'Open AI Campaign Assistant'}
-            >
-              <span style={{ fontSize: '18px' }}>🤖</span>
-              <span>{isMr ? 'AI प्रचार सहाय्यक' : 'AI Campaign Bot'}</span>
-              <span style={{ background: '#22c55e', width: '8px', height: '8px', borderRadius: '50%' }} />
-            </button>
-          )}
-        </div>
+        {/* Floating AI Political Campaign Assistant Launcher (Hidden when full chatbot tab is active) */}
+        {activeTab !== 'ai_chatbot' && (
+          <>
+            {showFloatingChat ? (
+              <>
+                {/* Backdrop overlay for focus and easy outside-click dismiss */}
+                <div
+                  className="neta-ai-modal-backdrop"
+                  onClick={() => setShowFloatingChat(false)}
+                  aria-hidden="true"
+                />
+
+                {/* AI Assistant Modal Window */}
+                <div
+                  className="neta-ai-modal-window"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={isMr ? 'AI प्रचार सहाय्यक' : 'AI Campaign Assistant'}
+                >
+                  <AdminChatbotDesk
+                    lang={lang}
+                    isFloating={true}
+                    onClose={() => setShowFloatingChat(false)}
+                    onNavigateDesk={(deskId) => {
+                      setActiveTab(deskId);
+                      setShowFloatingChat(false);
+                    }}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="neta-ai-fab-container">
+                <button
+                  type="button"
+                  onClick={() => setShowFloatingChat(true)}
+                  className="neta-ai-fab-btn"
+                  title={isMr ? 'AI प्रचार सहाय्यक उघडा' : 'Open AI Campaign Assistant'}
+                >
+                  <span style={{ fontSize: '18px' }}>🤖</span>
+                  <span>{isMr ? 'AI प्रचार सहाय्यक' : 'AI Campaign Bot'}</span>
+                  <span style={{ background: '#22c55e', width: '8px', height: '8px', borderRadius: '50%', boxShadow: '0 0 6px #22c55e' }} />
+                </button>
+              </div>
+            )}
+
+            {/* Embedded styles for perfect phone & desktop responsiveness */}
+            <style>{`
+              .neta-ai-fab-container {
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                z-index: 9990;
+              }
+              .neta-ai-fab-btn {
+                background: linear-gradient(135deg, #c2410c 0%, #ea580c 100%);
+                color: #ffffff;
+                border: none;
+                border-radius: 50px;
+                padding: 12px 22px;
+                font-size: 13.5px;
+                font-weight: 750;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                box-shadow: 0 10px 25px -4px rgba(234, 88, 12, 0.45);
+                transition: transform 0.18s ease, box-shadow 0.18s ease;
+              }
+              .neta-ai-fab-btn:hover {
+                transform: translateY(-2px) scale(1.03);
+                box-shadow: 0 14px 30px -4px rgba(234, 88, 12, 0.55);
+              }
+              .neta-ai-fab-btn:active {
+                transform: scale(0.97);
+              }
+
+              .neta-ai-modal-backdrop {
+                position: fixed;
+                inset: 0;
+                background: rgba(15, 23, 42, 0.65);
+                backdrop-filter: blur(4px);
+                -webkit-backdrop-filter: blur(4px);
+                z-index: 99998;
+                animation: netaBackdropFadeIn 0.2s ease-out;
+              }
+
+              .neta-ai-modal-window {
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                width: 440px;
+                max-width: calc(100vw - 32px);
+                height: min(600px, 86vh);
+                max-height: calc(100dvh - 32px);
+                border-radius: 16px;
+                overflow: hidden;
+                box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.1);
+                z-index: 99999;
+                display: flex;
+                flex-direction: column;
+                background: #ffffff;
+                animation: netaWindowSlideDesktop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+              }
+
+              @media (max-width: 768px) {
+                .neta-ai-fab-container {
+                  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+                  right: 14px;
+                }
+                .neta-ai-fab-btn {
+                  padding: 10px 16px;
+                  font-size: 12.5px;
+                }
+                .neta-ai-modal-window {
+                  bottom: 0;
+                  left: 0;
+                  right: 0;
+                  width: 100%;
+                  max-width: 100vw;
+                  height: 90dvh;
+                  max-height: 92dvh;
+                  border-radius: 20px 20px 0 0;
+                  box-shadow: 0 -12px 35px rgba(0, 0, 0, 0.35);
+                  animation: netaWindowSlideMobile 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+                }
+              }
+
+              @keyframes netaBackdropFadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+              @keyframes netaWindowSlideDesktop {
+                from { opacity: 0; transform: translateY(20px) scale(0.97); }
+                to { opacity: 1; transform: translateY(0) scale(1); }
+              }
+              @keyframes netaWindowSlideMobile {
+                from { transform: translateY(100%); }
+                to { transform: translateY(0); }
+              }
+            `}</style>
+          </>
+        )}
       </div>
     </div>
   );

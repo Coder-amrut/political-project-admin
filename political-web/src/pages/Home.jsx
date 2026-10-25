@@ -12,7 +12,6 @@ function Home() {
     const roles = user?.roles || [];
     if (roles.includes(RoleName.ADMIN)) return '/admin';
     if (roles.includes(RoleName.OFFICER)) return '/officer';
-    if (roles.includes(RoleName.WORKER)) return '/worker';
     return '/admin';
   };
 
@@ -178,8 +177,8 @@ function Home() {
           </div>
         </div>
 
-        {/* 3 Major Portals Grid with High-Contrast Colors */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '18px' }}>
+        {/* 2 Major Command Portals Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '22px' }}>
           {/* 1. Admin Platform Card */}
           <div
             onClick={() => navigate('/admin')}
@@ -325,80 +324,6 @@ function Home() {
             <div style={{ marginTop: '20px', paddingTop: '14px', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '12.5px', fontWeight: '750', color: '#ea580c' }}>नेता कक्ष उघडा →</span>
               <span style={{ fontSize: '16px' }}>🚩</span>
-            </div>
-          </div>
-
-          {/* 3. Field Officer Platform Card */}
-          <div
-            onClick={() => navigate('/worker')}
-            style={{
-              background: '#ffffff',
-              borderRadius: '16px',
-              padding: '24px',
-              borderTop: '4px solid #10b981',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
-              cursor: 'pointer',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'space-between',
-              transition: 'all 0.2s ease',
-              color: '#0f172a',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 14px 30px rgba(16, 185, 129, 0.25)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.15)';
-            }}
-          >
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-                <span
-                  style={{
-                    width: '46px',
-                    height: '46px',
-                    borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                    color: '#ffffff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '22px',
-                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-                  }}
-                >
-                  👮
-                </span>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    fontWeight: '800',
-                    padding: '3px 8px',
-                    borderRadius: '9999px',
-                    background: '#f0fdf4',
-                    color: '#15803d',
-                    border: '1px solid #bbf7d0',
-                  }}
-                >
-                  Field Officer App
-                </span>
-              </div>
-              <h3 style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: '850', color: '#0f172a' }}>
-                क्षेत्र अधिकारी कक्ष
-              </h3>
-              <div style={{ fontSize: '12px', fontWeight: '700', color: '#059669', marginBottom: '8px' }}>
-                FIELD OFFICER APP
-              </div>
-              <p style={{ margin: 0, fontSize: '13px', color: '#64748b', lineHeight: 1.5 }}>
-                घरोघरी मतदार भेट, कुटुंब सर्वेक्षण फॉर्म भरणे, मतदार डेटा संकलन आणि स्थानिक समस्यांची नोंदणी.
-              </p>
-            </div>
-
-            <div style={{ marginTop: '20px', paddingTop: '14px', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '12.5px', fontWeight: '750', color: '#059669' }}>अधिकारी पोर्टल उघडा →</span>
-              <span style={{ fontSize: '16px' }}>📝</span>
             </div>
           </div>
         </div>

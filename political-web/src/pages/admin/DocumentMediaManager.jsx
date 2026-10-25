@@ -676,8 +676,188 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
     setPdfZoom(100);
   };
 
+  const categoryTabs = [
+    { key: 'all', label_mr: 'सर्व कागदपत्रे', label_en: 'All Documents', icon: '📂' },
+    { key: 'application_form', label_mr: 'शासकीय अर्ज', label_en: 'Applications', icon: '📄' },
+    { key: 'voter_id_proof', label_mr: 'ओळख पुरावे', label_en: 'ID Proofs', icon: '🪪' },
+    { key: 'survey_report', label_mr: 'सर्वेक्षण अहवाल', label_en: 'Survey Reports', icon: '📊' },
+    { key: 'party_circular', label_mr: 'पक्ष परिपत्रके', label_en: 'Circulars', icon: '📑' },
+    { key: 'legal_affidavit', label_mr: 'प्रतिज्ञापत्रे', label_en: 'Affidavits', icon: '⚖️' },
+  ];
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* 3D Animations & Tactile Button / Tab Stylesheet */}
+      <style>{`
+        /* 3D Active Filter Tab */
+        .doc-tab-3d-active {
+          background: linear-gradient(180deg, #2b74f0 0%, #1e60d5 50%, #1754be 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.35) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+          border-bottom: 3.5px solid #0f3a88 !important;
+          box-shadow: 0 4px 14px rgba(23, 84, 190, 0.42), 0 2px 4px rgba(0, 0, 0, 0.12), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.5) !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+          border-radius: 9px !important;
+          transform-style: preserve-3d;
+          transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+          font-weight: 800 !important;
+        }
+        .doc-tab-3d-active:hover {
+          transform: translateY(-2px) scale(1.02) !important;
+          box-shadow: 0 8px 22px rgba(23, 84, 190, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.75) !important;
+        }
+        .doc-tab-3d-active:active {
+          transform: translateY(2px) scale(0.98) !important;
+          border-bottom: 1.5px solid #0f3a88 !important;
+          box-shadow: 0 2px 6px rgba(23, 84, 190, 0.3) !important;
+        }
+
+        /* 3D Inactive Filter Tab */
+        .doc-tab-3d-inactive {
+          background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+          color: #334155 !important;
+          border: 1px solid #cbd5e1 !important;
+          border-bottom: 3px solid #94a3b8 !important;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05), inset 0 1px 1px #ffffff !important;
+          border-radius: 9px !important;
+          transform-style: preserve-3d;
+          transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+          font-weight: 750 !important;
+        }
+        .doc-tab-3d-inactive:hover {
+          transform: translateY(-2px) !important;
+          color: #1e60d5 !important;
+          border-color: #93c5fd !important;
+          border-bottom-color: #3b82f6 !important;
+          box-shadow: 0 6px 14px rgba(30, 96, 213, 0.18), inset 0 1px 1px #ffffff !important;
+        }
+        .doc-tab-3d-inactive:active {
+          transform: translateY(1.5px) !important;
+          border-bottom: 1.5px solid #94a3b8 !important;
+        }
+
+        /* 3D Primary Button (Royal Blue) */
+        .doc-btn-3d-primary {
+          background: linear-gradient(180deg, #2b74f0 0%, #1e60d5 50%, #1754be 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.35) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+          border-bottom: 3.5px solid #0f3a88 !important;
+          box-shadow: 0 4px 14px rgba(23, 84, 190, 0.4), 0 2px 4px rgba(0, 0, 0, 0.12), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.45) !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+          border-radius: 9px !important;
+          transform-style: preserve-3d;
+          transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+          font-weight: 800 !important;
+        }
+        .doc-btn-3d-primary:hover:not(:disabled) {
+          transform: translateY(-2px) scale(1.02) !important;
+          box-shadow: 0 8px 22px rgba(23, 84, 190, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.75) !important;
+        }
+        .doc-btn-3d-primary:active:not(:disabled) {
+          transform: translateY(2px) scale(0.98) !important;
+          border-bottom: 1.5px solid #0f3a88 !important;
+          box-shadow: 0 2px 6px rgba(23, 84, 190, 0.3) !important;
+        }
+
+        /* 3D Secondary Button (Slate / White) */
+        .doc-btn-3d-secondary {
+          background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+          color: #475569 !important;
+          border: 1px solid #cbd5e1 !important;
+          border-bottom: 2.8px solid #94a3b8 !important;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05), inset 0 1px 1px #ffffff !important;
+          border-radius: 8px !important;
+          transform-style: preserve-3d;
+          transition: all 0.16s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+          font-weight: 750 !important;
+        }
+        .doc-btn-3d-secondary:hover:not(:disabled) {
+          transform: translateY(-1.5px) !important;
+          color: #1e293b !important;
+          border-color: #94a3b8 !important;
+          border-bottom-color: #64748b !important;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+        }
+        .doc-btn-3d-secondary:active:not(:disabled) {
+          transform: translateY(1.5px) !important;
+          border-bottom: 1.2px solid #94a3b8 !important;
+        }
+
+        /* 3D Download Button (Emerald Glow) */
+        .doc-btn-3d-download {
+          background: linear-gradient(180deg, #10b981 0%, #059669 50%, #047857 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.35) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+          border-bottom: 3px solid #064e3b !important;
+          box-shadow: 0 3px 10px rgba(5, 150, 105, 0.38), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.45) !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+          border-radius: 7px !important;
+          transform-style: preserve-3d;
+          transition: all 0.16s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+          font-weight: 800 !important;
+        }
+        .doc-btn-3d-download:hover:not(:disabled) {
+          transform: translateY(-1.5px) !important;
+          box-shadow: 0 6px 16px rgba(5, 150, 105, 0.55), inset 0 1.5px 2px rgba(255, 255, 255, 0.7) !important;
+        }
+        .doc-btn-3d-download:active:not(:disabled) {
+          transform: translateY(1.5px) !important;
+          border-bottom: 1.2px solid #064e3b !important;
+        }
+
+        /* 3D Danger / Delete Button */
+        .doc-btn-3d-danger {
+          background: linear-gradient(180deg, #ffffff 0%, #fef2f2 100%) !important;
+          color: #dc2626 !important;
+          border: 1px solid #fecaca !important;
+          border-bottom: 2.5px solid #ef4444 !important;
+          box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1) !important;
+          border-radius: 7px !important;
+          transition: all 0.16s ease !important;
+          cursor: pointer;
+          font-weight: 750 !important;
+        }
+        .doc-btn-3d-danger:hover {
+          background: #fee2e2 !important;
+          color: #b91c1c !important;
+          transform: translateY(-1.5px) !important;
+          box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25) !important;
+        }
+        .doc-btn-3d-danger:active {
+          transform: translateY(1.5px) !important;
+          border-bottom: 1px solid #ef4444 !important;
+        }
+
+        /* 3D KPI Card Lift */
+        .doc-kpi-card-3d {
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+        .doc-kpi-card-3d:hover {
+          transform: translateY(-2.5px) !important;
+          box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08) !important;
+        }
+
+        /* 3D Document Card */
+        .doc-card-3d {
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          border-bottom: 3.5px solid #cbd5e1 !important;
+        }
+        .doc-card-3d:hover {
+          transform: translateY(-3px) !important;
+          border-color: #93c5fd !important;
+          border-bottom-color: #1e60d5 !important;
+          box-shadow: 0 10px 24px rgba(30, 96, 213, 0.14) !important;
+        }
+      `}</style>
+
       {/* Toast Notification */}
       {toastMsg && (
         <div
@@ -699,64 +879,115 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
         </div>
       )}
 
-
-
-
-
-      {/* Filter and Search Bar */}
-      <div
-        style={{
-          background: '#ffffff',
-          borderRadius: '12px',
-          padding: '16px 20px',
-          border: '1px solid #e2e8f0',
-          display: 'flex',
-          gap: '12px',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-        }}
-      >
-        <div style={{ flex: '1 1 260px' }}>
-          <input
-            type="text"
-            placeholder={isMr ? '🔍 दस्तऐवज शीर्षक, टॅग, बूथ किंवा नागरिकाचे नाव...' : 'Search documents by title, tag, booth or citizen...'}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '9px 12px',
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              fontSize: '13px',
-              boxSizing: 'border-box',
-            }}
-          />
+      {/* KPI Summary Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px' }}>
+        <div className="doc-kpi-card-3d" style={{ background: '#ffffff', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0', borderTop: '3.5px solid #1e60d5', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+          <div style={{ fontSize: '12px', color: '#1e60d5', fontWeight: '750' }}>{isMr ? 'एकूण अधिकृत दस्तऐवज' : 'Total Official Documents'}</div>
+          <div style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', marginTop: '4px' }}>{stats?.total ?? documents.length}</div>
+          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{isMr ? 'सुरक्षित सेंट्रल डेटाबेस' : 'Secured Central Archive'}</div>
         </div>
 
+        <div className="doc-kpi-card-3d" style={{ background: '#ffffff', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0', borderTop: '3.5px solid #f59e0b', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+          <div style={{ fontSize: '12px', color: '#b45309', fontWeight: '750' }}>{isMr ? 'शासकीय अर्ज व निवेदने' : 'Official Applications'}</div>
+          <div style={{ fontSize: '24px', fontWeight: '800', color: '#b45309', marginTop: '4px' }}>{stats?.applications ?? documents.filter((d) => d.category === 'application_form').length}</div>
+          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{isMr ? 'योजना व नागरिक मागण्या' : 'Schemes & Petitions'}</div>
+        </div>
+
+        <div className="doc-kpi-card-3d" style={{ background: '#ffffff', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0', borderTop: '3.5px solid #2563eb', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+          <div style={{ fontSize: '12px', color: '#1d4ed8', fontWeight: '750' }}>{isMr ? 'मतदार ओळख व पुरावे' : 'Voter ID & Proofs'}</div>
+          <div style={{ fontSize: '24px', fontWeight: '800', color: '#1d4ed8', marginTop: '4px' }}>{stats?.id_proofs ?? documents.filter((d) => d.category === 'voter_id_proof').length}</div>
+          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{isMr ? 'फॉर्म ६, ८ व आधार पुरावे' : 'Forms 6, 8 & Aadhaar'}</div>
+        </div>
+
+        <div className="doc-kpi-card-3d" style={{ background: '#ffffff', padding: '16px 20px', borderRadius: '12px', border: '1px solid #e2e8f0', borderTop: '3.5px solid #10b981', boxShadow: '0 2px 6px rgba(0,0,0,0.04)' }}>
+          <div style={{ fontSize: '12px', color: '#059669', fontWeight: '750' }}>{isMr ? 'अहवाल व परिपत्रके' : 'Reports & Circulars'}</div>
+          <div style={{ fontSize: '24px', fontWeight: '800', color: '#059669', marginTop: '4px' }}>{stats?.reports ?? documents.filter((d) => ['survey_report', 'party_circular', 'legal_affidavit'].includes(d.category)).length}</div>
+          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{isMr ? 'सर्वेक्षण व पक्षादेश' : 'Survey & Orders'}</div>
+        </div>
+      </div>
+
+      {/* 3D Category Filter Tabs & Add Document Action */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {categoryTabs.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setCategoryFilter(tab.key)}
+              className={categoryFilter === tab.key ? 'doc-tab-3d-active' : 'doc-tab-3d-inactive'}
+              style={{
+                padding: '8px 16px',
+                fontSize: '12.5px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <span>{tab.icon}</span>
+              <span>{isMr ? tab.label_mr : tab.label_en}</span>
+            </button>
+          ))}
+        </div>
 
         <button
+          type="button"
           onClick={() => {
             setFileError('');
             setShowUploadModal(true);
           }}
+          className="doc-btn-3d-primary"
           style={{
-            background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
-            color: '#ffffff',
-            border: 'none',
-            padding: '9px 18px',
-            borderRadius: '8px',
-            fontSize: '12.5px',
-            fontWeight: '700',
-            cursor: 'pointer',
+            padding: '9px 20px',
+            fontSize: '13px',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            boxShadow: '0 2px 6px rgba(29, 78, 216, 0.25)',
-            marginLeft: 'auto',
           }}
         >
-          ➕ {isMr ? 'नवीन दस्तऐवज जोडा' : 'Add Document'}
+          <span>➕</span>
+          <span>{isMr ? 'नवीन दस्तऐवज जोडा' : 'Add Document'}</span>
         </button>
+      </div>
+
+      {/* Search Bar */}
+      <div
+        style={{
+          background: '#ffffff',
+          borderRadius: '12px',
+          padding: '12px 18px',
+          border: '1px solid #e2e8f0',
+          display: 'flex',
+          gap: '12px',
+          alignItems: 'center',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+        }}
+      >
+        <span style={{ fontSize: '16px', color: '#94a3b8' }}>🔍</span>
+        <input
+          type="text"
+          placeholder={isMr ? 'दस्तऐवज शीर्षक, टॅग, बूथ किंवा नागरिकाचे नाव शोधा...' : 'Search documents by title, tag, booth or citizen...'}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '8px 10px',
+            borderRadius: '6px',
+            border: '1px solid #cbd5e1',
+            fontSize: '13px',
+            boxSizing: 'border-box',
+            outline: 'none',
+          }}
+        />
+        {search && (
+          <button
+            type="button"
+            onClick={() => setSearch('')}
+            className="doc-btn-3d-secondary"
+            style={{ padding: '4px 10px', fontSize: '11px', whiteSpace: 'nowrap' }}
+          >
+            ✕ {isMr ? 'साफ करा' : 'Clear'}
+          </button>
+        )}
       </div>
 
       {/* Documents Grid */}
@@ -781,6 +1012,7 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
               <div
                 key={doc.id}
                 onClick={() => setPreviewDoc(doc)}
+                className="doc-card-3d"
                 style={{
                   background: '#ffffff',
                   borderRadius: '12px',
@@ -792,15 +1024,6 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   gap: '14px',
-                  transition: 'transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease',
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.borderColor = '#93c5fd';
-                  e.currentTarget.style.boxShadow = '0 6px 14px rgba(0,0,0,0.06)';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.borderColor = '#e2e8f0';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.03)';
                 }}
               >
                 <div>
@@ -837,7 +1060,7 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                   </div>
                 </div>
 
-                {/* Bottom Footer: Date, Uploader & Delete Button */}
+                {/* Bottom Footer: Date, Uploader & 3D Action Buttons */}
                 <div
                   style={{
                     display: 'flex',
@@ -846,6 +1069,8 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                     paddingTop: '12px',
                     borderTop: '1px solid #f1f5f9',
                     fontSize: '11.5px',
+                    flexWrap: 'wrap',
+                    gap: '8px',
                   }}
                 >
                   <div style={{ color: '#94a3b8' }}>
@@ -854,51 +1079,57 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                   </div>
 
                   <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                    {/* View PDF Button */}
+                    {/* View PDF 3D Button */}
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleViewPdf(doc);
                       }}
+                      className="doc-btn-3d-primary"
                       style={{
-                        background: '#eff6ff',
-                        border: '1px solid #bfdbfe',
-                        color: '#1d4ed8',
-                        padding: '5px 10px',
-                        borderRadius: '6px',
+                        padding: '5px 12px',
                         fontSize: '11.5px',
-                        fontWeight: '750',
-                        cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '4px',
-                        transition: 'background 0.15s ease',
+                        gap: '5px',
                       }}
-                      onMouseOver={(e) => (e.currentTarget.style.background = '#dbeafe')}
-                      onMouseOut={(e) => (e.currentTarget.style.background = '#eff6ff')}
                       title={isMr ? 'PDF दस्तऐवज पहा' : 'View PDF Document'}
                     >
                       👁️ {isMr ? 'PDF पहा' : 'View PDF'}
                     </button>
 
+                    {/* Quick Download 3D Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownloadPdf(doc);
+                      }}
+                      className="doc-btn-3d-download"
+                      style={{
+                        padding: '5px 10px',
+                        fontSize: '11.5px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
+                      title={isMr ? 'PDF थेट डाऊनलोड करा' : 'Download PDF Directly'}
+                    >
+                      ⬇️
+                    </button>
 
-                    {/* Delete Button */}
+                    {/* Delete 3D Button */}
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDelete(doc.id);
                       }}
+                      className="doc-btn-3d-danger"
                       style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#ef4444',
+                        padding: '5px 8px',
                         fontSize: '12px',
-                        cursor: 'pointer',
-                        fontWeight: '700',
-                        padding: '4px 6px',
-                        borderRadius: '4px',
                       }}
                       title={isMr ? 'दस्तऐवज हटवा' : 'Delete Document'}
                     >
@@ -935,14 +1166,15 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
             style={{
               background: '#ffffff',
               borderRadius: '16px',
-              maxWidth: '860px',
+              maxWidth: 'min(860px, 96vw)',
               width: '100%',
-              maxHeight: '94vh',
+              maxHeight: '92vh',
               display: 'flex',
               flexDirection: 'column',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
               overflow: 'hidden',
               border: '1px solid #334155',
+              boxSizing: 'border-box',
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1013,15 +1245,10 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                 <button
                   type="button"
                   onClick={() => handlePrintPdf(previewDoc)}
+                  className="doc-btn-3d-secondary"
                   style={{
-                    background: '#1e293b',
-                    border: '1px solid #334155',
-                    color: '#e2e8f0',
-                    padding: '6px 11px',
-                    borderRadius: '6px',
+                    padding: '6px 12px',
                     fontSize: '12px',
-                    fontWeight: '700',
-                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
@@ -1035,15 +1262,10 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                 <button
                   type="button"
                   onClick={() => handleOpenInNewTab(previewDoc)}
+                  className="doc-btn-3d-secondary"
                   style={{
-                    background: '#1e293b',
-                    border: '1px solid #334155',
-                    color: '#e2e8f0',
-                    padding: '6px 11px',
-                    borderRadius: '6px',
+                    padding: '6px 12px',
                     fontSize: '12px',
-                    fontWeight: '700',
-                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
@@ -1057,19 +1279,13 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                 <button
                   type="button"
                   onClick={() => handleDownloadPdf(previewDoc)}
+                  className="doc-btn-3d-primary"
                   style={{
-                    background: '#2563eb',
-                    border: 'none',
-                    color: '#ffffff',
                     padding: '6px 14px',
-                    borderRadius: '6px',
                     fontSize: '12px',
-                    fontWeight: '800',
-                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '5px',
-                    boxShadow: '0 2px 4px rgba(37, 99, 235, 0.4)',
                   }}
                   title={isMr ? 'PDF फाईल डाऊनलोड करा' : 'Download PDF File'}
                 >
@@ -1088,7 +1304,10 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                     cursor: 'pointer',
                     padding: '2px 8px',
                     lineHeight: 1,
+                    transition: 'color 0.15s ease',
                   }}
+                  onMouseOver={(e) => (e.currentTarget.style.color = '#ffffff')}
+                  onMouseOut={(e) => (e.currentTarget.style.color = '#94a3b8')}
                   title="Close"
                 >
                   ✕
@@ -1096,12 +1315,12 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
               </div>
             </div>
 
-            {/* View Mode Switcher Tabs (when Base64 PDF is available from database) */}
+            {/* View Mode Switcher 3D Tabs */}
             {previewDoc.file_base64 && (
               <div
                 style={{
-                  background: '#1e293b',
-                  padding: '8px 20px',
+                  background: '#0f172a',
+                  padding: '10px 20px',
                   display: 'flex',
                   gap: '10px',
                   borderBottom: '1px solid #334155',
@@ -1110,19 +1329,13 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                 <button
                   type="button"
                   onClick={() => setViewerTab('pdf')}
+                  className={viewerTab === 'pdf' ? 'doc-tab-3d-active' : 'doc-tab-3d-inactive'}
                   style={{
                     padding: '6px 14px',
-                    borderRadius: '6px',
                     fontSize: '12px',
-                    fontWeight: '750',
-                    cursor: 'pointer',
-                    border: 'none',
-                    background: viewerTab === 'pdf' ? '#2563eb' : '#334155',
-                    color: viewerTab === 'pdf' ? '#ffffff' : '#94a3b8',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    transition: 'all 0.15s ease',
                   }}
                 >
                   📄 {isMr ? 'मूळ अपलोड केलेली PDF फाईल' : 'Uploaded PDF File'}
@@ -1130,19 +1343,13 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                 <button
                   type="button"
                   onClick={() => setViewerTab('certificate')}
+                  className={viewerTab === 'certificate' ? 'doc-tab-3d-active' : 'doc-tab-3d-inactive'}
                   style={{
                     padding: '6px 14px',
-                    borderRadius: '6px',
                     fontSize: '12px',
-                    fontWeight: '750',
-                    cursor: 'pointer',
-                    border: 'none',
-                    background: viewerTab === 'certificate' ? '#2563eb' : '#334155',
-                    color: viewerTab === 'certificate' ? '#ffffff' : '#94a3b8',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    transition: 'all 0.15s ease',
                   }}
                 >
                   🏛️ {isMr ? 'शासकीय प्रमाणीकरण पत्र व शिक्का' : 'Official Attestation Sheet'}
@@ -1216,238 +1423,238 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                     fontFamily: 'system-ui, -apple-system, sans-serif',
                   }}
                 >
-                {/* Diagonal Watermark */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%) rotate(-35deg)',
-                    fontSize: '30px',
-                    fontWeight: '900',
-                    color: 'rgba(15, 23, 42, 0.04)',
-                    whiteSpace: 'nowrap',
-                    pointerEvents: 'none',
-                    userSelect: 'none',
-                    letterSpacing: '2px',
-                    textAlign: 'center',
-                  }}
-                >
-                  सत्यमेव जयते • OFFICIAL REPOSITORY • VERIFIED
-                </div>
-
-                {/* Top Tricolor Strip */}
-                <div style={{ height: '4px', width: '100%', display: 'flex', marginBottom: '18px' }}>
-                  <div style={{ flex: 1, background: '#f97316' }} />
-                  <div style={{ flex: 1, background: '#ffffff', border: '1px solid #e2e8f0' }} />
-                  <div style={{ flex: 1, background: '#16a34a' }} />
-                </div>
-
-                {/* Letterhead Header */}
-                <div style={{ textAlign: 'center', borderBottom: '2px solid #1e3a8a', paddingBottom: '14px', marginBottom: '18px' }}>
-                  <div style={{ fontSize: '26px', marginBottom: '2px' }}>🏛️</div>
-                  <div style={{ fontSize: '16px', fontWeight: '900', color: '#1e3a8a', letterSpacing: '0.5px' }}>
-                    {isMr ? 'भारत निवडणूक आयोग व राज्य शासन प्रशासन' : 'ELECTION COMMISSION & GOVERNANCE DESK'}
-                  </div>
-                  <div style={{ fontSize: '12px', fontWeight: '750', color: '#334155', marginTop: '2px' }}>
-                    {isMr ? 'केंद्रीय इलेक्ट्रॉनिक दस्तऐवज भांडार — सांगली मतदारसंघ' : 'Central Sovereign Document Archive — Sangli Constituency'}
-                  </div>
+                  {/* Diagonal Watermark */}
                   <div
                     style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: '11px',
-                      color: '#64748b',
-                      marginTop: '10px',
-                      paddingTop: '6px',
-                      borderTop: '1px dashed #cbd5e1',
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%) rotate(-35deg)',
+                      fontSize: '30px',
+                      fontWeight: '900',
+                      color: 'rgba(15, 23, 42, 0.04)',
+                      whiteSpace: 'nowrap',
+                      pointerEvents: 'none',
+                      userSelect: 'none',
+                      letterSpacing: '2px',
+                      textAlign: 'center',
                     }}
                   >
-                    <span>
-                      <strong>{isMr ? 'संदर्भ क्र.:' : 'Ref No:'}</strong> DOC-2026-{String(previewDoc.id || 101).padStart(4, '0')}
-                    </span>
-                    <span>
-                      <strong>{isMr ? 'दिनांक:' : 'Date:'}</strong> {new Date(previewDoc.created_at).toLocaleDateString(isMr ? 'mr-IN' : 'en-IN')}
-                    </span>
+                    सत्यमेव जयते • OFFICIAL REPOSITORY • VERIFIED
                   </div>
-                </div>
 
-                {/* Document Title & Category */}
-                <div style={{ marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <span
+                  {/* Top Tricolor Strip */}
+                  <div style={{ height: '4px', width: '100%', display: 'flex', marginBottom: '18px' }}>
+                    <div style={{ flex: 1, background: '#f97316' }} />
+                    <div style={{ flex: 1, background: '#ffffff', border: '1px solid #e2e8f0' }} />
+                    <div style={{ flex: 1, background: '#16a34a' }} />
+                  </div>
+
+                  {/* Letterhead Header */}
+                  <div style={{ textAlign: 'center', borderBottom: '2px solid #1e3a8a', paddingBottom: '14px', marginBottom: '18px' }}>
+                    <div style={{ fontSize: '26px', marginBottom: '2px' }}>🏛️</div>
+                    <div style={{ fontSize: '16px', fontWeight: '900', color: '#1e3a8a', letterSpacing: '0.5px' }}>
+                      {isMr ? 'भारत निवडणूक आयोग व राज्य शासन प्रशासन' : 'ELECTION COMMISSION & GOVERNANCE DESK'}
+                    </div>
+                    <div style={{ fontSize: '12px', fontWeight: '750', color: '#334155', marginTop: '2px' }}>
+                      {isMr ? 'केंद्रीय इलेक्ट्रॉनिक दस्तऐवज भांडार — सांगली मतदारसंघ' : 'Central Sovereign Document Archive — Sangli Constituency'}
+                    </div>
+                    <div
                       style={{
-                        background: getCategoryDetails(previewDoc.category).bg,
-                        color: getCategoryDetails(previewDoc.category).color,
-                        border: `1px solid ${getCategoryDetails(previewDoc.category).border}`,
+                        display: 'flex',
+                        justifyContent: 'space-between',
                         fontSize: '11px',
-                        fontWeight: '800',
-                        padding: '3px 9px',
-                        borderRadius: '4px',
+                        color: '#64748b',
+                        marginTop: '10px',
+                        paddingTop: '6px',
+                        borderTop: '1px dashed #cbd5e1',
                       }}
                     >
-                      {getCategoryDetails(previewDoc.category).label}
-                    </span>
-                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>•</span>
-                    <span style={{ fontSize: '11.5px', fontFamily: 'monospace', color: '#475569' }}>
-                      {previewDoc.file_name}
-                    </span>
+                      <span>
+                        <strong>{isMr ? 'संदर्भ क्र.:' : 'Ref No:'}</strong> DOC-2026-{String(previewDoc.id || 101).padStart(4, '0')}
+                      </span>
+                      <span>
+                        <strong>{isMr ? 'दिनांक:' : 'Date:'}</strong> {new Date(previewDoc.created_at).toLocaleDateString(isMr ? 'mr-IN' : 'en-IN')}
+                      </span>
+                    </div>
                   </div>
 
-                  <h2 style={{ fontSize: '17px', fontWeight: '900', color: '#0f172a', margin: '0 0 6px 0', lineHeight: 1.4 }}>
-                    {previewDoc.title_mr}
-                  </h2>
-                </div>
-
-                {/* Official Attestation Banner */}
-                <div
-                  style={{
-                    background: '#f0fdf4',
-                    border: '1px solid #bbf7d0',
-                    borderRadius: '8px',
-                    padding: '10px 14px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    fontSize: '12px',
-                    color: '#166534',
-                    fontWeight: '600',
-                    marginBottom: '18px',
-                  }}
-                >
-                  <span style={{ fontSize: '18px' }}>🔒</span>
-                  <div>
-                    <strong>{isMr ? 'अधिकृत शासकीय प्रमाणीकरण:' : 'Official Verification:'}</strong>{' '}
-                    {isMr
-                      ? 'सदर दस्तऐवज केंद्रीय सुरक्षित डेटाबेसमध्ये पडताळणीकृत असून अधिकृत डिजिटल अभिलेख म्हणून ग्राह्य धरण्यात आला आहे.'
-                      : 'This document is digitally verified and archived into master administrative database.'}
-                  </div>
-                </div>
-
-                {/* Specifications & Metadata Table */}
-                <table
-                  style={{
-                    width: '100%',
-                    borderCollapse: 'collapse',
-                    fontSize: '12px',
-                    marginBottom: '20px',
-                    border: '1px solid #e2e8f0',
-                  }}
-                >
-                  <tbody>
-                    <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ padding: '8px 12px', fontWeight: '750', color: '#475569', width: '38%' }}>
-                        {isMr ? 'दस्तऐवज प्रवर्ग' : 'Document Category'}
-                      </td>
-                      <td style={{ padding: '8px 12px', fontWeight: '800', color: '#0f172a' }}>
+                  {/* Document Title & Category */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                      <span
+                        style={{
+                          background: getCategoryDetails(previewDoc.category).bg,
+                          color: getCategoryDetails(previewDoc.category).color,
+                          border: `1px solid ${getCategoryDetails(previewDoc.category).border}`,
+                          fontSize: '11px',
+                          fontWeight: '800',
+                          padding: '3px 9px',
+                          borderRadius: '4px',
+                        }}
+                      >
                         {getCategoryDetails(previewDoc.category).label}
-                      </td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ padding: '8px 12px', fontWeight: '750', color: '#475569' }}>
-                        {isMr ? 'मतदारसंघ / बूथ क्षेत्र' : 'Booth / Area'}
-                      </td>
-                      <td style={{ padding: '8px 12px', fontWeight: '700', color: '#0f172a' }}>
-                        {previewDoc.booth_ref || (isMr ? 'सर्व क्षेत्र' : 'All Areas')}
-                      </td>
-                    </tr>
-                    <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ padding: '8px 12px', fontWeight: '750', color: '#475569' }}>
-                        {isMr ? 'संबंधित नागरिक / लाभार्थी' : 'Citizen / Beneficiary'}
-                      </td>
-                      <td style={{ padding: '8px 12px', fontWeight: '800', color: '#1d4ed8' }}>
-                        {previewDoc.citizen_name_ref || '—'}
-                      </td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ padding: '8px 12px', fontWeight: '750', color: '#475569' }}>
-                        {isMr ? 'नोंदणीकर्ता अधिकारी' : 'Uploaded By'}
-                      </td>
-                      <td style={{ padding: '8px 12px', fontWeight: '700', color: '#0f172a' }}>
-                        {previewDoc.uploaded_by_name || 'प्रशासक'}
-                      </td>
-                    </tr>
-                    <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ padding: '8px 12px', fontWeight: '750', color: '#475569' }}>
-                        {isMr ? 'नोंदणी तारीख व वेळ' : 'Timestamp'}
-                      </td>
-                      <td style={{ padding: '8px 12px', color: '#334155' }}>
-                        {new Date(previewDoc.created_at).toLocaleString(isMr ? 'mr-IN' : 'en-IN')}
-                      </td>
-                    </tr>
-                    <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ padding: '8px 12px', fontWeight: '750', color: '#475569' }}>
-                        {isMr ? 'फाईल प्रकार व आकार' : 'File Format & Size'}
-                      </td>
-                      <td style={{ padding: '8px 12px', color: '#334155' }}>
-                        {previewDoc.file_type || 'application/pdf'} • {previewDoc.file_size_formatted || '450 KB'}
-                      </td>
-                    </tr>
-                    {previewDoc.tags && (
-                      <tr style={{ background: '#f8fafc' }}>
-                        <td style={{ padding: '8px 12px', fontWeight: '750', color: '#475569' }}>
-                          {isMr ? 'शोध टॅग्ज' : 'Tags'}
-                        </td>
-                        <td style={{ padding: '8px 12px', color: '#64748b' }}>
-                          🏷️ {previewDoc.tags}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-
-                {/* Attestation Statement */}
-                <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.6, marginBottom: '24px', fontStyle: 'italic', background: '#f8fafc', padding: '10px 14px', borderRadius: '6px', borderLeft: '3px solid #1e3a8a' }}>
-                  {isMr
-                    ? 'सदर दस्तऐवज अधिकृत निवडणूक व मतदार संघटन कामासाठी सादर करण्यात आला असून, संबंधित शासकीय नियमांनुसार आणि निवडणूक आचारसंहितेनुसार मास्टर डेटाबेसमध्ये नोंदणीकृत आहे.'
-                    : 'This document has been filed for official election and constituency management purposes, archived under verified administrative security guidelines.'}
-                </div>
-
-                {/* Signatures & Seal Section */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: '16px', borderTop: '1px dashed #cbd5e1' }}>
-                  <div>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>{isMr ? 'डिजिटल स्वाक्षरी:' : 'Digitally Certified:'}</div>
-                    <div style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>
-                      {isMr ? 'निवडणूक निर्णय अधिकारी / मुख्य प्रशासक' : 'Returning Officer / Admin Operations'}
+                      </span>
+                      <span style={{ fontSize: '11px', color: '#94a3b8' }}>•</span>
+                      <span style={{ fontSize: '11.5px', fontFamily: 'monospace', color: '#475569' }}>
+                        {previewDoc.file_name}
+                      </span>
                     </div>
-                    <div style={{ fontSize: '10px', color: '#94a3b8', fontFamily: 'monospace' }}>
-                      SIG: EC-MUM-2026-VAL-9948
-                    </div>
+
+                    <h2 style={{ fontSize: '17px', fontWeight: '900', color: '#0f172a', margin: '0 0 6px 0', lineHeight: 1.4 }}>
+                      {previewDoc.title_mr}
+                    </h2>
                   </div>
 
-                  {/* High-security Seal Badge */}
+                  {/* Official Attestation Banner */}
                   <div
                     style={{
-                      border: '2px solid #1e3a8a',
+                      background: '#f0fdf4',
+                      border: '1px solid #bbf7d0',
                       borderRadius: '8px',
-                      padding: '8px 14px',
-                      textAlign: 'center',
-                      background: '#f0f9ff',
+                      padding: '10px 14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      fontSize: '12px',
+                      color: '#166534',
+                      fontWeight: '600',
+                      marginBottom: '18px',
                     }}
                   >
-                    <div style={{ fontSize: '9px', fontWeight: '800', color: '#1e3a8a', letterSpacing: '0.8px' }}>
-                      ELECTION COMMAND HQ
-                    </div>
-                    <div style={{ fontSize: '12px', fontWeight: '900', color: '#1e3a8a', margin: '2px 0' }}>
-                      OFFICIAL SEAL
-                    </div>
-                    <div style={{ fontSize: '9px', fontWeight: '750', color: '#059669' }}>
-                      ✓ VERIFIED & SECURE
+                    <span style={{ fontSize: '18px' }}>🔒</span>
+                    <div>
+                      <strong>{isMr ? 'अधिकृत शासकीय प्रमाणीकरण:' : 'Official Verification:'}</strong>{' '}
+                      {isMr
+                        ? 'सदर दस्तऐवज केंद्रीय सुरक्षित डेटाबेसमध्ये पडताळणीकृत असून अधिकृत डिजिटल अभिलेख म्हणून ग्राह्य धरण्यात आला आहे.'
+                        : 'This document is digitally verified and archived into master administrative database.'}
                     </div>
                   </div>
-                </div>
 
-                {/* Bottom Barcode Strip */}
-                <div style={{ marginTop: '24px', paddingTop: '10px', borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
-                  <div style={{ fontFamily: 'monospace', letterSpacing: '3px', fontSize: '14px', color: '#334155' }}>
-                    |||| || |||||| | ||||| |||| || |||||||| |||||
+                  {/* Specifications & Metadata Table */}
+                  <table
+                    style={{
+                      width: '100%',
+                      borderCollapse: 'collapse',
+                      fontSize: '12px',
+                      marginBottom: '20px',
+                      border: '1px solid #e2e8f0',
+                    }}
+                  >
+                    <tbody>
+                      <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '8px 12px', fontWeight: '750', color: '#475569', width: '38%' }}>
+                          {isMr ? 'दस्तऐवज प्रवर्ग' : 'Document Category'}
+                        </td>
+                        <td style={{ padding: '8px 12px', fontWeight: '800', color: '#0f172a' }}>
+                          {getCategoryDetails(previewDoc.category).label}
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '8px 12px', fontWeight: '750', color: '#475569' }}>
+                          {isMr ? 'मतदारसंघ / बूथ क्षेत्र' : 'Booth / Area'}
+                        </td>
+                        <td style={{ padding: '8px 12px', fontWeight: '700', color: '#0f172a' }}>
+                          {previewDoc.booth_ref || (isMr ? 'सर्व क्षेत्र' : 'All Areas')}
+                        </td>
+                      </tr>
+                      <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '8px 12px', fontWeight: '750', color: '#475569' }}>
+                          {isMr ? 'संबंधित नागरिक / लाभार्थी' : 'Citizen / Beneficiary'}
+                        </td>
+                        <td style={{ padding: '8px 12px', fontWeight: '800', color: '#1d4ed8' }}>
+                          {previewDoc.citizen_name_ref || '—'}
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '8px 12px', fontWeight: '750', color: '#475569' }}>
+                          {isMr ? 'नोंदणीकर्ता अधिकारी' : 'Uploaded By'}
+                        </td>
+                        <td style={{ padding: '8px 12px', fontWeight: '700', color: '#0f172a' }}>
+                          {previewDoc.uploaded_by_name || 'प्रशासक'}
+                        </td>
+                      </tr>
+                      <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '8px 12px', fontWeight: '750', color: '#475569' }}>
+                          {isMr ? 'नोंदणी तारीख व वेळ' : 'Timestamp'}
+                        </td>
+                        <td style={{ padding: '8px 12px', color: '#334155' }}>
+                          {new Date(previewDoc.created_at).toLocaleString(isMr ? 'mr-IN' : 'en-IN')}
+                        </td>
+                      </tr>
+                      <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '8px 12px', fontWeight: '750', color: '#475569' }}>
+                          {isMr ? 'फाईल प्रकार व आकार' : 'File Format & Size'}
+                        </td>
+                        <td style={{ padding: '8px 12px', color: '#334155' }}>
+                          {previewDoc.file_type || 'application/pdf'} • {previewDoc.file_size_formatted || '450 KB'}
+                        </td>
+                      </tr>
+                      {previewDoc.tags && (
+                        <tr style={{ background: '#f8fafc' }}>
+                          <td style={{ padding: '8px 12px', fontWeight: '750', color: '#475569' }}>
+                            {isMr ? 'शोध टॅग्ज' : 'Tags'}
+                          </td>
+                          <td style={{ padding: '8px 12px', color: '#64748b' }}>
+                            🏷️ {previewDoc.tags}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+
+                  {/* Attestation Statement */}
+                  <div style={{ fontSize: '12px', color: '#475569', lineHeight: 1.6, marginBottom: '24px', fontStyle: 'italic', background: '#f8fafc', padding: '10px 14px', borderRadius: '6px', borderLeft: '3px solid #1e3a8a' }}>
+                    {isMr
+                      ? 'सदर दस्तऐवज अधिकृत निवडणूक व मतदार संघटन कामासाठी सादर करण्यात आला असून, संबंधित शासकीय नियमांनुसार आणि निवडणूक आचारसंहितेनुसार मास्टर डेटाबेसमध्ये नोंदणीकृत आहे.'
+                      : 'This document has been filed for official election and constituency management purposes, archived under verified administrative security guidelines.'}
                   </div>
-                  <div style={{ fontSize: '9.5px', color: '#94a3b8', marginTop: '2px' }}>
-                    SHA-256 CHECK: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+
+                  {/* Signatures & Seal Section */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: '16px', borderTop: '1px dashed #cbd5e1' }}>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#64748b' }}>{isMr ? 'डिजिटल स्वाक्षरी:' : 'Digitally Certified:'}</div>
+                      <div style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', marginTop: '2px' }}>
+                        {isMr ? 'निवडणूक निर्णय अधिकारी / मुख्य प्रशासक' : 'Returning Officer / Admin Operations'}
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#94a3b8', fontFamily: 'monospace' }}>
+                        SIG: EC-MUM-2026-VAL-9948
+                      </div>
+                    </div>
+
+                    {/* High-security Seal Badge */}
+                    <div
+                      style={{
+                        border: '2px solid #1e3a8a',
+                        borderRadius: '8px',
+                        padding: '8px 14px',
+                        textAlign: 'center',
+                        background: '#f0f9ff',
+                      }}
+                    >
+                      <div style={{ fontSize: '9px', fontWeight: '800', color: '#1e3a8a', letterSpacing: '0.8px' }}>
+                        ELECTION COMMAND HQ
+                      </div>
+                      <div style={{ fontSize: '12px', fontWeight: '900', color: '#1e3a8a', margin: '2px 0' }}>
+                        OFFICIAL SEAL
+                      </div>
+                      <div style={{ fontSize: '9px', fontWeight: '750', color: '#059669' }}>
+                        ✓ VERIFIED & SECURE
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom Barcode Strip */}
+                  <div style={{ marginTop: '24px', paddingTop: '10px', borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
+                    <div style={{ fontFamily: 'monospace', letterSpacing: '3px', fontSize: '14px', color: '#334155' }}>
+                      |||| || |||||| | ||||| |||| || |||||||| |||||
+                    </div>
+                    <div style={{ fontSize: '9.5px', color: '#94a3b8', marginTop: '2px' }}>
+                      SHA-256 CHECK: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
             )}
 
             {/* Modal Bottom Footer Actions */}
@@ -1493,15 +1700,10 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                 <button
                   type="button"
                   onClick={() => handlePrintPdf(previewDoc)}
+                  className="doc-btn-3d-secondary"
                   style={{
                     padding: '8px 16px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    background: '#ffffff',
-                    color: '#1e293b',
-                    fontWeight: '700',
                     fontSize: '12.5px',
-                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '5px',
@@ -1513,15 +1715,10 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                 <button
                   type="button"
                   onClick={() => handleOpenInNewTab(previewDoc)}
+                  className="doc-btn-3d-secondary"
                   style={{
                     padding: '8px 16px',
-                    borderRadius: '8px',
-                    border: '1px solid #bfdbfe',
-                    background: '#eff6ff',
-                    color: '#1d4ed8',
-                    fontWeight: '700',
                     fontSize: '12.5px',
-                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '5px',
@@ -1533,19 +1730,13 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                 <button
                   type="button"
                   onClick={() => handleDownloadPdf(previewDoc)}
+                  className="doc-btn-3d-primary"
                   style={{
                     padding: '8px 18px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: '#1d4ed8',
-                    color: '#ffffff',
-                    fontWeight: '700',
                     fontSize: '12.5px',
-                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    boxShadow: '0 2px 5px rgba(29, 78, 216, 0.3)',
                   }}
                 >
                   ⬇️ {isMr ? 'PDF डाऊनलोड करा' : 'Download PDF'}
@@ -1579,10 +1770,13 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
             style={{
               background: '#ffffff',
               borderRadius: '16px',
-              maxWidth: '540px',
+              maxWidth: 'min(540px, 96vw)',
               width: '100%',
-              padding: '24px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: '24px 20px',
               boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
+              boxSizing: 'border-box',
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1803,15 +1997,10 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                 <button
                   type="button"
                   onClick={() => setShowUploadModal(false)}
+                  className="doc-btn-3d-secondary"
                   style={{
-                    padding: '9px 16px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    background: '#ffffff',
-                    color: '#475569',
+                    padding: '8px 18px',
                     fontSize: '13px',
-                    fontWeight: '700',
-                    cursor: 'pointer',
                   }}
                 >
                   {isMr ? 'रद्द करा' : 'Cancel'}
@@ -1819,16 +2008,13 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                 <button
                   type="submit"
                   disabled={actionBusy}
+                  className="doc-btn-3d-primary"
                   style={{
-                    padding: '9px 22px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
-                    color: '#ffffff',
-                    fontWeight: '700',
+                    padding: '8px 22px',
                     fontSize: '13px',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 6px rgba(29, 78, 216, 0.25)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
                   }}
                 >
                   {actionBusy
@@ -1836,8 +2022,8 @@ export default function DocumentMediaManager({ lang = 'mr' }) {
                       ? 'जतन होत आहे...'
                       : 'Saving...'
                     : isMr
-                    ? '✓ दस्तऐवज जतन करा'
-                    : '✓ Save Document'}
+                      ? '✓ दस्तऐवज जतन करा'
+                      : '✓ Save Document'}
                 </button>
               </div>
             </form>

@@ -100,144 +100,61 @@ export default function AreaOverviewDashboard({ onNavigate, lang = 'mr' }) {
   const { profile, summary } = data;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      {/* Top Welcome & Constituency Banner — Indian Flag (Tiranga) Executive Theme */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .area-overview-hero {
+            padding: 16px 14px !important;
+            border-radius: 12px !important;
+          }
+          .area-overview-hero h1 {
+            font-size: 19px !important;
+            line-height: 1.3 !important;
+          }
+          .area-overview-time-card {
+            width: 100% !important;
+            min-width: 0 !important;
+            margin-top: 8px !important;
+          }
+          .area-kpi-grid {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+        }
+      `}</style>
+      {/* Top Welcome & Constituency Banner — Soft Pastel Executive Theme */}
       <div
+        className="area-overview-hero"
         style={{
-          background: 'linear-gradient(90deg, #9a3412 0%, #c2410c 18%, #ffffff 38%, #ffffff 62%, #15803d 82%, #166534 100%)',
+          background: 'linear-gradient(90deg, #edd6cc 0%, #f7ded1 12%, #fce7db 24%, #fff7f0 38%, #ffffff 48%, #ffffff 62%, #f0fbf4 72%, #d2f2de 82%, #e2f1e8 92%, #ceddc6 100%)',
           borderRadius: '16px',
-          padding: '26px 28px',
-          color: '#ffffff',
-          boxShadow: '0 14px 30px -5px rgba(234, 88, 12, 0.25), 0 8px 24px -5px rgba(4, 120, 87, 0.22)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          borderTop: 'none',
+          padding: '24px 28px',
+          color: '#0f172a',
+          boxShadow: '0 8px 24px -5px rgba(229, 206, 196, 0.4), 0 8px 20px -5px rgba(136, 201, 147, 0.25)',
+          border: '1px solid rgba(255, 255, 255, 0.8)',
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        {/* Top Indian National Flag (Tiranga) 3-Stripe Ribbon */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '5px',
-            background: 'linear-gradient(90deg, #FF671F 0%, #FF9933 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #138808 66.66%, #046A38 100%)',
-            zIndex: 4,
-            boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
-          }}
-        />
-
-        {/* Ambient Radial Lighting for Tiranga Aura */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '-40px',
-            left: '-40px',
-            width: '320px',
-            height: '320px',
-            background: 'radial-gradient(circle, rgba(255, 103, 31, 0.28) 0%, transparent 70%)',
-            pointerEvents: 'none',
-            zIndex: 1,
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '-40px',
-            right: '-40px',
-            width: '320px',
-            height: '320px',
-            background: 'radial-gradient(circle, rgba(19, 136, 8, 0.25) 0%, transparent 70%)',
-            pointerEvents: 'none',
-            zIndex: 1,
-          }}
-        />
-
-        {/* Dedicated Center White Radiance for Ashoka Chakra */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '340px',
-            height: '100%',
-            background: 'radial-gradient(ellipse at center, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.7) 48%, transparent 78%)',
-            pointerEvents: 'none',
-            zIndex: 1,
-          }}
-        />
-
-        {/* Watermark Ashoka Chakra (24-Spoke) in Center — Blue Color Only */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '270px',
-            height: '270px',
-            opacity: 0.35,
-            pointerEvents: 'none',
-            zIndex: 1,
-          }}
-        >
-          <svg width="270" height="270" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="46" fill="none" stroke="#000080" strokeWidth="2.2" />
-            <circle cx="50" cy="50" r="10" fill="none" stroke="#000080" strokeWidth="2" />
-            <circle cx="50" cy="50" r="3.5" fill="#000080" />
-            {Array.from({ length: 24 }).map((_, i) => (
-              <line
-                key={i}
-                x1="50"
-                y1="50"
-                x2={50 + 46 * Math.cos((i * 15 * Math.PI) / 180)}
-                y2={50 + 46 * Math.sin((i * 15 * Math.PI) / 180)}
-                stroke="#000080"
-                strokeWidth="1.4"
-              />
-            ))}
-          </svg>
-        </div>
-
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', position: 'relative', zIndex: 2 }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
-              {/* Official Indian National Flag Badge */}
+          <div style={{ flex: '1 1 300px', minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+              {/* Official National Tag Badge */}
               <div
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  gap: '7px',
                   padding: '4px 10px',
-                  background: 'rgba(255, 255, 255, 0.16)',
+                  background: 'rgba(255, 255, 255, 0.65)',
                   backdropFilter: 'blur(8px)',
                   borderRadius: '20px',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
+                  border: '1px solid rgba(255, 255, 255, 0.85)',
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.06)',
                 }}
               >
-                <svg width="26" height="18" viewBox="0 0 36 24" style={{ borderRadius: '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.35)', flexShrink: 0 }}>
-                  <rect width="36" height="8" fill="#FF9933" />
-                  <rect y="8" width="36" height="8" fill="#FFFFFF" />
-                  <rect y="16" width="36" height="8" fill="#138808" />
-                  <circle cx="18" cy="12" r="3.2" fill="none" stroke="#000080" strokeWidth="0.7" />
-                  <circle cx="18" cy="12" r="0.7" fill="#000080" />
-                  {Array.from({ length: 24 }).map((_, i) => (
-                    <line
-                      key={i}
-                      x1="18"
-                      y1="12"
-                      x2={18 + 3.1 * Math.cos((i * 15 * Math.PI) / 180)}
-                      y2={12 + 3.1 * Math.sin((i * 15 * Math.PI) / 180)}
-                      stroke="#000080"
-                      strokeWidth="0.35"
-                    />
-                  ))}
-                </svg>
-                <span style={{ fontSize: '11px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.5px' }}>
+                <span style={{ fontSize: '12px' }}>🌐</span>
+                <span style={{ fontSize: '11px', fontWeight: '800', color: '#1e293b', letterSpacing: '0.5px' }}>
                   {isMr ? 'भारत • INDIA' : 'INDIA • भारत'}
                 </span>
               </div>
@@ -249,22 +166,22 @@ export default function AreaOverviewDashboard({ onNavigate, lang = 'mr' }) {
                   alignItems: 'center',
                   gap: '6px',
                   padding: '4px 11px',
-                  background: 'rgba(254, 240, 138, 0.15)',
-                  border: '1px solid rgba(254, 240, 138, 0.45)',
+                  background: 'rgba(255, 255, 255, 0.65)',
+                  border: '1px solid rgba(255, 255, 255, 0.85)',
                   borderRadius: '20px',
-                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.2)',
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.06)',
                   backdropFilter: 'blur(8px)',
                 }}
               >
                 <span style={{ fontSize: '12px' }}>🏛️</span>
-                <span style={{ fontSize: '11px', fontWeight: '800', color: '#fef08a', letterSpacing: '0.5px' }}>
+                <span style={{ fontSize: '11px', fontWeight: '800', color: '#92400e', letterSpacing: '0.5px' }}>
                   सत्यमेव जयते • SATYAMEVA JAYATE
                 </span>
               </div>
 
               <span
                 style={{
-                  background: 'linear-gradient(135deg, #FF671F 0%, #FF9933 100%)',
+                  background: 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)',
                   color: '#ffffff',
                   fontSize: '11px',
                   fontWeight: '800',
@@ -272,23 +189,22 @@ export default function AreaOverviewDashboard({ onNavigate, lang = 'mr' }) {
                   borderRadius: '20px',
                   letterSpacing: '0.6px',
                   textTransform: 'uppercase',
-                  boxShadow: '0 2px 8px rgba(255, 103, 31, 0.45)',
+                  boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)',
                 }}
               >
                 ⚡ {isMr ? 'सर्वोच्च नेतृत्व डॅशबोर्ड' : 'Executive Command Center'}
               </span>
-              <span style={{ color: '#fed7aa', fontSize: '13px', fontWeight: '700' }}>
+              <span style={{ color: '#475569', fontSize: '13px', fontWeight: '700' }}>
                 {isMr 
                   ? (profile.district_mr?.includes('महाराष्ट्र') ? 'महाराष्ट्र राज्य • सर्व मतदारसंघ' : profile.district_mr + ' जिल्हा • महाराष्ट्र राज्य')
                   : (profile.district_en?.includes('Maharashtra') ? 'Maharashtra State • All Constituencies' : profile.district_en + ' District • Maharashtra')}
               </span>
             </div>
 
-            <h1 style={{ margin: '8px 0 6px 0', fontSize: '26px', fontWeight: '800', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', textShadow: '0 2px 4px rgba(0,0,0,0.35)' }}>
+            <h1 style={{ margin: '8px 0 6px 0', fontSize: '26px', fontWeight: '850', color: '#0f172a', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               <span>{isMr ? profile.name_mr : profile.name_en}</span>
-              <span style={{ fontSize: '22px' }}>🇮🇳</span>
             </h1>
-            <p style={{ margin: 0, color: '#ffffff', fontSize: '13.5px', maxWidth: '520px', lineHeight: 1.5, textShadow: '0 1px 3px rgba(0,0,0,0.35)', fontWeight: '500' }}>
+            <p style={{ margin: 0, color: '#334155', fontSize: '13.5px', maxWidth: '540px', lineHeight: 1.5, fontWeight: '500' }}>
               {isMr
                 ? `महाराष्ट्र राज्यभरातील सर्व विधानसभा मतदारसंघ, मतदान केंद्रे आणि थेट राजकीय डेटाबेसशी जोडलेला रिअल-टाइम आढावा.`
                 : `Real-time strategic state-wide political command and monitoring dashboard for Maharashtra.`}
@@ -297,172 +213,198 @@ export default function AreaOverviewDashboard({ onNavigate, lang = 'mr' }) {
 
           {/* Live Indian Standard Time (IST) Clock Card */}
           <div
+            className="area-overview-time-card"
             style={{
-              background: 'rgba(15, 23, 42, 0.55)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.22)',
-              borderTop: '3px solid #FF9933',
-              borderBottom: '3px solid #138808',
-              borderRadius: '12px',
+              background: '#82d38e',
+              border: '1.5px solid rgba(255, 255, 255, 0.85)',
+              borderRadius: '14px',
               padding: '12px 18px',
               textAlign: 'center',
               minWidth: '175px',
-              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.25)',
+              boxShadow: '0 4px 16px rgba(130, 211, 142, 0.35)',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
             }}
           >
-            <div style={{ fontSize: '10.5px', color: '#fed7aa', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+            <div style={{ fontSize: '10.5px', color: '#166534', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
               <span>🕒</span>
               <span>{isMr ? 'भारतीय प्रमाणवेळ (IST)' : 'Indian Standard Time'}</span>
             </div>
-            <div style={{ fontSize: '18px', fontWeight: '900', color: '#fef08a', margin: '4px 0', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
+            <div style={{ fontSize: '19px', fontWeight: '900', color: '#064e3b', margin: '4px 0', fontFamily: 'monospace', letterSpacing: '0.5px' }}>
               {istTimeFormatted.time}
             </div>
-            <div style={{ fontSize: '11px', color: '#cbd5e1', fontWeight: '600' }}>
+            <div style={{ fontSize: '11px', color: '#15803d', fontWeight: '600' }}>
               {istTimeFormatted.date}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main KPI Stat Cards Grid — Tiranga 4-Pillar Theme */}
+      {/* Main KPI Stat Cards Grid — Royal Blue Theme */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px' }}>
 
-        {/* Pillar 1: Saffron - Active Karyakartas */}
+        {/* Pillar 1: Active Karyakartas */}
         <div
           style={{
-            background: '#ffffff',
-            borderRadius: '14px',
+            background: '#2f72d4',
+            borderRadius: '16px',
             padding: '20px',
-            border: '1px solid #fed7aa',
-            borderTop: '4px solid #FF671F',
-            boxShadow: '0 4px 12px rgba(255, 103, 31, 0.06)',
+            boxShadow: '0 8px 20px rgba(47, 114, 212, 0.22)',
             cursor: 'pointer',
             transition: 'all 0.18s ease',
+            color: '#ffffff',
           }}
           onClick={() => onNavigate('workers_performance')}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-3px)';
+            e.currentTarget.style.boxShadow = '0 12px 26px rgba(47, 114, 212, 0.35)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 8px 20px rgba(47, 114, 212, 0.22)';
+          }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>
-              {isMr ? 'आज सक्रिय अधिकारी ऑन-फील्ड' : 'Active Officers Today'}
+            <span style={{ fontSize: '13.5px', color: '#ffffff', fontWeight: '700' }}>
+              {isMr ? 'आज सक्रिय कार्यकर्ते ऑन-फील्ड' : 'Active Workers Today'}
             </span>
-            <span style={{ fontSize: '18px', padding: '6px 8px', background: '#fff7ed', borderRadius: '8px', border: '1px solid #ffedd5' }}>🚩</span>
+            <span style={{ fontSize: '18px', padding: '6px 10px', background: '#ffffff', borderRadius: '10px', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>🚩</span>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '900', color: '#ea580c', letterSpacing: '-0.5px' }}>
+          <div style={{ fontSize: '32px', fontWeight: '900', color: '#ffffff', letterSpacing: '-0.5px' }}>
             {profile.active_karyakartas_today}{' '}
-            <span style={{ fontSize: '14px', color: '#64748b', fontWeight: '600' }}>
+            <span style={{ fontSize: '15px', color: 'rgba(255, 255, 255, 0.8)', fontWeight: '600' }}>
               / {profile.total_karyakartas} {isMr ? 'एकूण' : 'Total'}
             </span>
           </div>
-          <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '12px', color: '#16a34a', fontWeight: '700' }}>
+          <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.22)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '12px', color: '#ffffff', fontWeight: '700' }}>
               ● {Math.round((profile.active_karyakartas_today / profile.total_karyakartas) * 100)}% {isMr ? 'उपस्थिती' : 'Attendance'}
             </span>
-            <span style={{ fontSize: '11px', background: 'rgba(255, 103, 31, 0.12)', color: '#c2410c', padding: '2px 8px', borderRadius: '9999px', fontWeight: '750' }}>
-              🇮🇳 ऑन-फील्ड
+            <span style={{ fontSize: '11px', background: '#fff7ed', color: '#c2410c', padding: '3px 10px', borderRadius: '9999px', fontWeight: '750', border: '1px solid #fed7aa' }}>
+              ⚡ ऑन-फील्ड
             </span>
           </div>
         </div>
 
-        {/* Pillar 2: White & Ashoka Blue - Total Booths Status */}
+        {/* Pillar 2: Total Booths Status */}
         <div
           style={{
-            background: '#ffffff',
-            borderRadius: '14px',
+            background: '#2f72d4',
+            borderRadius: '16px',
             padding: '20px',
-            border: '1px solid #bfdbfe',
-            borderTop: '4px solid #000080',
-            boxShadow: '0 4px 12px rgba(0, 0, 128, 0.06)',
+            boxShadow: '0 8px 20px rgba(47, 114, 212, 0.22)',
             cursor: 'pointer',
             transition: 'all 0.18s ease',
+            color: '#ffffff',
           }}
           onClick={() => onNavigate('geography_progress')}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-3px)';
+            e.currentTarget.style.boxShadow = '0 12px 26px rgba(47, 114, 212, 0.35)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 8px 20px rgba(47, 114, 212, 0.22)';
+          }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>
+            <span style={{ fontSize: '13.5px', color: '#ffffff', fontWeight: '700' }}>
               {isMr ? 'एकूण मतदान केंद्रे (बूथ)' : 'Polling Stations / Booths'}
             </span>
-            <span style={{ fontSize: '18px', padding: '6px 8px', background: '#eff6ff', borderRadius: '8px', border: '1px solid #dbeafe' }}>🗳️</span>
+            <span style={{ fontSize: '18px', padding: '6px 10px', background: '#ffffff', borderRadius: '10px', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>🗳️</span>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '900', color: '#0f2b5c', letterSpacing: '-0.5px' }}>
+          <div style={{ fontSize: '32px', fontWeight: '900', color: '#ffffff', letterSpacing: '-0.5px' }}>
             {profile.total_booths}
           </div>
-          <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', gap: '6px', fontSize: '11.5px' }}>
-              <span style={{ color: '#16a34a', fontWeight: '700' }}>{summary.high_coverage_booths} {isMr ? 'उच्च' : 'High'}</span>
+          <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.22)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', gap: '6px', fontSize: '11.5px', color: '#ffffff' }}>
+              <span style={{ color: '#86efac', fontWeight: '750' }}>{summary.high_coverage_booths} {isMr ? 'उच्च' : 'High'}</span>
               <span>·</span>
-              <span style={{ color: '#ca8a04', fontWeight: '700' }}>{summary.medium_coverage_booths} {isMr ? 'मध्यम' : 'Med'}</span>
+              <span style={{ color: '#fde047', fontWeight: '750' }}>{summary.medium_coverage_booths} {isMr ? 'मध्यम' : 'Med'}</span>
             </div>
-            <span style={{ fontSize: '11px', background: 'rgba(0, 0, 128, 0.1)', color: '#000080', padding: '2px 8px', borderRadius: '9999px', fontWeight: '750' }}>
-              🇮🇳 १००% बूथ
+            <span style={{ fontSize: '11px', background: '#eff6ff', color: '#1d4ed8', padding: '3px 10px', borderRadius: '9999px', fontWeight: '750', border: '1px solid #bfdbfe' }}>
+              📍 १००% बूथ
             </span>
           </div>
         </div>
 
-        {/* Pillar 3: Ashoka Navy Blue - Meetings & Field Tours */}
+        {/* Pillar 3: Meetings & Field Tours */}
         <div
           style={{
-            background: '#ffffff',
-            borderRadius: '14px',
+            background: '#2f72d4',
+            borderRadius: '16px',
             padding: '20px',
-            border: '1px solid #c7d2fe',
-            borderTop: '4px solid #1e3a8a',
-            boxShadow: '0 4px 12px rgba(30, 58, 138, 0.06)',
+            boxShadow: '0 8px 20px rgba(47, 114, 212, 0.22)',
             cursor: 'pointer',
             transition: 'all 0.18s ease',
+            color: '#ffffff',
           }}
           onClick={() => onNavigate('meetings_tours')}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-3px)';
+            e.currentTarget.style.boxShadow = '0 12px 26px rgba(47, 114, 212, 0.35)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 8px 20px rgba(47, 114, 212, 0.22)';
+          }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>
+            <span style={{ fontSize: '13.5px', color: '#ffffff', fontWeight: '700' }}>
               {isMr ? 'आगामी बैठका व दौरे' : 'Upcoming Tours & Meetings'}
             </span>
-            <span style={{ fontSize: '18px', padding: '6px 8px', background: '#eef2ff', borderRadius: '8px', border: '1px solid #e0e7ff' }}>📅</span>
+            <span style={{ fontSize: '18px', padding: '6px 10px', background: '#ffffff', borderRadius: '10px', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>📅</span>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '900', color: '#1e3a8a', letterSpacing: '-0.5px' }}>
+          <div style={{ fontSize: '32px', fontWeight: '900', color: '#ffffff', letterSpacing: '-0.5px' }}>
             {summary.upcoming_meetings_count}
           </div>
-          <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>
+          <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.22)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.9)', fontWeight: '600' }}>
               {isMr ? 'नियोजित स्थानिक सभा' : 'Scheduled Events'}
             </span>
-            <span style={{ fontSize: '11px', background: 'rgba(30, 58, 138, 0.12)', color: '#1e3a8a', padding: '2px 8px', borderRadius: '9999px', fontWeight: '750' }}>
-              🇮🇳 थेट वेळापत्रक
+            <span style={{ fontSize: '11px', background: '#eff6ff', color: '#1e3a8a', padding: '3px 10px', borderRadius: '9999px', fontWeight: '750', border: '1px solid #dbeafe' }}>
+              📅 थेट वेळापत्रक
             </span>
           </div>
         </div>
 
-        {/* Pillar 4: India Green - Surveyed Households Reach */}
+        {/* Pillar 4: Surveyed Households Reach */}
         <div
           style={{
-            background: '#ffffff',
-            borderRadius: '14px',
+            background: '#2f72d4',
+            borderRadius: '16px',
             padding: '20px',
-            border: '1px solid #bbf7d0',
-            borderTop: '4px solid #138808',
-            boxShadow: '0 4px 12px rgba(19, 136, 8, 0.06)',
+            boxShadow: '0 8px 20px rgba(47, 114, 212, 0.22)',
             cursor: 'pointer',
             transition: 'all 0.18s ease',
+            color: '#ffffff',
           }}
           onClick={() => onNavigate('crm_citizens')}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-3px)';
+            e.currentTarget.style.boxShadow = '0 12px 26px rgba(47, 114, 212, 0.35)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 8px 20px rgba(47, 114, 212, 0.22)';
+          }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-            <span style={{ fontSize: '13px', color: '#64748b', fontWeight: '700' }}>
+            <span style={{ fontSize: '13.5px', color: '#ffffff', fontWeight: '700' }}>
               {isMr ? 'मतदार कुटुंब संपर्क (नागरिक CRM)' : 'Surveyed Voter Households'}
             </span>
-            <span style={{ fontSize: '18px', padding: '6px 8px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #dcfce7' }}>👥</span>
+            <span style={{ fontSize: '18px', padding: '6px 10px', background: '#ffffff', borderRadius: '10px', boxShadow: '0 2px 6px rgba(0,0,0,0.1)' }}>👥</span>
           </div>
-          <div style={{ fontSize: '28px', fontWeight: '900', color: '#047857', letterSpacing: '-0.5px' }}>
+          <div style={{ fontSize: '32px', fontWeight: '900', color: '#ffffff', letterSpacing: '-0.5px' }}>
             {profile.surveyed_households ? profile.surveyed_households.toLocaleString('en-IN') : '1,42,850'}
           </div>
-          <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '12px', color: '#15803d', fontWeight: '700' }}>
+          <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.22)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: '12px', color: '#ffffff', fontWeight: '700' }}>
               {profile.sentiment?.support}% {isMr ? 'अनुकूल मतदार' : 'Favorable'}
             </span>
-            <span style={{ fontSize: '11px', background: 'rgba(19, 136, 8, 0.12)', color: '#047857', padding: '2px 8px', borderRadius: '9999px', fontWeight: '750' }}>
-              🇮🇳 मतदार संवाद
+            <span style={{ fontSize: '11px', background: '#f0fdf4', color: '#15803d', padding: '3px 10px', borderRadius: '9999px', fontWeight: '750', border: '1px solid #bbf7d0' }}>
+              👥 मतदार संवाद
             </span>
           </div>
         </div>
@@ -662,7 +604,7 @@ export default function AreaOverviewDashboard({ onNavigate, lang = 'mr' }) {
         </div>
       </div>
 
-      {/* Sovereign Political Command & Digital Governance Seal Ribbon — Tiranga Theme */}
+      {/* Sovereign Political Command & Digital Governance Seal Ribbon */}
       <div
         style={{
           background: '#ffffff',
@@ -679,7 +621,7 @@ export default function AreaOverviewDashboard({ onNavigate, lang = 'mr' }) {
           boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
         }}
       >
-        {/* Top Tricolor Ribbon */}
+        {/* Top Accent Strip */}
         <div
           style={{
             position: 'absolute',
@@ -687,7 +629,7 @@ export default function AreaOverviewDashboard({ onNavigate, lang = 'mr' }) {
             left: 0,
             right: 0,
             height: '3.5px',
-            background: 'linear-gradient(90deg, #FF671F 0%, #FF9933 33.3%, #FFFFFF 33.3%, #FFFFFF 66.6%, #138808 66.6%, #046A38 100%)',
+            background: 'linear-gradient(90deg, #3b82f6 0%, #6366f1 50%, #0ea5e9 100%)',
           }}
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -696,31 +638,17 @@ export default function AreaOverviewDashboard({ onNavigate, lang = 'mr' }) {
               width: '38px',
               height: '38px',
               borderRadius: '50%',
-              border: '1.5px solid #000080',
+              border: '1.5px solid #6366f1',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: 'rgba(0, 0, 128, 0.04)',
+              background: 'rgba(99, 102, 241, 0.08)',
+              fontSize: '18px',
               flexShrink: 0,
             }}
-            title={isMr ? 'अशोक चक्र' : 'Ashoka Chakra'}
+            title={isMr ? 'प्रशासनिक सुरक्षा' : 'Administrative Governance'}
           >
-            <svg width="24" height="24" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="46" fill="none" stroke="#000080" strokeWidth="4" />
-              <circle cx="50" cy="50" r="10" fill="none" stroke="#000080" strokeWidth="4" />
-              <circle cx="50" cy="50" r="4" fill="#000080" />
-              {Array.from({ length: 24 }).map((_, i) => (
-                <line
-                  key={i}
-                  x1="50"
-                  y1="50"
-                  x2={50 + 46 * Math.cos((i * 15 * Math.PI) / 180)}
-                  y2={50 + 46 * Math.sin((i * 15 * Math.PI) / 180)}
-                  stroke="#000080"
-                  strokeWidth="2.5"
-                />
-              ))}
-            </svg>
+            🏛️
           </div>
           <div>
             <div style={{ fontSize: '13.5px', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -752,7 +680,7 @@ export default function AreaOverviewDashboard({ onNavigate, lang = 'mr' }) {
               color: '#334155',
             }}
           >
-            <span>🇮🇳</span> {isMr ? 'भारतीय डेटा सार्वभौमत्व' : 'Indian Data Sovereignty'}
+            <span>🛡️</span> {isMr ? 'डेटा सार्वभौमत्व व सुरक्षा' : 'Data Sovereignty & Security'}
           </span>
           <span
             style={{

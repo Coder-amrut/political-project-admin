@@ -1,115 +1,225 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import apiClient from '../../api/axios';
+import {
+  Shield,
+  User,
+  Crown,
+  ChevronDown,
+  Check,
+  LayoutGrid,
+  Zap,
+  FileText,
+  Settings,
+  Folder,
+  MapPin,
+  ClipboardList,
+  Handshake,
+  Calendar,
+  Bot,
+} from 'lucide-react';
 
-// 10 Simple Permissions Metadata
-const SIMPLE_PERMISSIONS_CONFIG = {
+// Metadata and visual styling for permissions to match the exact design
+const PERMISSION_CONFIG = {
   admin_panel: {
-    code: 'admin_panel',
-    icon: '🏛️',
+    key: 'admin_panel',
     title_en: 'Admin Panel',
-    title_mr: 'ॲडमिन पॅनेल (मुख्य नियंत्रण)',
-    desc_en: 'Full access to Admin Command HQ, master settings, database, and system control.',
-    desc_mr: 'ॲडमिन कमांड मुख्यालय, मुख्य सेटिंग्ज, डेटाबेस आणि संपूर्ण प्रशासकीय नियंत्रण.',
-    color: '#1e3a8a',
+    title_mr: 'ॲडमिन पॅनेल',
+    desc_en: 'Full access to admin dashboard and settings.',
+    desc_mr: 'ॲडमिन डॅशबोर्ड आणि मुख्य प्रशासकीय सेटिंग्जचे संपूर्ण नियंत्रण.',
+    Icon: LayoutGrid,
+    color: '#2563eb',
+    bgColor: '#eff6ff',
+    borderColor: '#bfdbfe',
   },
   political_command: {
-    code: 'political_command',
-    icon: '⚡',
+    key: 'political_command',
     title_en: 'Political Command',
-    title_mr: 'राजकीय नियंत्रण कक्ष (नेता डेस्क)',
-    desc_en: 'Access to Political Command HQ, Executive Dashboard, and Leader Desk.',
-    desc_mr: 'राजकीय कमांड मुख्यालय, सर्वोच्च नेतृत्व डॅशबोर्ड व नेता कक्ष प्रवेश.',
+    title_mr: 'राजकीय नियंत्रण कक्ष',
+    desc_en: 'Access to political command features.',
+    desc_mr: 'राजकीय कमांड मुख्यालय व नेता डेस्क वापरण्याची परवानगी.',
+    Icon: Zap,
     color: '#ea580c',
+    bgColor: '#fff7ed',
+    borderColor: '#fed7aa',
   },
   user_management: {
-    code: 'user_management',
-    icon: '👥',
+    key: 'user_management',
     title_en: 'User Management',
     title_mr: 'वापरकर्ते व्यवस्थापन',
-    desc_en: 'Create, approve, and manage user accounts, staff, and access rights.',
-    desc_mr: 'वापरकर्ते खाती व्यवस्थापित करा, नवीन नोंदणी मंजूर/नामंजूर करा व परवानग्या द्या.',
-    color: '#4f46e5',
+    desc_en: 'Manage users and roles.',
+    desc_mr: 'वापरकर्ते खाती आणि परवानग्या व्यवस्थापित करा.',
+    Icon: User,
+    color: '#7c3aed',
+    bgColor: '#faf5ff',
+    borderColor: '#e9d5ff',
+  },
+  strategic_reports: {
+    key: 'strategic_reports',
+    title_en: 'Reports',
+    title_mr: 'अहवाल (Reports)',
+    desc_en: 'View and download reports.',
+    desc_mr: 'मतदार कल आणि निवडणूक विश्लेषण अहवाल पहा व डाऊनलोड करा.',
+    Icon: FileText,
+    color: '#0d9488',
+    bgColor: '#f0fdfa',
+    borderColor: '#99f6e4',
+  },
+  reports: {
+    key: 'reports',
+    title_en: 'Reports',
+    title_mr: 'अहवाल (Reports)',
+    desc_en: 'View and download reports.',
+    desc_mr: 'मतदार कल आणि निवडणूक विश्लेषण अहवाल पहा व डाऊनलोड करा.',
+    Icon: FileText,
+    color: '#0d9488',
+    bgColor: '#f0fdfa',
+    borderColor: '#99f6e4',
+  },
+  settings: {
+    key: 'settings',
+    title_en: 'Settings',
+    title_mr: 'सेटिंग्ज',
+    desc_en: 'Access to system settings.',
+    desc_mr: 'सिस्टम सेटिंग्ज व कॉन्फिगरेशन ॲक्सेस.',
+    Icon: Settings,
+    color: '#ef4444',
+    bgColor: '#fef2f2',
+    borderColor: '#fecaca',
   },
   project_management: {
-    code: 'project_management',
-    icon: '📁',
+    key: 'project_management',
     title_en: 'Project Management',
     title_mr: 'प्रकल्प व्यवस्थापन',
-    desc_en: 'Create, configure, and monitor political election projects.',
-    desc_mr: 'निवडणूक व राजकीय प्रचार प्रकल्प तयार करा, संपादित करा आणि देखरेख करा.',
+    desc_en: 'Create, configure, and monitor political projects.',
+    desc_mr: 'निवडणूक व प्रचार प्रकल्प तयार करा, संपादित करा आणि देखरेख करा.',
+    Icon: Folder,
     color: '#0284c7',
+    bgColor: '#f0f9ff',
+    borderColor: '#bae6fd',
   },
   geography_booths: {
-    code: 'geography_booths',
-    icon: '🗺️',
+    key: 'geography_booths',
     title_en: 'Geography & Booths',
-    title_mr: 'भौगोलिक व मतदान केंद्र रचना',
-    desc_en: 'Manage constituencies, talukas, villages, wards, and polling booths.',
-    desc_mr: 'विधानसभा मतदारसंघ, तालुके, गावे, वॉर्ड आणि मतदान केंद्र रचना व्यवस्थापन.',
+    title_mr: 'भौगोलिक व मतदान केंद्र',
+    desc_en: 'Manage constituencies, talukas, wards, and polling booths.',
+    desc_mr: 'विधानसभा मतदारसंघ, तालुके, गावे, वॉर्ड आणि मतदान केंद्र व्यवस्थापन.',
+    Icon: MapPin,
     color: '#059669',
+    bgColor: '#ecfdf5',
+    borderColor: '#a7f3d0',
   },
   voter_surveys: {
-    code: 'voter_surveys',
-    icon: '📋',
+    key: 'voter_surveys',
     title_en: 'Voter Surveys',
     title_mr: 'मतदार व कुटुंब सर्व्हे',
     desc_en: 'Conduct household surveys and record ground voter data.',
-    desc_mr: 'घरोघरी जाऊन कुटुंब सर्वेक्षण करणे व प्रत्यक्ष ऑन-फील्ड मतदार डेटा नोंदवणे.',
+    desc_mr: 'घरोघरी जाऊन कुटुंब सर्वेक्षण करणे व प्रत्यक्ष मतदार डेटा नोंदवणे.',
+    Icon: ClipboardList,
     color: '#d97706',
+    bgColor: '#fffbeb',
+    borderColor: '#fde68a',
   },
   citizen_crm: {
-    code: 'citizen_crm',
-    icon: '🤝',
-    title_en: 'Citizen CRM 360°',
+    key: 'citizen_crm',
+    title_en: 'Citizen CRM',
     title_mr: 'नागरिक CRM व तक्रारी',
     desc_en: 'Manage 360° citizen voter profiles, voter contacts, and grievances.',
-    desc_mr: 'नागरिक ३६०° मतदार प्रोफाईल्स, संपर्क इतिहास व समस्या निवारण व्यवस्थापन.',
+    desc_mr: 'नागरिक ३६०° मतदार प्रोफाईल्स, संपर्क इतिहास व समस्या निवारण.',
+    Icon: Handshake,
     color: '#0d9488',
+    bgColor: '#f0fdfa',
+    borderColor: '#99f6e4',
   },
   meetings_tours: {
-    code: 'meetings_tours',
-    icon: '📅',
-    title_en: 'Tour & Meetings',
+    key: 'meetings_tours',
+    title_en: 'Meetings & Tours',
     title_mr: 'दौरे, सभा व बैठका',
     desc_en: 'Schedule and manage rallies, leader visits, and cadre meetings.',
-    desc_mr: 'राजकीय सभा, नेत्यांचे क्षेत्रीय दौरे आणि अधिकारी बैठका नियोजन.',
+    desc_mr: 'राजकीय सभा, नेत्यांचे क्षेत्रीय दौरे आणि कार्यकर्ता बैठका नियोजन.',
+    Icon: Calendar,
     color: '#7c3aed',
-  },
-  strategic_reports: {
-    code: 'strategic_reports',
-    icon: '📊',
-    title_en: 'Strategic Reports',
-    title_mr: 'व्यूहरचना व विश्लेषण अहवाल',
-    desc_en: 'Access ground pulse reports, voter trend analytics, and data exports.',
-    desc_mr: 'मतदार कल विश्लेषण, ग्राउंड पल्स रिपोर्ट्स आणि एक्सेल/पीडीएफ डेटा एक्सपोर्ट.',
-    color: '#dc2626',
+    bgColor: '#faf5ff',
+    borderColor: '#ddd6fe',
   },
   ai_chatbot: {
-    code: 'ai_chatbot',
-    icon: '🤖',
-    title_en: 'AI Campaign Assistant',
-    title_mr: 'AI प्रचार व निवडणूक सहाय्यक',
-    desc_en: 'Access AI Campaign Assistant, strategic talking points, and Q&A desk.',
+    key: 'ai_chatbot',
+    title_en: 'AI Assistant',
+    title_mr: 'AI प्रचार सहाय्यक',
+    desc_en: 'Access AI campaign assistant, talking points, and Q&A desk.',
     desc_mr: 'AI प्रचार सहाय्यक, भाषण मुद्दे आणि मतदार संवाद मार्गदर्शन.',
+    Icon: Bot,
     color: '#2563eb',
+    bgColor: '#eff6ff',
+    borderColor: '#bfdbfe',
   },
 };
 
+// Priority ordering to match the exact visual layout from the user design
+const PREFERRED_ORDER = [
+  'admin_panel',
+  'political_command',
+  'user_management',
+  'strategic_reports',
+  'reports',
+  'settings',
+  'project_management',
+  'geography_booths',
+  'voter_surveys',
+  'citizen_crm',
+  'meetings_tours',
+  'ai_chatbot',
+];
+
 function getPermMeta(perm) {
   if (!perm) return null;
-  const cfg = SIMPLE_PERMISSIONS_CONFIG[perm.name];
+  const cfg = PERMISSION_CONFIG[perm.name];
   if (cfg) return cfg;
   const cleanName = (perm.name || '').replace(/_/g, ' ').replace(/\./g, ' ');
   return {
-    code: perm.name,
-    icon: '🛡️',
+    key: perm.name,
     title_en: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
     title_mr: cleanName,
-    desc_en: perm.description || '',
-    desc_mr: perm.description || '',
+    desc_en: perm.description || 'Access to this system feature.',
+    desc_mr: perm.description || 'या सिस्टीम फिचरचा वापर.',
+    Icon: Shield,
     color: '#64748b',
+    bgColor: '#f1f5f9',
+    borderColor: '#e2e8f0',
   };
 }
+
+const getAssignedSelectTheme = (assignedVal) => {
+  if (assignedVal === 'ROLE_OFFICER') {
+    return {
+      bg: '#eff6ff',
+      border: '1.5px solid #bfdbfe',
+      color: '#1d4ed8',
+      chevron: '#2563eb',
+    };
+  }
+  if (assignedVal === 'ROLE_WORKER' || assignedVal?.startsWith('WORKER_')) {
+    return {
+      bg: '#ecfdf5',
+      border: '1.5px solid #a7f3d0',
+      color: '#047857',
+      chevron: '#059669',
+    };
+  }
+  if (assignedVal === 'ROLE_ADMIN') {
+    return {
+      bg: '#faf5ff',
+      border: '1.5px solid #e9d5ff',
+      color: '#6d28d9',
+      chevron: '#7c3aed',
+    };
+  }
+  return {
+    bg: '#f8fafc',
+    border: '1.5px solid #e2e8f0',
+    color: '#64748b',
+    chevron: '#94a3b8',
+  };
+};
 
 export default function RolePermissionManager({
   roles = [],
@@ -137,12 +247,10 @@ export default function RolePermissionManager({
   const [originalPermIds, setOriginalPermIds] = useState(new Set());
   const [workerInheritedIds, setWorkerInheritedIds] = useState(new Set());
 
-  // Search filter
-  const [searchQuery, setSearchQuery] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   // Quick Worker Assignment Modal
-  const [assignModal, setAssignModal] = useState(null); // { permId, permName }
+  const [assignModal, setAssignModal] = useState(null);
   const [assignTargetUserId, setAssignTargetUserId] = useState('');
 
   // 1. Load Permissions & Users
@@ -175,10 +283,9 @@ export default function RolePermissionManager({
     loadUsers();
   }, []);
 
-  // Sync default role
+  // Sync default role to WORKER
   useEffect(() => {
     if (roles.length > 0 && !selectedRoleId) {
-      // Default to WORKER or first role
       const workerRole = roles.find((r) => r.name === 'WORKER') || roles[0];
       setSelectedRoleId(workerRole.id);
     }
@@ -187,6 +294,11 @@ export default function RolePermissionManager({
   const currentRole = useMemo(() => {
     return roles.find((r) => r.id === selectedRoleId) || null;
   }, [roles, selectedRoleId]);
+
+  // Specific Roles
+  const workerRole = useMemo(() => roles.find((r) => r.name === 'WORKER') || null, [roles]);
+  const officerRole = useMemo(() => roles.find((r) => r.name === 'OFFICER') || null, [roles]);
+  const adminRole = useMemo(() => roles.find((r) => r.name === 'ADMIN') || null, [roles]);
 
   // List of Field Workers specifically
   const fieldWorkers = useMemo(() => {
@@ -211,7 +323,6 @@ export default function RolePermissionManager({
       setOriginalPermIds(new Set(ids));
       setWorkerInheritedIds(new Set());
     } else if (targetType === 'WORKER' && selectedWorkerId) {
-      // Load worker permissions from API
       const fetchWorkerPerms = async () => {
         try {
           const { data } = await apiClient.get(`/admin/users/${selectedWorkerId}/permissions`);
@@ -273,8 +384,8 @@ export default function RolePermissionManager({
         await loadUsers();
         if (onNotice) {
           onNotice(isMr
-            ? `${selectedWorker?.full_name} या अधिकाऱ्याच्या परवानग्या सेव्ह झाल्या.`
-            : `Permissions for officer "${selectedWorker?.full_name}" saved successfully.`);
+            ? `${selectedWorker?.full_name} या कार्यकर्त्याच्या परवानग्या सेव्ह झाल्या.`
+            : `Permissions for worker "${selectedWorker?.full_name}" saved successfully.`);
         }
         setOriginalPermIds(new Set(stagedPermIds));
       }
@@ -315,548 +426,1177 @@ export default function RolePermissionManager({
     }
   };
 
-  // Filtered list of 10 permissions
-  const displayedPermissions = useMemo(() => {
-    if (!searchQuery.trim()) return availablePermissions;
-    const q = searchQuery.toLowerCase().trim();
-    return availablePermissions.filter((p) => {
-      const meta = getPermMeta(p);
-      return (
-        (p.name || '').toLowerCase().includes(q) ||
-        (meta?.title_en || '').toLowerCase().includes(q) ||
-        (meta?.title_mr || '').toLowerCase().includes(q) ||
-        (meta?.desc_en || '').toLowerCase().includes(q) ||
-        (meta?.desc_mr || '').toLowerCase().includes(q)
-      );
+  // Sorted list of permissions to match exact sequence in user screenshot
+  const sortedPermissions = useMemo(() => {
+    if (!availablePermissions || availablePermissions.length === 0) return [];
+    return [...availablePermissions].sort((a, b) => {
+      const idxA = PREFERRED_ORDER.indexOf(a.name);
+      const idxB = PREFERRED_ORDER.indexOf(b.name);
+      const posA = idxA === -1 ? 999 : idxA;
+      const posB = idxB === -1 ? 999 : idxB;
+      return posA - posB;
     });
-  }, [availablePermissions, searchQuery]);
+  }, [availablePermissions]);
+
+  // Determine label for "Assigned To" dropdown
+  const getAssignedToValue = (perm) => {
+    const isGranted = stagedPermIds.has(perm.id);
+    if (!isGranted) {
+      // Check if another role has this permission
+      if (officerRole?.permissions?.some((p) => p.id === perm.id)) {
+        return 'ROLE_OFFICER';
+      }
+      if (adminRole?.permissions?.some((p) => p.id === perm.id)) {
+        return 'ROLE_ADMIN';
+      }
+      return 'NONE';
+    }
+
+    if (targetType === 'ROLE') {
+      if (currentRole?.name === 'WORKER') return 'ROLE_WORKER';
+      if (currentRole?.name === 'OFFICER') return 'ROLE_OFFICER';
+      if (currentRole?.name === 'ADMIN') return 'ROLE_ADMIN';
+    } else if (targetType === 'WORKER') {
+      return `WORKER_${selectedWorkerId}`;
+    }
+    return 'ROLE_WORKER';
+  };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, fontFamily: "'Inter', 'Noto Sans Devanagari', 'Mukta', sans-serif" }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 20,
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        color: '#1e293b',
+        maxWidth: 1200,
+        margin: '0 auto',
+        padding: '8px 4px 40px 4px',
+        perspective: '1200px',
+      }}
+    >
+      {/* 3D Animations and Micro-interactions Stylesheet */}
+      <style>{`
+        @keyframes floatShield3D {
+          0%, 100% {
+            transform: perspective(600px) translateY(0px) rotateY(0deg) rotateX(0deg);
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.18), inset 0 1px 2px rgba(255, 255, 255, 0.6);
+          }
+          50% {
+            transform: perspective(600px) translateY(-5px) rotateY(10deg) rotateX(4deg);
+            box-shadow: 0 10px 20px rgba(22, 163, 74, 0.28), inset 0 1px 3px rgba(255, 255, 255, 0.8);
+          }
+        }
+
+        @keyframes pulseDot3D {
+          0%, 100% {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6), 0 1px 3px rgba(16, 185, 129, 0.5);
+            transform: scale(1);
+          }
+          50% {
+            box-shadow: 0 0 0 5px rgba(16, 185, 129, 0), 0 2px 6px rgba(16, 185, 129, 0.7);
+            transform: scale(1.15);
+          }
+        }
+
+        @keyframes bannerFloat3D {
+          0%, 100% {
+            transform: translateY(0px) perspective(800px) rotateX(0deg);
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.22);
+          }
+          50% {
+            transform: translateY(-3px) perspective(800px) rotateX(2deg);
+            box-shadow: 0 8px 22px rgba(245, 158, 11, 0.32);
+          }
+        }
+
+        @keyframes cardEntrance3D {
+          from {
+            opacity: 0;
+            transform: perspective(1000px) rotateX(6deg) translateY(18px);
+          }
+          to {
+            opacity: 1;
+            transform: perspective(1000px) rotateX(0deg) translateY(0);
+          }
+        }
+
+        @keyframes shimmerGlow {
+          0% {
+            background-position: -200% 0;
+          }
+          100% {
+            background-position: 200% 0;
+          }
+        }
+
+        .header-shield-3d {
+          animation: floatShield3D 4s ease-in-out infinite;
+          transform-style: preserve-3d;
+          transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .header-shield-3d:hover {
+          transform: perspective(600px) scale(1.12) rotateY(18deg) rotateX(6deg) !important;
+        }
+
+        .role-tab-btn-3d {
+          transform-style: preserve-3d;
+          transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          will-change: transform, box-shadow;
+          position: relative;
+        }
+        .role-tab-btn-3d:hover {
+          transform: perspective(800px) translateY(-3px) translateZ(8px) rotateX(3deg) !important;
+        }
+        .role-tab-btn-3d:active {
+          transform: perspective(800px) translateY(1px) translateZ(-2px) scale(0.98) !important;
+        }
+
+        .status-card-3d {
+          transform-style: preserve-3d;
+          transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          will-change: transform, box-shadow;
+        }
+        .status-card-3d:hover {
+          transform: perspective(800px) translateY(-3px) translateZ(6px) rotateX(2deg) !important;
+          box-shadow: 0 10px 24px -2px rgba(16, 185, 129, 0.48), inset 0 1px 1px rgba(255, 255, 255, 0.5) !important;
+        }
+
+        .perm-row-3d {
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          transform-style: preserve-3d;
+        }
+        .perm-row-3d:hover {
+          transform: translateZ(6px) scale(1.002);
+          box-shadow: 0 6px 18px -3px rgba(15, 23, 42, 0.08);
+          z-index: 2;
+        }
+        .perm-row-3d:hover .perm-avatar-3d {
+          transform: perspective(600px) scale(1.12) rotateY(8deg) translateZ(8px) !important;
+          box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12), inset 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+        }
+
+        .perm-avatar-3d {
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          transform-style: preserve-3d;
+        }
+
+        .toggle-btn-3d {
+          transform-style: preserve-3d;
+          transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          will-change: transform, box-shadow;
+        }
+        .toggle-btn-3d:hover {
+          transform: scale(1.08) translateY(-1.5px) translateZ(4px) !important;
+        }
+        .toggle-btn-3d:active {
+          transform: scale(0.94) translateY(1px) translateZ(-2px) !important;
+        }
+
+        .assigned-select-3d {
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .assigned-select-3d:hover {
+          transform: translateY(-1.5px) translateZ(3px);
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07) !important;
+        }
+        .assigned-select-3d:focus {
+          transform: translateY(-1px) translateZ(4px);
+          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.15) !important;
+        }
+
+        .worker-select-3d {
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .worker-select-3d:hover {
+          transform: translateY(-1.5px) translateZ(3px);
+          box-shadow: 0 6px 14px rgba(5, 150, 105, 0.12) !important;
+        }
+
+        .active-dot-pulsing {
+          animation: pulseDot3D 2s infinite ease-in-out;
+        }
+      `}</style>
 
       {/* ============================================================== */}
-      {/* 1. TOP SELECTION HUB: ROLE OR FIELD WORKER DROPDOWN            */}
+      {/* 1. TOP HEADER: ROLES & PERMISSIONS TITLE & ICON                 */}
       {/* ============================================================== */}
       <div
         style={{
-          background: '#ffffff',
-          borderRadius: 14,
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-          overflow: 'hidden',
-          position: 'relative',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 16,
         }}
       >
-        {/* Tricolor Accent Top Bar */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div
+            className="header-shield-3d"
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: '50%',
+              backgroundColor: '#e6f9ed',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              cursor: 'pointer',
+              border: '2px solid #bbf7d0',
+            }}
+          >
+            <Shield size={28} color="#16a34a" fill="#16a34a" fillOpacity={0.25} />
+          </div>
+          <div>
+            <h1
+              style={{
+                fontSize: 24,
+                fontWeight: 800,
+                color: '#0f172a',
+                margin: 0,
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {isMr ? 'भूमिका व परवानग्या (Roles & Permissions)' : 'Roles & Permissions'}
+            </h1>
+            <p
+              style={{
+                fontSize: 14,
+                color: '#64748b',
+                margin: '4px 0 0 0',
+                fontWeight: 450,
+              }}
+            >
+              {isMr
+                ? 'प्रत्येक भूमिका किंवा क्षेत्रीय कार्यकर्त्यास कोणत्या गोष्टींचा प्रवेश असेल ते ठरवा.'
+                : 'Manage what each role or field worker can access.'}
+            </p>
+          </div>
+        </div>
+
+        {/* Unsaved Changes Action Banner (Header) */}
+        {hasChanges && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              background: '#fffbeb',
+              border: '1px solid #fef08a',
+              padding: '6px 14px',
+              borderRadius: 10,
+              animation: 'bannerFloat3D 3s ease-in-out infinite',
+              boxShadow: '0 4px 14px rgba(245, 158, 11, 0.22)',
+            }}
+          >
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#b45309' }}>
+              ⚠️ {isMr ? 'बदल सेव्ह करणे बाकी आहे' : 'Unsaved changes'}
+            </span>
+            <button
+              type="button"
+              onClick={handleDiscard}
+              disabled={isSaving}
+              style={{
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                padding: '5px 12px',
+                borderRadius: 7,
+                fontSize: 12.5,
+                fontWeight: 600,
+                color: '#475569',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {isMr ? 'रद्द करा' : 'Discard'}
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSaving}
+              style={{
+                background: '#16a34a',
+                border: 'none',
+                padding: '6px 16px',
+                borderRadius: 7,
+                fontSize: 12.5,
+                fontWeight: 750,
+                color: '#ffffff',
+                cursor: 'pointer',
+                boxShadow: '0 3px 8px rgba(22, 163, 74, 0.38), inset 0 1px 1px rgba(255,255,255,0.4)',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {isSaving ? '...' : (isMr ? '💾 सेव्ह करा' : '💾 Save')}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ============================================================== */}
+      {/* 2. TOP FILTER HUB: 1. SELECT ROLE | 2. SELECT WORKER | ACTIVE   */}
+      {/* ============================================================== */}
+      <div
+        style={{
+          background: 'linear-gradient(180deg, #ffffff 0%, #fcfdfe 100%)',
+          borderRadius: 18,
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 8px 24px -4px rgba(15, 23, 42, 0.06), 0 2px 6px rgba(0,0,0,0.02)',
+          padding: '18px 22px',
+          animation: 'cardEntrance3D 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+      >
         <div
           style={{
-            height: 4,
-            background: 'linear-gradient(90deg, #FF671F 0%, #FF9933 33.3%, #FFFFFF 33.3%, #FFFFFF 66.6%, #138808 66.6%, #046A38 100%)',
+            display: 'grid',
+            gridTemplateColumns: 'minmax(520px, 2.3fr) minmax(260px, 1.2fr) minmax(170px, 0.8fr)',
+            gap: 18,
+            alignItems: 'flex-start',
           }}
-        />
-
-        <div style={{ padding: '18px 22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 14, marginBottom: 16 }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 24 }}>🛡️</span>
-                <h2 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: '#0f172a' }}>
-                  {isMr ? 'सोपे भूमिका व परवानग्या व्यवस्थापन' : 'Simple Roles & Permissions Manager'}
-                </h2>
-                <span style={{ fontSize: 11, fontWeight: 750, background: '#eff6ff', color: '#1e40af', padding: '3px 9px', borderRadius: 20, border: '1px solid #bfdbfe' }}>
-                  {isMr ? '१० मुख्य परवानग्या' : '10 Simple Permissions'}
-                </span>
-              </div>
-              <p style={{ margin: '4px 0 0 0', fontSize: 13, color: '#64748b' }}>
-                {isMr
-                  ? 'भूमिका निवडा किंवा खालील ड्रॉपडाऊनमधून थेट क्षेत्र अधिकारी निवडून परवानग्या चालू/बंद करा.'
-                  : 'Select a role or choose any Field Officer from the dropdown to turn permissions ON or OFF.'}
-              </p>
+        >
+          {/* Section 1: 1. Select Role */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ height: 21, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #10b981 0%, #2563eb 100%)',
+                  boxShadow: '0 0 6px rgba(37,99,235,0.4)',
+                }}
+              />
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 800,
+                  color: '#0f172a',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {isMr ? '१. भूमिका निवडा (1. Select Role)' : '1. Select Role'}
+              </span>
             </div>
 
-            {/* Save Changes Floating Status */}
-            {hasChanges && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fffbeb', border: '1px solid #fcd34d', padding: '6px 14px', borderRadius: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#92400e' }}>
-                  ⚠️ {isMr ? 'बदल सेव्ह करणे बाकी आहे' : 'Unsaved Changes'}
-                </span>
-                <button
-                  onClick={handleDiscard}
-                  disabled={isSaving}
-                  style={{
-                    background: '#ffffff',
-                    border: '1px solid #cbd5e1',
-                    padding: '5px 10px',
-                    borderRadius: 6,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: '#475569',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {isMr ? 'रद्द करा' : 'Discard'}
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  style={{
-                    background: '#16a34a',
-                    border: 'none',
-                    padding: '5px 14px',
-                    borderRadius: 6,
-                    fontSize: 12,
-                    fontWeight: 750,
-                    color: '#ffffff',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 4px rgba(22, 163, 74, 0.3)',
-                  }}
-                >
-                  {isSaving ? '...' : (isMr ? '💾 सेव्ह करा' : '💾 Save')}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* TWO PRIMARY SELECTION CONTROLS */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16, background: '#f8fafc', padding: 14, borderRadius: 10, border: '1px solid #e2e8f0' }}>
-
-            {/* Option 1: Pick by Role */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 12, fontWeight: 750, color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span>👑</span>
-                <span>{isMr ? '१. भूमिकेनुसार परवानग्या (By Role):' : '1. Configure By Role:'}</span>
-              </label>
-
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {roles.map((r) => {
-                  const isSelected = targetType === 'ROLE' && selectedRoleId === r.id;
-                  const icon = r.name === 'ADMIN' ? '👑' : r.name === 'OFFICER' ? '👔' : '👷';
-                  const badgeColor = r.name === 'ADMIN' ? '#4f46e5' : r.name === 'OFFICER' ? '#0284c7' : '#059669';
-
-                  return (
-                    <button
-                      key={r.id}
-                      type="button"
-                      onClick={() => {
-                        setTargetType('ROLE');
-                        setSelectedRoleId(r.id);
-                        setSelectedWorkerId('');
-                      }}
+            {/* Exactly 3 equal columns in ONE SINGLE ROW - never wraps */}
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 8,
+                width: '100%',
+              }}
+            >
+              {/* 1. Field Worker Card */}
+              {workerRole && (() => {
+                const isSelected = targetType === 'ROLE' && selectedRoleId === workerRole.id;
+                return (
+                  <button
+                    type="button"
+                    className={`role-tab-btn-3d ${isSelected ? 'tab-btn-3d-blue' : 'tab-btn-3d-inactive'}`}
+                    onClick={() => {
+                      setTargetType('ROLE');
+                      setSelectedRoleId(workerRole.id);
+                      setSelectedWorkerId('');
+                    }}
+                    style={{
+                      width: '100%',
+                      height: 48,
+                      boxSizing: 'border-box',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 6,
+                      padding: '8px 12px',
+                      borderRadius: 12,
+                      border: isSelected ? '1px solid rgba(255, 255, 255, 0.35)' : '1px solid #cbd5e1',
+                      borderTop: isSelected ? '1.5px solid rgba(255, 255, 255, 0.65)' : '1px solid #cbd5e1',
+                      borderBottom: isSelected ? '3.5px solid #1743a4' : '2.5px solid #94a3b8',
+                      background: isSelected
+                        ? 'linear-gradient(180deg, #3b82f6 0%, #2563eb 52%, #1d4ed8 100%)'
+                        : 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+                      color: isSelected ? '#ffffff' : '#334155',
+                      cursor: 'pointer',
+                      boxShadow: isSelected
+                        ? '0 8px 20px -2px rgba(37, 99, 235, 0.55), 0 3px 6px rgba(0, 0, 0, 0.14), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.65)'
+                        : '0 2px 5px rgba(0, 0, 0, 0.05), inset 0 1px 1px #ffffff',
+                      textShadow: isSelected ? '0 1px 2px rgba(0, 0, 0, 0.28)' : 'none',
+                      transform: isSelected ? 'perspective(800px) translateY(-2px) translateZ(6px)' : 'none',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 8,
+                          background: isSelected ? 'rgba(255, 255, 255, 0.25)' : '#eff6ff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: isSelected ? 'inset 0 1px 1px rgba(255,255,255,0.4)' : '0 1px 3px rgba(37,99,235,0.12)',
+                          flexShrink: 0,
+                          transform: 'translateZ(10px)',
+                        }}
+                      >
+                        <User size={16} color={isSelected ? '#ffffff' : '#2563eb'} strokeWidth={2.5} />
+                      </div>
+                      <span
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: 800,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          transform: 'translateZ(8px)',
+                        }}
+                      >
+                        {isMr ? 'क्षेत्रीय कार्यकर्ता' : 'Field Worker'}
+                      </span>
+                    </div>
+                    <span
                       style={{
-                        flex: '1 1 120px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 8,
-                        padding: '10px 14px',
-                        borderRadius: 8,
-                        border: isSelected ? `2px solid ${badgeColor}` : '1px solid #cbd5e1',
-                        background: isSelected ? '#ffffff' : '#f1f5f9',
-                        color: isSelected ? badgeColor : '#334155',
-                        fontWeight: isSelected ? 800 : 600,
-                        fontSize: 13,
-                        cursor: 'pointer',
-                        boxShadow: isSelected ? '0 2px 6px rgba(0,0,0,0.08)' : 'none',
-                        transition: 'all 0.15s ease',
+                        fontSize: 11,
+                        fontWeight: 900,
+                        background: isSelected ? '#ffffff' : '#eff6ff',
+                        color: '#1d4ed8',
+                        padding: '2px 8px',
+                        borderRadius: 12,
+                        flexShrink: 0,
+                        border: isSelected ? 'none' : '1px solid #bfdbfe',
+                        boxShadow: isSelected ? '0 2px 5px rgba(0,0,0,0.2)' : 'none',
+                        transform: 'translateZ(12px)',
                       }}
                     >
-                      <span style={{ fontSize: 16 }}>{icon}</span>
-                      <span>{r.display_name || r.name}</span>
-                      <span style={{ fontSize: 11, background: isSelected ? `${badgeColor}15` : '#e2e8f0', color: isSelected ? badgeColor : '#64748b', padding: '1px 6px', borderRadius: 10 }}>
-                        {r.permissions?.length || 0}
+                      {workerRole.permissions?.length || 4}
+                    </span>
+                  </button>
+                );
+              })()}
+
+              {/* 2. Leader / Officer Card */}
+              {officerRole && (() => {
+                const isSelected = targetType === 'ROLE' && selectedRoleId === officerRole.id;
+                return (
+                  <button
+                    type="button"
+                    className={`role-tab-btn-3d ${isSelected ? 'tab-btn-3d-blue' : 'tab-btn-3d-inactive'}`}
+                    onClick={() => {
+                      setTargetType('ROLE');
+                      setSelectedRoleId(officerRole.id);
+                      setSelectedWorkerId('');
+                    }}
+                    style={{
+                      width: '100%',
+                      height: 48,
+                      boxSizing: 'border-box',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 6,
+                      padding: '8px 12px',
+                      borderRadius: 12,
+                      border: isSelected ? '1px solid rgba(255, 255, 255, 0.35)' : '1px solid #cbd5e1',
+                      borderTop: isSelected ? '1.5px solid rgba(255, 255, 255, 0.65)' : '1px solid #cbd5e1',
+                      borderBottom: isSelected ? '3.5px solid #1743a4' : '2.5px solid #94a3b8',
+                      background: isSelected
+                        ? 'linear-gradient(180deg, #3b82f6 0%, #2563eb 52%, #1d4ed8 100%)'
+                        : 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+                      color: isSelected ? '#ffffff' : '#334155',
+                      cursor: 'pointer',
+                      boxShadow: isSelected
+                        ? '0 8px 20px -2px rgba(37, 99, 235, 0.55), 0 3px 6px rgba(0, 0, 0, 0.14), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.65)'
+                        : '0 2px 5px rgba(0, 0, 0, 0.05), inset 0 1px 1px #ffffff',
+                      textShadow: isSelected ? '0 1px 2px rgba(0, 0, 0, 0.28)' : 'none',
+                      transform: isSelected ? 'perspective(800px) translateY(-2px) translateZ(6px)' : 'none',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 8,
+                          background: isSelected ? 'rgba(255, 255, 255, 0.25)' : '#eff6ff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: isSelected ? 'inset 0 1px 1px rgba(255,255,255,0.4)' : '0 1px 3px rgba(37,99,235,0.12)',
+                          flexShrink: 0,
+                          transform: 'translateZ(10px)',
+                        }}
+                      >
+                        <User size={16} color={isSelected ? '#ffffff' : '#2563eb'} strokeWidth={2.5} />
+                      </div>
+                      <span
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: 800,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          transform: 'translateZ(8px)',
+                        }}
+                      >
+                        {isMr ? 'नेता / अधिकारी' : 'Leader / Officer'}
                       </span>
-                    </button>
-                  );
-                })}
-              </div>
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 900,
+                        background: isSelected ? '#ffffff' : '#eff6ff',
+                        color: '#1d4ed8',
+                        padding: '2px 8px',
+                        borderRadius: 12,
+                        flexShrink: 0,
+                        border: isSelected ? 'none' : '1px solid #bfdbfe',
+                        boxShadow: isSelected ? '0 2px 5px rgba(0,0,0,0.2)' : 'none',
+                        transform: 'translateZ(12px)',
+                      }}
+                    >
+                      {officerRole.permissions?.length || 8}
+                    </span>
+                  </button>
+                );
+              })()}
+
+              {/* 3. Administrator Card */}
+              {adminRole && (() => {
+                const isSelected = targetType === 'ROLE' && selectedRoleId === adminRole.id;
+                return (
+                  <button
+                    type="button"
+                    className={`role-tab-btn-3d ${isSelected ? 'tab-btn-3d-blue' : 'tab-btn-3d-inactive'}`}
+                    onClick={() => {
+                      setTargetType('ROLE');
+                      setSelectedRoleId(adminRole.id);
+                      setSelectedWorkerId('');
+                    }}
+                    style={{
+                      width: '100%',
+                      height: 48,
+                      boxSizing: 'border-box',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 6,
+                      padding: '8px 12px',
+                      borderRadius: 12,
+                      border: isSelected ? '1px solid rgba(255, 255, 255, 0.35)' : '1px solid #cbd5e1',
+                      borderTop: isSelected ? '1.5px solid rgba(255, 255, 255, 0.65)' : '1px solid #cbd5e1',
+                      borderBottom: isSelected ? '3.5px solid #1743a4' : '2.5px solid #94a3b8',
+                      background: isSelected
+                        ? 'linear-gradient(180deg, #3b82f6 0%, #2563eb 52%, #1d4ed8 100%)'
+                        : 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+                      color: isSelected ? '#ffffff' : '#334155',
+                      cursor: 'pointer',
+                      boxShadow: isSelected
+                        ? '0 8px 20px -2px rgba(37, 99, 235, 0.55), 0 3px 6px rgba(0, 0, 0, 0.14), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.65)'
+                        : '0 2px 5px rgba(0, 0, 0, 0.05), inset 0 1px 1px #ffffff',
+                      textShadow: isSelected ? '0 1px 2px rgba(0, 0, 0, 0.28)' : 'none',
+                      transform: isSelected ? 'perspective(800px) translateY(-2px) translateZ(6px)' : 'none',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, minWidth: 0, overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: 8,
+                          background: isSelected ? 'rgba(255, 255, 255, 0.25)' : '#eff6ff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: isSelected ? 'inset 0 1px 1px rgba(255,255,255,0.4)' : '0 1px 3px rgba(37,99,235,0.12)',
+                          flexShrink: 0,
+                          transform: 'translateZ(10px)',
+                        }}
+                      >
+                        <Crown size={16} color={isSelected ? '#ffffff' : '#2563eb'} strokeWidth={2.5} />
+                      </div>
+                      <span
+                        style={{
+                          fontSize: 12.5,
+                          fontWeight: 800,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          transform: 'translateZ(8px)',
+                        }}
+                      >
+                        {isMr ? 'ॲडमिन' : 'Administrator'}
+                      </span>
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 900,
+                        background: isSelected ? '#ffffff' : '#eff6ff',
+                        color: '#1d4ed8',
+                        padding: '2px 8px',
+                        borderRadius: 12,
+                        flexShrink: 0,
+                        border: isSelected ? 'none' : '1px solid #bfdbfe',
+                        boxShadow: isSelected ? '0 2px 5px rgba(0,0,0,0.2)' : 'none',
+                        transform: 'translateZ(12px)',
+                      }}
+                    >
+                      {adminRole.permissions?.length || 10}
+                    </span>
+                  </button>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* Section 2: 2. Select Field Worker */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ height: 21, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  background: targetType === 'WORKER' ? '#10b981' : '#64748b',
+                  boxShadow: targetType === 'WORKER' ? '0 0 6px rgba(16,185,129,0.5)' : 'none',
+                }}
+              />
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 800,
+                  color: '#0f172a',
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                {isMr ? '२. कार्यकर्ता निवडा (2. Select Field Worker)' : '2. Select Field Worker'}
+              </span>
             </div>
 
-            {/* Option 2: PROMINENT FIELD WORKER DROPDOWN */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <label style={{ fontSize: 12, fontWeight: 750, color: '#475569', textTransform: 'uppercase', letterSpacing: 0.5, display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span>👮</span>
-                <span>{isMr ? '२. थेट क्षेत्र अधिकारी निवडा (Field Officer Dropdown):' : '2. Select Field Officer Directly:'}</span>
-                <span style={{ fontSize: 11, color: '#059669', background: '#ecfdf5', padding: '1px 7px', borderRadius: 4, fontWeight: 700 }}>
-                  {fieldWorkers.length} {isMr ? 'अधिकारी' : 'Officers'}
-                </span>
-              </label>
+            <div style={{ position: 'relative', width: '100%' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 9,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: 26,
+                  height: 26,
+                  borderRadius: 7,
+                  background: targetType === 'WORKER' ? '#10b981' : '#f1f5f9',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  pointerEvents: 'none',
+                  boxShadow: targetType === 'WORKER' ? '0 2px 4px rgba(16,185,129,0.3)' : 'none',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <User size={14} color={targetType === 'WORKER' ? '#ffffff' : '#64748b'} strokeWidth={2.5} />
+              </div>
 
-              <div style={{ position: 'relative' }}>
-                <select
-                  value={targetType === 'WORKER' ? selectedWorkerId : ''}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val) {
-                      setTargetType('WORKER');
-                      setSelectedWorkerId(val);
-                    } else {
-                      setTargetType('ROLE');
-                      setSelectedWorkerId('');
-                    }
-                  }}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: 8,
-                    border: targetType === 'WORKER' ? '2px solid #059669' : '1px solid #cbd5e1',
-                    background: targetType === 'WORKER' ? '#ffffff' : '#f8fafc',
-                    color: targetType === 'WORKER' ? '#065f46' : '#1e293b',
-                    fontSize: 13.5,
-                    fontWeight: targetType === 'WORKER' ? 750 : 500,
-                    cursor: 'pointer',
-                    outline: 'none',
-                    boxShadow: targetType === 'WORKER' ? '0 0 0 3px rgba(5, 150, 105, 0.15)' : 'none',
-                  }}
-                >
-                  <option value="">
-                    {isMr ? '▼ येथे क्लिक करून क्षेत्र अधिकारी निवडा...' : '▼ Click here to select a Field Officer...'}
+              <select
+                className="worker-select-3d"
+                value={targetType === 'WORKER' ? selectedWorkerId : ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val) {
+                    setTargetType('WORKER');
+                    setSelectedWorkerId(val);
+                  } else {
+                    setTargetType('ROLE');
+                    setSelectedWorkerId('');
+                  }
+                }}
+                style={{
+                  width: '100%',
+                  height: 46,
+                  boxSizing: 'border-box',
+                  paddingLeft: 42,
+                  paddingRight: 32,
+                  borderRadius: 12,
+                  border: targetType === 'WORKER' ? '1.5px solid #059669' : '1.5px solid #cbd5e1',
+                  background: targetType === 'WORKER' ? 'linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%)' : '#ffffff',
+                  color: targetType === 'WORKER' ? '#065f46' : '#1e293b',
+                  fontSize: 13,
+                  fontWeight: targetType === 'WORKER' ? 800 : 600,
+                  appearance: 'none',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  boxShadow: targetType === 'WORKER'
+                    ? '0 6px 16px rgba(5, 150, 105, 0.18)'
+                    : '0 2px 4px rgba(0,0,0,0.02)',
+                }}
+              >
+                <option value="">
+                  {isMr ? '👤 येथे क्लिक करून कार्यकर्ता निवडा...' : '👤 Choose a field worker...'}
+                </option>
+                {fieldWorkers.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.full_name} {u.phone ? `(📞 ${u.phone})` : ''}
                   </option>
-
-                  {/* Field Workers Group */}
-                  <optgroup label={isMr ? '👮 क्षेत्र अधिकारी (Field Officers)' : '👮 Field Officers'}>
-                    {fieldWorkers.map((u) => (
+                ))}
+                {otherUsers.length > 0 && (
+                  <optgroup label={isMr ? '👔 इतर अधिकारी / कर्मचारी' : '👔 Other Staff'}>
+                    {otherUsers.map((u) => (
                       <option key={u.id} value={u.id}>
-                        👤 {u.full_name} (Field Officer · 📞 {u.phone || 'N/A'})
+                        {u.full_name} ({u.roles?.map((r) => r.name).join(', ')})
                       </option>
                     ))}
                   </optgroup>
-
-                  {/* Officers Group */}
-                  {otherUsers.length > 0 && (
-                    <optgroup label={isMr ? '👔 इतर अधिकारी / वापरकर्ते' : '👔 Officers & Staff'}>
-                      {otherUsers.map((u) => {
-                        const rName = u.roles?.map((r) => r.display_name || r.name).join(', ') || 'User';
-                        return (
-                          <option key={u.id} value={u.id}>
-                            👤 {u.full_name} ({rName} · 📞 {u.phone || 'N/A'})
-                          </option>
-                        );
-                      })}
-                    </optgroup>
-                  )}
-                </select>
-              </div>
+                )}
+              </select>
+              <ChevronDown
+                size={15}
+                color={targetType === 'WORKER' ? '#059669' : '#64748b'}
+                style={{
+                  position: 'absolute',
+                  right: 12,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                }}
+              />
             </div>
-
           </div>
 
-          {/* ACTIVE TARGET BANNER */}
-          <div
-            style={{
-              marginTop: 12,
-              padding: '10px 14px',
-              borderRadius: 8,
-              background: targetType === 'ROLE' ? '#f0f9ff' : '#ecfdf5',
-              border: `1px solid ${targetType === 'ROLE' ? '#bae6fd' : '#a7f3d0'}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: 8,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontSize: 18 }}>{targetType === 'ROLE' ? '👔' : '👤'}</span>
-              <div>
-                <span style={{ fontSize: 13, fontWeight: 700, color: targetType === 'ROLE' ? '#0369a1' : '#047857' }}>
-                  {isMr ? 'सध्याच्या परवानग्या व्यवस्थापन:' : 'Currently Configuring Permissions For:'}
-                </span>{' '}
-                <strong style={{ fontSize: 14, color: '#0f172a' }}>
-                  {targetType === 'ROLE'
-                    ? (currentRole?.display_name || currentRole?.name)
-                    : `${selectedWorker?.full_name} (Field Worker · ${selectedWorker?.phone || ''})`}
-                </strong>
-              </div>
+          {/* Section 3: Active Permissions Card */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ height: 21, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 6 }}>
+              <span style={{ fontSize: 12, fontWeight: 750, color: '#047857' }}>
+                {isMr ? '📊 सद्यस्थिती' : '📊 Status'}
+              </span>
             </div>
 
-            <div style={{ fontSize: 12, color: '#475569', fontWeight: 600 }}>
-              {isMr ? 'सक्रिय परवानग्या:' : 'Active Permissions:'}{' '}
-              <strong style={{ color: '#16a34a', fontSize: 13 }}>{stagedPermIds.size} / 10</strong>
+            <div
+              className="status-card-3d"
+              style={{
+                background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
+                border: '1.5px solid #059669',
+                borderRadius: 12,
+                padding: '0 16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                height: 46,
+                boxSizing: 'border-box',
+                boxShadow: '0 8px 20px -2px rgba(16, 185, 129, 0.42), inset 0 1px 1px rgba(255, 255, 255, 0.45)',
+                cursor: 'default',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: '50%',
+                    background: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                  }}
+                >
+                  <Check size={11} color="#047857" strokeWidth={3.5} />
+                </div>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 750,
+                    color: '#ffffff',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {isMr ? 'सक्रिय' : 'Active'}
+                </span>
+              </div>
+              <div
+                style={{
+                  fontSize: 19,
+                  fontWeight: 900,
+                  color: '#ffffff',
+                  letterSpacing: '0.02em',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                }}
+              >
+                {stagedPermIds.size} / {availablePermissions.length || 10}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* ============================================================== */}
-      {/* 2. THE 10 SIMPLE PERMISSIONS TABLE                             */}
+      {/* 3. MAIN PERMISSIONS TABLE CARD                                 */}
       {/* ============================================================== */}
       <div
         style={{
           background: '#ffffff',
-          borderRadius: 14,
+          borderRadius: 18,
           border: '1px solid #e2e8f0',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          boxShadow: '0 10px 30px -4px rgba(15, 23, 42, 0.07), 0 3px 8px rgba(0,0,0,0.03)',
           overflow: 'hidden',
+          animation: 'cardEntrance3D 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
         }}
       >
-        {/* Table Top Toolbar */}
-        <div style={{ padding: '14px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 16 }}>📋</span>
-            <span style={{ fontSize: 14, fontWeight: 750, color: '#0f172a' }}>
-              {isMr ? '१० सोप्या परवानग्यांची यादी' : 'List of 10 Simple Permissions'}
-            </span>
-            <span style={{ fontSize: 12, color: '#64748b' }}>
-              ({displayedPermissions.length} {isMr ? 'दिसत आहेत' : 'shown'})
-            </span>
-          </div>
-
-          {/* Quick Search Box */}
-          <div style={{ position: 'relative', width: 280 }}>
-            <input
-              type="text"
-              placeholder={isMr ? 'परवानगी शोधा...' : 'Search permission...'}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '7px 30px 7px 10px',
-                borderRadius: 6,
-                border: '1px solid #cbd5e1',
-                fontSize: 12.5,
-                outline: 'none',
-              }}
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                style={{ position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'none', cursor: 'pointer', color: '#94a3b8' }}
-              >
-                ✕
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* The Clean Table */}
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              textAlign: 'left',
+            }}
+          >
             <thead>
-              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 750, color: '#475569', width: 80, textAlign: 'center' }}>
+              <tr
+                style={{
+                  borderBottom: '1.5px solid #e2e8f0',
+                  background: '#f8fafc',
+                }}
+              >
+                <th
+                  style={{
+                    padding: '14px 22px',
+                    fontSize: 12,
+                    fontWeight: 800,
+                    color: '#475569',
+                    width: 140,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                  }}
+                >
                   {isMr ? 'स्थिती' : 'Status'}
                 </th>
-                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 750, color: '#475569', width: 340 }}>
-                  {isMr ? 'परवानगी (Simple Permission)' : 'Simple Permission'}
+                <th
+                  style={{
+                    padding: '14px 22px',
+                    fontSize: 12,
+                    fontWeight: 800,
+                    color: '#475569',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  {isMr ? 'परवानगी' : 'Permission'}
                 </th>
-                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 750, color: '#475569' }}>
-                  {isMr ? 'क्षेत्र अधिकारी (Field Officers Dropdown)' : 'Field Officers Assigned (Dropdown)'}
+                <th
+                  style={{
+                    padding: '14px 22px',
+                    fontSize: 12,
+                    fontWeight: 800,
+                    color: '#475569',
+                    width: 250,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  {isMr ? 'कोणास दिली आहे' : 'Assigned To'}
                 </th>
-                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 750, color: '#475569', width: 140, textAlign: 'right' }}>
-                  {isMr ? 'चालू / बंद' : 'Toggle'}
+                <th
+                  style={{
+                    padding: '14px 22px',
+                    fontSize: 12,
+                    fontWeight: 800,
+                    color: '#475569',
+                    width: 120,
+                    textAlign: 'center',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  {isMr ? 'चालू/बंद' : 'Toggle'}
                 </th>
               </tr>
             </thead>
             <tbody>
-              {displayedPermissions.length === 0 ? (
+              {loadingPerms ? (
                 <tr>
-                  <td colSpan={4} style={{ padding: 30, textAlign: 'center', color: '#94a3b8', fontStyle: 'italic', fontSize: 13 }}>
-                    {loadingPerms ? 'Loading...' : (isMr ? 'कोणतीही परवानगी सापडली नाही.' : 'No permissions found.')}
+                  <td colSpan={4} style={{ padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+                    Loading permissions...
+                  </td>
+                </tr>
+              ) : sortedPermissions.length === 0 ? (
+                <tr>
+                  <td colSpan={4} style={{ padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
+                    {isMr ? 'कोणतीही परवानगी सापडली नाही.' : 'No permissions available.'}
                   </td>
                 </tr>
               ) : (
-                displayedPermissions.map((perm, index) => {
+                sortedPermissions.map((perm) => {
                   const meta = getPermMeta(perm);
                   const isGranted = stagedPermIds.has(perm.id);
-                  const isInherited = workerInheritedIds.has(perm.id);
-                  const isModified = isGranted !== originalPermIds.has(perm.id);
-
-                  // Users in current role who have this permission
-                  const roleUsersWithPerm = (currentRole?.users || []).filter(() => isGranted);
+                  const IconComp = meta.Icon || Shield;
+                  const assignedVal = getAssignedToValue(perm);
+                  const selectTheme = getAssignedSelectTheme(assignedVal);
 
                   return (
                     <tr
                       key={perm.id}
+                      className="perm-row-3d"
                       style={{
                         borderBottom: '1px solid #f1f5f9',
-                        background: isModified
-                          ? (isGranted ? '#f0fdf4' : '#fef2f2')
-                          : (isGranted ? '#fafcff' : '#ffffff'),
-                        transition: 'background 0.15s ease',
+                        background: isGranted ? '#fcfffd' : '#ffffff',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = isGranted ? '#f0fdf4' : '#f8fafc';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = isGranted ? '#fcfffd' : '#ffffff';
                       }}
                     >
-                      {/* Column 1: Status Icon */}
-                      <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                        <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: 28,
-                            height: 28,
-                            borderRadius: '50%',
-                            background: isGranted ? '#dcfce7' : '#f1f5f9',
-                            color: isGranted ? '#15803d' : '#94a3b8',
-                            fontSize: 14,
-                            fontWeight: 800,
-                          }}
-                        >
-                          {isGranted ? '✓' : '—'}
-                        </span>
-                      </td>
-
-                      {/* Column 2: 10 Simple Permission Details */}
-                      <td style={{ padding: '14px 16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      {/* Column 1: Status Pill Badge matching image 1 */}
+                      <td style={{ padding: '16px 22px', verticalAlign: 'middle' }}>
+                        {isGranted ? (
                           <span
                             style={{
-                              width: 40,
-                              height: 40,
-                              borderRadius: 10,
-                              background: isGranted ? `${meta.color}15` : '#f1f5f9',
-                              border: `1px solid ${isGranted ? `${meta.color}40` : '#e2e8f0'}`,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              padding: '4px 11px',
+                              borderRadius: 20,
+                              background: '#ecfdf5',
+                              border: '1px solid #a7f3d0',
+                              color: '#047857',
+                              fontSize: 12,
+                              fontWeight: 800,
+                              boxShadow: '0 2px 4px rgba(16,185,129,0.12)',
+                            }}
+                          >
+                            <span
+                              className="active-dot-pulsing"
+                              style={{
+                                width: 7,
+                                height: 7,
+                                borderRadius: '50%',
+                                background: '#10b981',
+                              }}
+                            />
+                            <span>{isMr ? 'सक्रिय' : 'Active'}</span>
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              padding: '4px 11px',
+                              borderRadius: 20,
+                              background: '#f8fafc',
+                              border: '1px solid #e2e8f0',
+                              color: '#64748b',
+                              fontSize: 12,
+                              fontWeight: 700,
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: 7,
+                                height: 7,
+                                borderRadius: '50%',
+                                background: '#94a3b8',
+                              }}
+                            />
+                            <span>{isMr ? 'बंद' : 'Inactive'}</span>
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Column 2: Permission Avatar + Title + Desc */}
+                      <td style={{ padding: '16px 22px', verticalAlign: 'middle' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                          <div
+                            className="perm-avatar-3d"
+                            style={{
+                              width: 42,
+                              height: 42,
+                              borderRadius: '50%',
+                              backgroundColor: meta.bgColor,
+                              border: `1px solid ${meta.borderColor || '#e2e8f0'}`,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              fontSize: 20,
                               flexShrink: 0,
+                              boxShadow: '0 3px 8px rgba(0,0,0,0.04), inset 0 1px 1px rgba(255,255,255,0.7)',
                             }}
                           >
-                            {meta.icon}
-                          </span>
+                            <IconComp size={20} color={meta.color} />
+                          </div>
                           <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                              <strong style={{ fontSize: 14, color: isGranted ? '#0f172a' : '#475569', fontWeight: 800 }}>
-                                #{index + 1}. {isMr ? meta.title_mr : meta.title_en}
-                              </strong>
-                              <code
-                                style={{
-                                  fontSize: 11,
-                                  background: isGranted ? '#eff6ff' : '#f1f5f9',
-                                  color: isGranted ? '#1e40af' : '#64748b',
-                                  padding: '2px 7px',
-                                  borderRadius: 4,
-                                  fontWeight: 600,
-                                }}
-                              >
-                                {perm.name}
-                              </code>
-                              {isModified && (
-                                <span style={{ fontSize: 10, fontWeight: 800, padding: '1px 6px', borderRadius: 4, background: isGranted ? '#dcfce7' : '#fee2e2', color: isGranted ? '#15803d' : '#b91c1c' }}>
-                                  {isGranted ? '+New' : '-Revoked'}
-                                </span>
-                              )}
+                            <div
+                              style={{
+                                fontSize: 13.5,
+                                fontWeight: 800,
+                                color: '#0f172a',
+                                lineHeight: 1.25,
+                              }}
+                            >
+                              {isMr ? meta.title_mr : meta.title_en}
                             </div>
-                            <div style={{ fontSize: 12, color: '#64748b', marginTop: 3, lineHeight: 1.4 }}>
+                            <div
+                              style={{
+                                fontSize: 12,
+                                color: '#64748b',
+                                marginTop: 3,
+                                lineHeight: 1.35,
+                              }}
+                            >
                               {isMr ? meta.desc_mr : meta.desc_en}
                             </div>
                           </div>
                         </div>
                       </td>
 
-                      {/* Column 3: FIELD WORKER NAME DROPDOWN */}
-                      <td style={{ padding: '14px 16px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                          {targetType === 'ROLE' ? (
-                            /* When viewing by Role: Dropdown of workers who have this role permission */
-                            <div style={{ width: '100%', maxWidth: 320 }}>
-                              <select
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  if (val === 'ADD_WORKER') {
-                                    setAssignModal({ permId: perm.id, permName: isMr ? meta.title_mr : meta.title_en });
-                                    setAssignTargetUserId(fieldWorkers[0]?.id || '');
-                                    e.target.value = '';
-                                  } else if (val) {
-                                    // Jump directly to customize this worker!
-                                    setTargetType('WORKER');
-                                    setSelectedWorkerId(val);
-                                  }
-                                }}
-                                defaultValue=""
-                                style={{
-                                  width: '100%',
-                                  padding: '7px 10px',
-                                  borderRadius: 6,
-                                  border: '1px solid #cbd5e1',
-                                  fontSize: 12.5,
-                                  color: isGranted ? '#0f172a' : '#64748b',
-                                  background: isGranted ? '#ffffff' : '#f8fafc',
-                                  cursor: 'pointer',
-                                }}
-                              >
-                                <option value="" disabled>
-                                  {isGranted
-                                    ? `👥 ${isMr ? 'अधिकाऱ्यांची नावे पहा' : 'View Assigned Officers'} (${roleUsersWithPerm.length}) ▼`
-                                    : `⚪ ${isMr ? 'या भूमिकेत परवानगी बंद आहे' : 'Disabled for this role'} ▼`}
-                                </option>
+                      {/* Column 3: Assigned To Styled Dropdown Pill */}
+                      <td style={{ padding: '16px 22px', verticalAlign: 'middle' }}>
+                        <div style={{ position: 'relative', width: 230 }}>
+                          <select
+                            className="assigned-select-3d"
+                            value={assignedVal}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === 'NONE') {
+                                if (stagedPermIds.has(perm.id)) {
+                                  handleToggle(perm.id);
+                                }
+                              } else if (val === 'ROLE_WORKER') {
+                                setTargetType('ROLE');
+                                if (workerRole) setSelectedRoleId(workerRole.id);
+                                setSelectedWorkerId('');
+                                if (!stagedPermIds.has(perm.id)) {
+                                  handleToggle(perm.id);
+                                }
+                              } else if (val === 'ROLE_OFFICER') {
+                                setTargetType('ROLE');
+                                if (officerRole) setSelectedRoleId(officerRole.id);
+                                setSelectedWorkerId('');
+                                if (!stagedPermIds.has(perm.id)) {
+                                  handleToggle(perm.id);
+                                }
+                              } else if (val === 'ROLE_ADMIN') {
+                                setTargetType('ROLE');
+                                if (adminRole) setSelectedRoleId(adminRole.id);
+                                setSelectedWorkerId('');
+                                if (!stagedPermIds.has(perm.id)) {
+                                  handleToggle(perm.id);
+                                }
+                              } else if (val.startsWith('WORKER_')) {
+                                const wId = val.replace('WORKER_', '');
+                                setTargetType('WORKER');
+                                setSelectedWorkerId(wId);
+                                if (!stagedPermIds.has(perm.id)) {
+                                  handleToggle(perm.id);
+                                }
+                              } else if (val === 'CUSTOM_ASSIGN') {
+                                setAssignModal({
+                                  permId: perm.id,
+                                  permName: isMr ? meta.title_mr : meta.title_en,
+                                });
+                                setAssignTargetUserId(fieldWorkers[0]?.id || '');
+                              }
+                            }}
+                            style={{
+                              width: '100%',
+                              height: 38,
+                              paddingLeft: 12,
+                              paddingRight: 32,
+                              borderRadius: 8,
+                              border: selectTheme.border,
+                              background: selectTheme.bg,
+                              fontSize: 12.5,
+                              fontWeight: 750,
+                              color: selectTheme.color,
+                              appearance: 'none',
+                              outline: 'none',
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
+                            }}
+                          >
+                            <option value="ROLE_WORKER">
+                              {isMr ? 'सर्व कार्यकर्ते (All Field Workers)' : 'All Field Workers'}
+                            </option>
+                            <option value="ROLE_OFFICER">
+                              {isMr ? 'नेता / अधिकारी (Leader / Officer)' : 'Leader / Officer'}
+                            </option>
+                            <option value="ROLE_ADMIN">
+                              {isMr ? 'ॲडमिनिस्ट्रेटर (Administrator)' : 'Administrator'}
+                            </option>
+                            <option value="NONE">
+                              {isMr ? 'कोणीही नाही (None)' : 'None'}
+                            </option>
 
-                                {roleUsersWithPerm.map((u) => (
-                                  <option key={u.id} value={u.id}>
-                                    👤 {u.full_name} ({currentRole?.name} · 📞 {u.phone || 'N/A'})
+                            {fieldWorkers.length > 0 && (
+                              <optgroup label={isMr ? 'विशिष्ट कार्यकर्ता निवडा' : 'Specific Field Worker'}>
+                                {fieldWorkers.map((w) => (
+                                  <option key={w.id} value={`WORKER_${w.id}`}>
+                                    {w.full_name}
                                   </option>
                                 ))}
+                              </optgroup>
+                            )}
 
-                                <option disabled>──────────────────────────</option>
-                                <option value="ADD_WORKER">
-                                  ➕ {isMr ? 'विशिष्ट अधिकाऱ्यास ही परवानगी द्या...' : 'Assign to particular officer...'}
-                                </option>
-                              </select>
-                            </div>
-                          ) : (
-                            /* When viewing by a Specific Field Worker */
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <span
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: 6,
-                                  padding: '5px 12px',
-                                  borderRadius: 6,
-                                  fontSize: 12,
-                                  fontWeight: 700,
-                                  background: isGranted
-                                    ? '#dcfce7'
-                                    : (isInherited ? '#eff6ff' : '#f1f5f9'),
-                                  color: isGranted
-                                    ? '#15803d'
-                                    : (isInherited ? '#1e40af' : '#64748b'),
-                                  border: `1px solid ${isGranted ? '#bbf7d0' : (isInherited ? '#bfdbfe' : '#e2e8f0')}`,
-                                }}
-                              >
-                                👤 {selectedWorker?.full_name} :{' '}
-                                {isGranted
-                                  ? (isMr ? '⭐ थेट दिली आहे (Direct)' : '⭐ Granted Directly')
-                                  : (isInherited ? (isMr ? '👔 भूमिकेद्वारे चालू (Role)' : '👔 Active via Role') : (isMr ? 'काढून घेतली (Revoked)' : 'Not Granted'))}
-                              </span>
-                            </div>
-                          )}
+                            <option value="CUSTOM_ASSIGN">
+                              ➕ {isMr ? 'इतर कार्यकर्त्यास जोडा...' : 'Assign to particular worker...'}
+                            </option>
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            color={selectTheme.chevron}
+                            style={{
+                              position: 'absolute',
+                              right: 12,
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              pointerEvents: 'none',
+                            }}
+                          />
                         </div>
                       </td>
 
-                      {/* Column 4: SIMPLE ON / OFF TOGGLE SWITCH */}
-                      <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                        <button
-                          type="button"
-                          onClick={() => handleToggle(perm.id)}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            padding: '6px 14px',
-                            borderRadius: 20,
-                            border: isGranted ? '1px solid #16a34a' : '1px solid #cbd5e1',
-                            background: isGranted ? '#16a34a' : '#f1f5f9',
-                            color: isGranted ? '#ffffff' : '#475569',
-                            fontSize: 12,
-                            fontWeight: 750,
-                            cursor: 'pointer',
-                            boxShadow: isGranted ? '0 2px 6px rgba(22, 163, 74, 0.25)' : 'none',
-                            transition: 'all 0.15s ease',
-                          }}
-                          title={isGranted ? 'Click to revoke' : 'Click to grant'}
-                        >
-                          <span
+                      {/* Column 4: Toggle Switch matching image 1 colors with 3D tactile switch */}
+                      <td style={{ padding: '16px 22px', verticalAlign: 'middle', textAlign: 'center' }}>
+                        <div style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            className="toggle-btn-3d"
+                            onClick={() => handleToggle(perm.id)}
                             style={{
-                              display: 'inline-block',
-                              width: 8,
-                              height: 8,
-                              borderRadius: '50%',
-                              background: isGranted ? '#ffffff' : '#94a3b8',
+                              width: 50,
+                              height: 27,
+                              borderRadius: 9999,
+                              border: isGranted ? '1.5px solid #059669' : '2px solid #cbd5e1',
+                              background: isGranted
+                                ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                                : 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)',
+                              position: 'relative',
+                              cursor: 'pointer',
+                              outline: 'none',
+                              padding: 0,
+                              boxShadow: isGranted
+                                ? 'inset 0 2px 4px rgba(0,0,0,0.2), 0 3px 8px rgba(16, 185, 129, 0.4)'
+                                : 'inset 0 1px 3px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.03)',
                             }}
-                          />
-                          <span>{isGranted ? (isMr ? 'चालू (ON)' : 'ON') : (isMr ? 'बंद (OFF)' : 'OFF')}</span>
-                        </button>
+                            title={isGranted ? 'Click to deactivate' : 'Click to activate'}
+                          >
+                            <span
+                              style={{
+                                width: 19,
+                                height: 19,
+                                borderRadius: '50%',
+                                background: isGranted ? '#ffffff' : '#94a3b8',
+                                position: 'absolute',
+                                top: 2.5,
+                                left: isGranted ? 25 : 3,
+                                transition: 'all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                                boxShadow: isGranted
+                                  ? '0 3px 6px rgba(0,0,0,0.22), inset 0 1px 1px rgba(255,255,255,0.9)'
+                                  : '0 2px 4px rgba(0,0,0,0.15)',
+                              }}
+                            />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -865,71 +1605,10 @@ export default function RolePermissionManager({
             </tbody>
           </table>
         </div>
-
-        {/* Bottom Save Bar */}
-        {hasChanges && (
-          <div
-            style={{
-              padding: '14px 20px',
-              background: '#f8fafc',
-              borderTop: '1px solid #e2e8f0',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 12,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 16 }}>⚠️</span>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
-                {isMr
-                  ? `${stagedPermIds.size} परवानग्या निश्चित केल्या आहेत. बदल लागू करण्यासाठी सेव्ह करा.`
-                  : `${stagedPermIds.size} permissions configured. Click Save to apply changes.`}
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                onClick={handleDiscard}
-                disabled={isSaving}
-                style={{
-                  background: '#ffffff',
-                  border: '1px solid #cbd5e1',
-                  padding: '7px 16px',
-                  borderRadius: 6,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: '#475569',
-                  cursor: 'pointer',
-                }}
-              >
-                {isMr ? '↺ पूर्ववत करा' : '↺ Discard'}
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                style={{
-                  background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
-                  border: 'none',
-                  padding: '7px 20px',
-                  borderRadius: 6,
-                  fontSize: 13,
-                  fontWeight: 800,
-                  color: '#ffffff',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 6px rgba(22, 163, 74, 0.3)',
-                }}
-              >
-                {isSaving ? '...' : (isMr ? '💾 बदल सेव्ह करा' : '💾 Save Permissions')}
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* ============================================================== */}
-      {/* 3. QUICK ASSIGN MODAL (WHEN CHOOSING "ADD WORKER" IN DROPDOWN)  */}
+      {/* 4. QUICK ASSIGN MODAL                                          */}
       {/* ============================================================== */}
       {assignModal && (
         <div
@@ -948,22 +1627,26 @@ export default function RolePermissionManager({
           <div
             style={{
               background: '#ffffff',
-              borderRadius: 12,
-              padding: 24,
-              maxWidth: 440,
+              borderRadius: 14,
+              padding: '24px 20px',
+              maxWidth: 'min(440px, 96vw)',
               width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
               boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
               border: '1px solid #e2e8f0',
+              boxSizing: 'border-box',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 20 }}>➕</span>
                 <strong style={{ fontSize: 16, color: '#0f172a' }}>
-                  {isMr ? 'विशिष्ट अधिकाऱ्यास परवानगी द्या' : 'Assign Permission to Officer'}
+                  {isMr ? 'विशिष्ट कार्यकर्त्यास परवानगी द्या' : 'Assign Permission to Worker'}
                 </strong>
               </div>
               <button
+                type="button"
                 onClick={() => setAssignModal(null)}
                 style={{ border: 'none', background: 'none', fontSize: 16, cursor: 'pointer', color: '#94a3b8' }}
               >
@@ -973,13 +1656,13 @@ export default function RolePermissionManager({
 
             <p style={{ margin: '0 0 16px 0', fontSize: 13, color: '#64748b' }}>
               {isMr
-                ? `खालील अधिकाऱ्यास "${assignModal.permName}" ही परवानगी थेट दिली जाईल:`
-                : `Grant permission "${assignModal.permName}" directly to the selected officer:`}
+                ? `खालील कार्यकर्त्यास "${assignModal.permName}" ही परवानगी थेट दिली जाईल:`
+                : `Grant permission "${assignModal.permName}" directly to the selected worker:`}
             </p>
 
             <div style={{ marginBottom: 20 }}>
               <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 6 }}>
-                {isMr ? 'अधिकारी निवडा (Select Officer):' : 'Select Officer:'}
+                {isMr ? 'कार्यकर्ता निवडा:' : 'Select Worker:'}
               </label>
               <select
                 value={assignTargetUserId}
@@ -987,7 +1670,7 @@ export default function RolePermissionManager({
                 style={{
                   width: '100%',
                   padding: '9px 12px',
-                  borderRadius: 6,
+                  borderRadius: 8,
                   border: '1px solid #cbd5e1',
                   fontSize: 13,
                   outline: 'none',
@@ -1008,6 +1691,7 @@ export default function RolePermissionManager({
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button
+                type="button"
                 onClick={() => setAssignModal(null)}
                 style={{
                   padding: '8px 14px',
@@ -1023,6 +1707,7 @@ export default function RolePermissionManager({
                 {isMr ? 'रद्द करा' : 'Cancel'}
               </button>
               <button
+                type="button"
                 onClick={handleQuickAssignToWorker}
                 disabled={isSaving}
                 style={{
@@ -1043,7 +1728,6 @@ export default function RolePermissionManager({
           </div>
         </div>
       )}
-
     </div>
   );
 }

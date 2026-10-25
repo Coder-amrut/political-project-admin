@@ -19,6 +19,12 @@ class AdminChatbotController extends Controller
 
         $suggestions = [
             [
+                'id' => 'village_demographics',
+                'category' => $isMr ? 'गाव लोकसंख्या' : 'Villages',
+                'label' => $isMr ? '🏘️ गावानुसार लोकसंख्या व मतदार' : '🏘️ Village Population & Voters',
+                'query' => $isMr ? 'गावानुसार एकूण लोकसंख्या आणि मतदार संख्या दाखवा' : 'Show village population and total voters summary',
+            ],
+            [
                 'id' => 'voters_summary',
                 'category' => $isMr ? 'मतदार सारांश' : 'Voters',
                 'label' => $isMr ? '📊 एकूण मतदार व राजकीय कल सारांश' : '📊 Total Voters & Sentiment Summary',
@@ -73,78 +79,103 @@ class AdminChatbotController extends Controller
      */
     public function handleQuery(Request $request)
     {
-        $message = trim((string)$request->input('message', ''));
-        $lang = $request->input('lang', 'mr');
-        $isMr = $lang === 'mr';
+        try {
+            $message = trim((string)($request->input('message') ?? $request->json('message') ?? ''));
+            $lang = $request->input('lang', 'mr');
+            $isMr = $lang === 'mr';
 
-        if (empty($message)) {
-            return response()->json([
-                'success' => false,
-                'message' => $isMr ? 'कृपया प्रश्न विचारा.' : 'Please provide a query message.',
-            ], 422);
-        }
+            if (empty($message)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $isMr ? 'कृपया प्रश्न विचारा.' : 'Please provide a query message.',
+                ], 422);
+            }
 
-        // 1. Gather live database facts and detect intent
-        $contextData = $this->gatherDatabaseContext($message, $isMr);
+            // 1. Gather live database facts and detect intent
+            $contextData = $this->gatherDatabaseContext($message, $isMr);
 
-        // 1. GREETING check - instant friendly response
-        if ($contextData['intent'] === 'GREETING') {
-            return response()->json([
-                'success' => true,
-                'reply' => $this->formatSmartResponse($message, $contextData, $isMr),
-                'intent' => 'GREETING',
-                'related_data' => [],
-                'suggested_actions' => $contextData['suggested_actions'] ?? [],
-                'source' => 'quick_greeting',
-            ]);
-        }
-
-        // 2. Specific NOT FOUND records in DB - immediate honest notice
-        if (in_array($contextData['intent'], ['NOT_FOUND_CITIZEN', 'NOT_FOUND_BOOTH'])) {
-            return response()->json([
-                'success' => true,
-                'reply' => $this->formatSmartResponse($message, $contextData, $isMr),
-                'intent' => $contextData['intent'],
-                'related_data' => [],
-                'suggested_actions' => $this->getDefaultSuggestions($isMr),
-                'source' => 'db_record_not_found',
-            ]);
-        }
-
-        $hasDbMatch = in_array($contextData['intent'], [
-            'CITIZEN_LOOKUP', 'BOOTH_INFO', 'CIVIC_ISSUES', 'KARYAKARTAS',
-            'SUBMISSIONS_APPROVAL', 'OFFICIAL_DOCUMENTS', 'SCHEMES_INFO', 'GENERAL_OVERVIEW'
-        ]);
-
-        // 3. Query Gemini:
-        // - 1st check on DB: Grounded in verified DB facts.
-        // - Then check other side: General campaign strategy, slogans, advice, speeches.
-        $apiKey = env('GEMINI_API_KEY') ?: env('OPENAI_API_KEY');
-        if (!empty($apiKey)) {
-            $llmResponse = $this->queryGeminiApi($message, $contextData, $isMr, $hasDbMatch);
-            if (!empty($llmResponse)) {
+            // 1. GREETING check - instant friendly response
+            if ($contextData['intent'] === 'GREETING') {
                 return response()->json([
                     'success' => true,
-                    'reply' => trim($llmResponse),
-                    'intent' => $contextData['intent'],
-                    'related_data' => $contextData['structured_items'] ?? [],
+                    'reply' => $this->formatSmartResponse($message, $contextData, $isMr),
+                    'intent' => 'GREETING',
+                    'related_data' => [],
                     'suggested_actions' => $contextData['suggested_actions'] ?? [],
-                    'source' => $hasDbMatch ? 'gemini_db_grounded' : 'gemini_other_side',
+                    'source' => 'quick_greeting',
                 ]);
             }
+
+            // 2. Specific NOT FOUND records in DB - immediate honest notice
+            if (in_array($contextData['intent'], ['NOT_FOUND_CITIZEN', 'NOT_FOUND_BOOTH'])) {
+                return response()->json([
+                    'success' => true,
+                    'reply' => $this->formatSmartResponse($message, $contextData, $isMr),
+                    'intent' => $contextData['intent'],
+                    'related_data' => [],
+                    'suggested_actions' => $this->getDefaultSuggestions($isMr),
+                    'source' => 'db_record_not_found',
+                ]);
+            }
+
+            $hasDbMatch = in_array($contextData['intent'], [
+                'CITIZEN_LOOKUP', 'BOOTH_INFO', 'CIVIC_ISSUES', 'KARYAKARTAS',
+                'SUBMISSIONS_APPROVAL', 'OFFICIAL_DOCUMENTS', 'SCHEMES_INFO', 'GENERAL_OVERVIEW',
+                'SPECIFIC_VILLAGE_DEMOGRAPHICS', 'ALL_VILLAGES_DEMOGRAPHICS',
+            ]);
+
+            // 3. Query Gemini:
+            // - 1st check on DB: Grounded in verified DB facts.
+            // - Then check other side: General campaign strategy, slogans, advice, speeches.
+            $apiKey = env('GEMINI_API_KEY') ?: env('OPENAI_API_KEY');
+            if (!empty($apiKey)) {
+                $llmResponse = $this->queryGeminiApi($message, $contextData, $isMr, $hasDbMatch);
+                if (!empty($llmResponse)) {
+                    return response()->json([
+                        'success' => true,
+                        'reply' => trim($llmResponse),
+                        'intent' => $contextData['intent'],
+                        'related_data' => $contextData['structured_items'] ?? [],
+                        'suggested_actions' => $contextData['suggested_actions'] ?? [],
+                        'source' => $hasDbMatch ? 'gemini_db_grounded' : 'gemini_other_side',
+                    ]);
+                }
+            }
+
+            // 4. Built-in Smart Query Engine Response (Grounding & Fallback)
+            $smartReply = $this->formatSmartResponse($message, $contextData, $isMr);
+
+            return response()->json([
+                'success' => true,
+                'reply' => $smartReply,
+                'intent' => $contextData['intent'],
+                'related_data' => $contextData['structured_items'] ?? [],
+                'suggested_actions' => $contextData['suggested_actions'] ?? [],
+                'source' => $hasDbMatch ? 'mysql_live_database' : 'system_fallback',
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Chatbot Controller Error: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            $isMr = ($request->input('lang', 'mr') === 'mr');
+            $safeContext = [
+                'intent' => 'GENERAL_OVERVIEW',
+                'data' => [],
+                'structured_items' => [],
+                'suggested_actions' => $this->getDefaultSuggestions($isMr),
+            ];
+
+            return response()->json([
+                'success' => true,
+                'reply' => $this->formatSmartResponse($request->input('message', ''), $safeContext, $isMr),
+                'intent' => 'GENERAL_OVERVIEW',
+                'related_data' => [],
+                'suggested_actions' => $this->getDefaultSuggestions($isMr),
+                'source' => 'system_recovery',
+            ]);
         }
-
-        // 4. Built-in Smart Query Engine Response (Grounding & Fallback)
-        $smartReply = $this->formatSmartResponse($message, $contextData, $isMr);
-
-        return response()->json([
-            'success' => true,
-            'reply' => $smartReply,
-            'intent' => $contextData['intent'],
-            'related_data' => $contextData['structured_items'] ?? [],
-            'suggested_actions' => $contextData['suggested_actions'] ?? [],
-            'source' => $hasDbMatch ? 'mysql_live_database' : 'system_fallback',
-        ]);
     }
 
     /**
@@ -153,15 +184,21 @@ class AdminChatbotController extends Controller
     private function getDefaultSuggestions(bool $isMr): array
     {
         return $isMr ? [
+            ['label' => '🏘️ गाव लोकसंख्या व मतदार', 'query' => 'गावानुसार एकूण लोकसंख्या आणि मतदार संख्या दाखवा'],
             ['label' => '📊 एकूण मतदार सारांश', 'query' => 'एकूण मतदार संख्या आणि राजकीय कल दाखवा'],
             ['label' => '🗳️ बूथनिहाय प्रगती', 'query' => 'बूथनिहाय प्रगती आणि आघाडीवरील बूथ दाखवा'],
             ['label' => '⚠️ प्रलंबित नागरी समस्या', 'query' => 'सध्याच्या प्रलंबित नागरी समस्या कोणत्या आहेत?'],
             ['label' => '👥 सक्रिय कार्यकर्ते', 'query' => 'सक्रिय कार्यकर्ते आणि त्यांची कामगिरी दाखवा'],
+            ['label' => '📋 प्रलंबित सर्व्हे मंजुरी', 'query' => 'तपासणीसाठी प्रलंबित सर्व्हे नोंदी किती आहेत?'],
+            ['label' => '📢 प्रचार घोषणा', 'query' => 'प्रभावी प्रचार घोषणा सांगा'],
         ] : [
+            ['label' => '🏘️ Village Population & Voters', 'query' => 'Show village population and total voters summary'],
             ['label' => '📊 Total Voters Summary', 'query' => 'Show total voters and political sentiment summary'],
             ['label' => '🗳️ Booth Progress', 'query' => 'Show booth progress and top covered booths'],
             ['label' => '⚠️ Pending Issues', 'query' => 'What are the current pending civic issues?'],
             ['label' => '👥 Active Workers', 'query' => 'Show active field workers and survey performance'],
+            ['label' => '📋 Pending Approvals', 'query' => 'How many survey submissions are pending approval?'],
+            ['label' => '📢 Campaign Slogans', 'query' => 'Give effective campaign slogans'],
         ];
     }
 
@@ -182,7 +219,7 @@ class AdminChatbotController extends Controller
         $greetings = [
             'hi', 'hello', 'hey', 'namaskar', 'namaste', 'नमस्कार', 'नमस्ते', 'सुप्रभात',
             'गुड मॉर्निंग', 'good morning', 'good afternoon', 'good evening',
-            'राम राम', 'जय महाराष्ट्र', 'हाय', 'हॅलो', 'सस्नेह नमस्कार'
+            'राम राम', 'जय महाराष्ट्र', 'हाय', 'हॅलो', 'सस्नेह नमस्कार', 'प्रणाम'
         ];
         $trimmedMsg = trim($lower, "!?. \t\n\r\0\x0B");
         if (in_array($trimmedMsg, $greetings) || in_array($lower, $greetings)) {
@@ -190,8 +227,27 @@ class AdminChatbotController extends Controller
             return $context;
         }
 
+        // 1.2 Help / Guide query
+        $isHelpQuery = preg_match('/(?:help|मदत|कशी मदत|काय विचारू|काय करू शकता|मेनू|menu|मार्गदर्शन|options|पर्याय)/iu', $message);
+        if ($isHelpQuery) {
+            $context['intent'] = 'HELP_GUIDE';
+            $context['suggested_actions'] = $this->getDefaultSuggestions($isMr);
+            return $context;
+        }
+
+        // 1.3 Election Model Code of Conduct (आचारसंहिता)
+        $isMccQuery = preg_match('/(?:आचारसंहिता|code of conduct|निवडणूक नियम|ध्वनिक्षेपक|परवानगी|सभा नियम|रॅली नियम)/iu', $message);
+        if ($isMccQuery) {
+            $context['intent'] = 'CODE_OF_CONDUCT';
+            $context['suggested_actions'] = [
+                ['label' => $isMr ? '📢 प्रचार घोषणा' : 'Campaign Slogans', 'query' => $isMr ? 'प्रभावी प्रचार घोषणा सांगा' : 'Give effective campaign slogans'],
+                ['label' => $isMr ? '🎤 भाषण मुद्दे' : 'Speech Points', 'query' => $isMr ? 'सभेसाठी भाषणाचे मुद्दे सांगा' : 'Give rally speech points'],
+            ];
+            return $context;
+        }
+
         // 1.5 Check for Campaign Strategy / Slogans / Speech / Creative / Tips queries first ("Other side")
-        $isCampaignStrategyQuery = preg_match('/(?:घोषणा|slogan|भाषण|speech|सल्ला|advice|टिप्स|tips|नियोजन|planning|आचारसंहिता|code of conduct|रणनीती|strategy|कसे करावे|कसे बोलावे|काय बोलावे|सोशल मीडिया|social media|पोस्ट|post|कॅम्पेन|campaign idea|प्रचार आयडिया|मार्गदर्शन)/iu', $message);
+        $isCampaignStrategyQuery = preg_match('/(?:घोषणा|slogan|भाषण|speech|सल्ला|advice|टिप्स|tips|नियोजन|planning|रणनीती|strategy|कसे करावे|कसे बोलावे|काय बोलावे|सोशल मीडिया|social media|पोस्ट|post|कॅम्पेन|campaign idea|प्रचार आयडिया)/iu', $message);
         if ($isCampaignStrategyQuery) {
             $context['intent'] = 'CAMPAIGN_STRATEGY';
             $context['suggested_actions'] = [
@@ -199,6 +255,141 @@ class AdminChatbotController extends Controller
                 ['label' => $isMr ? '🎤 भाषण मुद्दे' : 'Speech Points', 'query' => $isMr ? 'सभेसाठी भाषणाचे मुद्दे सांगा' : 'Give rally speech points'],
                 ['label' => $isMr ? '📊 मतदार सारांश' : 'Voters Summary', 'query' => $isMr ? 'एकूण मतदार सारांश दाखवा' : 'Show total voters summary'],
             ];
+            return $context;
+        }
+
+        // 1.8 Village Population & Voters Lookup (e.g. "माधवनगर ची लोकसंख्या आणि मतदार", "गाव लोकसंख्या", "गावातील मतदार", "बुधगाव मधील मतदार आणि लोकसंख्या")
+        $isVillageQuery = preg_match('/(?:लोकसंख्या|population|पॉप्युलेशन|वस्ती|गाव|गावे|गावाची|गावातील|गावांची|गावनिहाय|village|villages|ग्रामपंचायत|प्रभाग|नगरपरिषद)/iu', $message);
+
+        $knownVillages = [
+            'माधवनगर' => 'Madhavnagar',
+            'बुधगाव' => 'Budhgaon',
+            'बामणी' => 'Bamani',
+            'कुपवाड' => 'Kupwad',
+            'वसंत कॉलनी' => 'Vasant Colony',
+            'गावभाग' => 'Gavbhag',
+            'गणपती पेठ' => 'Ganpati Peth',
+            'विश्रामबाग' => 'Vishrambag',
+            'संजयनगर' => 'Sanjaynagar',
+            'मिरज' => 'Miraj',
+            'इस्लामपूर' => 'Islampur',
+            'उरुण' => 'Urun',
+            'तासगाव' => 'Tasgaon',
+            'राजारामपुरी' => 'Rajarampuri',
+            'उंब्रज' => 'Umbraj',
+        ];
+
+        $matchedVillageKeyword = null;
+        foreach ($knownVillages as $mrName => $enName) {
+            if (mb_stripos($message, $mrName) !== false || stripos($message, $enName) !== false) {
+                $matchedVillageKeyword = $mrName;
+                break;
+            }
+        }
+
+        // If specific village mentioned or village question with village name
+        if ($matchedVillageKeyword) {
+            $villageBooths = DB::table('neta_booth_progress')
+                ->where(function($q) use ($matchedVillageKeyword) {
+                    $q->where('village_mr', 'like', "%{$matchedVillageKeyword}%")
+                      ->orWhere('village_en', 'like', "%{$matchedVillageKeyword}%")
+                      ->orWhere('booth_name_mr', 'like', "%{$matchedVillageKeyword}%");
+                })
+                ->get();
+
+            if ($villageBooths->isNotEmpty()) {
+                $context['intent'] = 'SPECIFIC_VILLAGE_DEMOGRAPHICS';
+                $totalPop = $villageBooths->sum('total_population');
+                $totalVoters = $villageBooths->sum('total_voters');
+                $totalSurveyed = $villageBooths->sum('surveyed_voters');
+                $ratio = $totalPop > 0 ? round(($totalVoters / $totalPop) * 100, 1) : 0;
+                $coverage = $totalVoters > 0 ? round(($totalSurveyed / $totalVoters) * 100, 1) : 0;
+                $boothNos = $villageBooths->pluck('booth_no')->implode(', ');
+
+                $context['data'] = [
+                    'village_name' => $matchedVillageKeyword,
+                    'full_village_name' => $villageBooths->count() > 1 ? "{$matchedVillageKeyword} (एकूण {$villageBooths->count()} प्रभाग/बूथ)" : $villageBooths[0]->village_mr,
+                    'taluka' => $villageBooths[0]->taluka_mr,
+                    'district' => $villageBooths[0]->district_mr,
+                    'assembly' => $villageBooths[0]->assembly_mr,
+                    'total_population' => $totalPop,
+                    'total_voters' => $totalVoters,
+                    'surveyed_voters' => $totalSurveyed,
+                    'voter_ratio_pct' => $ratio,
+                    'survey_coverage_pct' => $coverage,
+                    'booth_count' => $villageBooths->count(),
+                    'booth_numbers' => $boothNos,
+                    'incharge_name' => $villageBooths[0]->incharge_name,
+                    'incharge_phone' => $villageBooths[0]->incharge_phone,
+                    'key_issue' => $villageBooths[0]->key_issue_mr,
+                ];
+
+                foreach ($villageBooths as $vb) {
+                    $context['structured_items'][] = [
+                        'type' => 'booth',
+                        'id' => $vb->id,
+                        'title' => "{$vb->village_mr} ({$vb->booth_no})",
+                        'subtitle' => "लोकसंख्या: " . number_format($vb->total_population) . " • मतदार: " . number_format($vb->total_voters) . " ({$vb->coverage_pct}% पाहणी)",
+                        'incharge' => "प्रभारी: {$vb->incharge_name} ({$vb->incharge_phone})",
+                    ];
+                }
+
+                $context['suggested_actions'] = [
+                    ['label' => $isMr ? "📊 सर्व गावांची लोकसंख्या यादी" : "All Villages Demographics", 'query' => $isMr ? "गावानुसार एकूण लोकसंख्या आणि मतदार संख्या दाखवा" : "Show village population and total voters summary"],
+                    ['label' => $isMr ? "⚠️ {$matchedVillageKeyword} मधील समस्या" : "Issues in {$matchedVillageKeyword}", 'query' => "{$matchedVillageKeyword} मधील नागरी समस्या कोणत्या आहेत?"],
+                    ['label' => $isMr ? "🗳️ या गावातील मतदार यादी" : "Voter List in this Village", 'query' => "{$matchedVillageKeyword} मधील मतदार दाखवा"],
+                ];
+
+                return $context;
+            }
+        }
+
+        // General village demographics query (all villages / village list)
+        if ($isVillageQuery && (
+            str_contains($lower, 'लोकसंख्या') || str_contains($lower, 'population') ||
+            str_contains($lower, 'गावानुसार') || str_contains($lower, 'गावांची') ||
+            str_contains($lower, 'गावातील') || str_contains($lower, 'गाव') ||
+            str_contains($lower, 'यादी') || str_contains($lower, 'आकडेवारी') ||
+            str_contains($lower, 'सर्व') || str_contains($lower, 'village')
+        )) {
+            $context['intent'] = 'ALL_VILLAGES_DEMOGRAPHICS';
+
+            $villages = DB::table('neta_booth_progress')
+                ->selectRaw('village_mr, village_en, taluka_mr, SUM(total_population) as total_pop, SUM(total_voters) as total_voters, SUM(surveyed_voters) as total_surveyed, COUNT(id) as booth_count')
+                ->groupBy('village_mr', 'village_en', 'taluka_mr')
+                ->orderByDesc('total_voters')
+                ->get();
+
+            $grandPop = $villages->sum('total_pop');
+            $grandVoters = $villages->sum('total_voters');
+            $grandSurveyed = $villages->sum('total_surveyed');
+            $grandRatio = $grandPop > 0 ? round(($grandVoters / $grandPop) * 100, 1) : 0;
+
+            $context['data'] = [
+                'total_villages_count' => $villages->count(),
+                'grand_total_population' => $grandPop,
+                'grand_total_voters' => $grandVoters,
+                'grand_total_surveyed' => $grandSurveyed,
+                'grand_voter_ratio_pct' => $grandRatio,
+                'villages_list' => $villages->toArray(),
+            ];
+
+            foreach ($villages->take(6) as $v) {
+                $vRatio = $v->total_pop > 0 ? round(($v->total_voters / $v->total_pop) * 100, 1) : 0;
+                $context['structured_items'][] = [
+                    'type' => 'booth',
+                    'title' => "🏘️ {$v->village_mr}",
+                    'subtitle' => "लोकसंख्या: " . number_format($v->total_pop) . " | मतदार: " . number_format($v->total_voters) . " ({$vRatio}%)",
+                ];
+            }
+
+            $context['suggested_actions'] = [
+                ['label' => $isMr ? "🏘️ माधवनगर लोकसंख्या व मतदार" : "Madhavnagar Population", 'query' => "माधवनगर ची लोकसंख्या आणि मतदार किती आहेत?"],
+                ['label' => $isMr ? "🏘️ बुधगाव लोकसंख्या व मतदार" : "Budhgaon Population", 'query' => "बुधगाव मधील एकूण मतदार आणि लोकसंख्या किती आहे?"],
+                ['label' => $isMr ? "🏘️ बामणी लोकसंख्या व मतदार" : "Bamani Population", 'query' => "बामणी गावची लोकसंख्या आणि मतदार किती आहेत?"],
+                ['label' => $isMr ? "📊 एकूण मतदार सारांश" : "Total Voters Summary", 'query' => "एकूण मतदार संख्या आणि राजकीय कल दाखवा"],
+            ];
+
             return $context;
         }
 
@@ -363,29 +554,51 @@ class AdminChatbotController extends Controller
             return $context;
         }
 
-        // 5. Karyakartas / Field Workers
-        if (str_contains($lower, 'karyakarta') || str_contains($lower, 'worker') || str_contains($lower, 'कार्यकर्त') ||
+        // 5. Karyakartas / Field Workers (including direct worker name matching)
+        $matchedWorker = null;
+        if (mb_strlen($message) >= 3) {
+            $matchedWorker = DB::table('neta_karyakartas')
+                ->where('name', 'like', "%{$message}%")
+                ->orWhere('assigned_area_mr', 'like', "%{$message}%")
+                ->orWhere('assigned_area_en', 'like', "%{$message}%")
+                ->first();
+        }
+
+        if ($matchedWorker || str_contains($lower, 'karyakarta') || str_contains($lower, 'worker') || str_contains($lower, 'कार्यकर्त') ||
             str_contains($lower, 'सहकारी') || str_contains($lower, 'टीम') || str_contains($lower, 'स्वयंसेवक')) {
             $context['intent'] = 'KARYAKARTAS';
             $context['data']['total_karyakartas'] = DB::table('neta_karyakartas')->count();
             $context['data']['active_karyakartas'] = DB::table('neta_karyakartas')->where('status', 'active')->count();
             $context['data']['top_karyakartas'] = DB::table('neta_karyakartas')->orderBy('total_surveys', 'desc')->limit(6)->get();
 
-            foreach ($context['data']['top_karyakartas'] as $k) {
+            if ($matchedWorker) {
+                $context['data']['specific_worker'] = $matchedWorker;
                 $context['structured_items'][] = [
                     'type' => 'worker',
-                    'title' => $k->name,
-                    'subtitle' => "क्षेत्र: {$k->assigned_area_mr} • सर्व्हे: {$k->total_surveys}",
-                    'phone' => $k->phone,
-                    'rating' => $k->rating,
+                    'title' => $matchedWorker->name,
+                    'subtitle' => "पद: {$matchedWorker->role_mr} • क्षेत्र: {$matchedWorker->assigned_area_mr} • सर्व्हे: {$matchedWorker->total_surveys}",
+                    'phone' => $matchedWorker->phone,
+                    'rating' => $matchedWorker->rating,
                 ];
+            } else {
+                foreach ($context['data']['top_karyakartas'] as $k) {
+                    $context['structured_items'][] = [
+                        'type' => 'worker',
+                        'title' => $k->name,
+                        'subtitle' => "क्षेत्र: {$k->assigned_area_mr} • सर्व्हे: {$k->total_surveys}",
+                        'phone' => $k->phone,
+                        'rating' => $k->rating,
+                    ];
+                }
             }
             return $context;
         }
 
         // 6. Submissions & Data Approvals
         if (str_contains($lower, 'submission') || str_contains($lower, 'approval') || str_contains($lower, 'मंजूर') ||
-            str_contains($lower, 'अर्ज') || str_contains($lower, 'पाहणी नोंद')) {
+            str_contains($lower, 'मंजुरी') || str_contains($lower, 'अर्ज') || str_contains($lower, 'पाहणी नोंद') ||
+            str_contains($lower, 'सर्व्हे नोंद') || str_contains($lower, 'नोंदी') || str_contains($lower, 'तपासणी') ||
+            str_contains($lower, 'पडताळणी') || str_contains($lower, 'नोंदणी')) {
             $context['intent'] = 'SUBMISSIONS_APPROVAL';
             $context['data']['total_submissions'] = DB::table('admin_field_submissions')->count();
             $context['data']['pending_approvals'] = DB::table('admin_field_submissions')->where('status', 'PENDING_APPROVAL')->count();
@@ -529,6 +742,84 @@ class AdminChatbotController extends Controller
             }
         }
 
+        // 5.5 Specific Village Demographics (Population & Voters)
+        if ($intent === 'SPECIFIC_VILLAGE_DEMOGRAPHICS') {
+            $fullVName = $d['full_village_name'] ?? $d['village_name'];
+            $pop = number_format($d['total_population'] ?? 0);
+            $voters = number_format($d['total_voters'] ?? 0);
+            $surveyed = number_format($d['surveyed_voters'] ?? 0);
+            $ratio = $d['voter_ratio_pct'] ?? 0;
+            $coverage = $d['survey_coverage_pct'] ?? 0;
+            $booths = $d['booth_numbers'] ?? '-';
+            $bCount = $d['booth_count'] ?? 1;
+            $incharge = !empty($d['incharge_name']) ? "{$d['incharge_name']} ({$d['incharge_phone']})" : '-';
+            $issue = !empty($d['key_issue']) ? $d['key_issue'] : ($isMr ? 'काही नाही' : 'None');
+
+            if ($isMr) {
+                return "🏘️ **{$fullVName} — लोकसंख्या व मतदार अहवाल:**\n" .
+                       "• 👥 **एकूण लोकसंख्या (Total Population):** **{$pop}** नागरिक\n" .
+                       "• 🗳️ **एकूण मतदार संख्या (Total Voters):** **{$voters}** मतदार\n" .
+                       "• 📊 **मतदार ते लोकसंख्या प्रमाण:** **{$ratio}%**\n" .
+                       "• 📋 **प्रत्यक्ष पाहणी झालेले मतदार:** **{$surveyed}** ({$coverage}% कव्हरेज)\n" .
+                       "• 🗳️ **समाविष्ट मतदान केंद्र (Booths):** {$bCount} बूथ ({$booths})\n" .
+                       "• 👤 **बूथ/गाव प्रमुख:** {$incharge}\n" .
+                       "• ⚠️ **स्थानिक प्रमुख समस्या:** {$issue}";
+            } else {
+                return "🏘️ **{$fullVName} — Population & Voter Demographics:**\n" .
+                       "• 👥 **Total Village Population:** **{$pop}** residents\n" .
+                       "• 🗳️ **Total Registered Voters:** **{$voters}** voters\n" .
+                       "• 📊 **Voter-to-Population Ratio:** **{$ratio}%**\n" .
+                       "• 📋 **Surveyed Voters:** **{$surveyed}** ({$coverage}% coverage)\n" .
+                       "• 🗳️ **Polling Booths:** {$bCount} booths ({$booths})\n" .
+                       "• 👤 **In-charge:** {$incharge}\n" .
+                       "• ⚠️ **Key Local Issue:** {$issue}";
+            }
+        }
+
+        // 5.6 All Villages Demographics (Summary Table)
+        if ($intent === 'ALL_VILLAGES_DEMOGRAPHICS') {
+            $totVillages = $d['total_villages_count'] ?? 0;
+            $grandPop = number_format($d['grand_total_population'] ?? 0);
+            $grandVoters = number_format($d['grand_total_voters'] ?? 0);
+            $grandRatio = $d['grand_voter_ratio_pct'] ?? 0;
+
+            if ($isMr) {
+                $table = "| गाव / प्रभाग | एकूण लोकसंख्या | एकूण मतदार | मतदार प्रमाण | कव्हरेज % |\n";
+                $table .= "| :--- | :--- | :--- | :--- | :--- |\n";
+                foreach ($d['villages_list'] ?? [] as $v) {
+                    $vObj = (object)$v;
+                    $vPop = number_format($vObj->total_pop);
+                    $vVoters = number_format($vObj->total_voters);
+                    $vRatio = $vObj->total_pop > 0 ? round(($vObj->total_voters / $vObj->total_pop) * 100, 1) : 0;
+                    $vCov = $vObj->total_voters > 0 ? round(($vObj->total_surveyed / $vObj->total_voters) * 100, 1) : 0;
+                    $table .= "| **{$vObj->village_mr}** | {$vPop} | {$vVoters} | {$vRatio}% | {$vCov}% |\n";
+                }
+
+                return "🏘️ **गावनिहाय एकूण लोकसंख्या व मतदार संख्या सारांश:**\n" .
+                       "• एकूण गावे व प्रभाग: **{$totVillages}**\n" .
+                       "• एकूण अंदाजित लोकसंख्या: **{$grandPop}** नागरिक\n" .
+                       "• एकूण नोंदणीकृत मतदार: **{$grandVoters}** मतदार (प्रमाण: **{$grandRatio}%**)\n\n" .
+                       $table;
+            } else {
+                $table = "| Village / Ward | Total Population | Registered Voters | Ratio % | Coverage % |\n";
+                $table .= "| :--- | :--- | :--- | :--- | :--- |\n";
+                foreach ($d['villages_list'] ?? [] as $v) {
+                    $vObj = (object)$v;
+                    $vPop = number_format($vObj->total_pop);
+                    $vVoters = number_format($vObj->total_voters);
+                    $vRatio = $vObj->total_pop > 0 ? round(($vObj->total_voters / $vObj->total_pop) * 100, 1) : 0;
+                    $vCov = $vObj->total_voters > 0 ? round(($vObj->total_surveyed / $vObj->total_voters) * 100, 1) : 0;
+                    $table .= "| **{$vObj->village_mr}** | {$vPop} | {$vVoters} | {$vRatio}% | {$vCov}% |\n";
+                }
+
+                return "🏘️ **Village-wise Population & Voter Demographics:**\n" .
+                       "• Total Villages/Wards: **{$totVillages}**\n" .
+                       "• Total Population: **{$grandPop}** residents\n" .
+                       "• Total Voters: **{$grandVoters}** voters (Ratio: **{$grandRatio}%**)\n\n" .
+                       $table;
+            }
+        }
+
         // 6. Citizen Details
         if ($intent === 'CITIZEN_LOOKUP') {
             $c = $d['citizens'][0];
@@ -588,73 +879,227 @@ class AdminChatbotController extends Controller
             }
         }
 
-        // 9. Karyakartas
+        // 9. Karyakartas / Field Workers
         if ($intent === 'KARYAKARTAS') {
-            $tot = $d['total_karyakartas'];
-            $act = $d['active_karyakartas'];
+            if (!empty($d['specific_worker'])) {
+                $w = $d['specific_worker'];
+                if ($isMr) {
+                    return "👤 **कार्यकर्ता माहिती: {$w->name}**\n" .
+                           "• पद/भूमिका: **{$w->role_mr}**\n" .
+                           "• नेमून दिलेले क्षेत्र: **{$w->assigned_area_mr}**\n" .
+                           "• मोबाईल क्रमांक: `{$w->phone}`\n" .
+                           "• एकूण पूर्ण सर्व्हे: **{$w->total_surveys}** (आजचे: **{$w->today_surveys}**)\n" .
+                           "• कव्हरेज प्रमाण: **{$w->coverage_pct}%** (कामगिरी रेटिंग: ⭐ **{$w->rating}/5**)";
+                } else {
+                    return "👤 **Worker Details: {$w->name}**\n" .
+                           "• Role: **{$w->role_en}**\n" .
+                           "• Assigned Area: **{$w->assigned_area_en}**\n" .
+                           "• Phone: `{$w->phone}`\n" .
+                           "• Total Surveys: **{$w->total_surveys}** (Today: **{$w->today_surveys}**)\n" .
+                           "• Coverage: **{$w->coverage_pct}%** (Rating: ⭐ **{$w->rating}/5**)";
+                }
+            }
+
+            $tot = $d['total_karyakartas'] ?? DB::table('neta_karyakartas')->count();
+            $act = $d['active_karyakartas'] ?? DB::table('neta_karyakartas')->where('status', 'active')->count();
+            $topK = $d['top_karyakartas'] ?? DB::table('neta_karyakartas')->orderBy('total_surveys', 'desc')->limit(6)->get();
 
             $kList = "";
             $count = 0;
-            foreach ($d['top_karyakartas'] as $k) {
-                if (++$count > 3) break;
-                $kList .= "• {$k->name} ({$k->total_surveys} सर्व्हे)\n";
+            foreach ($topK as $k) {
+                if (++$count > 4) break;
+                $kList .= "• **{$k->name}** — {$k->assigned_area_mr} (**{$k->total_surveys}** सर्व्हे, ⭐ {$k->rating})\n";
             }
 
             if ($isMr) {
-                return "👥 **कार्यकर्ते:** एकूण **{$tot}** (सक्रिय: **{$act}**)\nआघाडीचे कार्यकर्ते:\n" . rtrim($kList);
+                return "👥 **कार्यकर्ते कामगिरी अहवाल:**\n" .
+                       "• एकूण कार्यकर्ते: **{$tot}** (सक्रिय: **{$act}**)\n\n" .
+                       "🏆 **आघाडीचे सक्रिय कार्यकर्ते:**\n" . rtrim($kList);
             } else {
                 $enKList = "";
                 $count = 0;
-                foreach ($d['top_karyakartas'] as $k) {
-                    if (++$count > 3) break;
-                    $enKList .= "• {$k->name} ({$k->total_surveys} surveys)\n";
+                foreach ($topK as $k) {
+                    if (++$count > 4) break;
+                    $enKList .= "• **{$k->name}** — {$k->assigned_area_en} (**{$k->total_surveys}** surveys, ⭐ {$k->rating})\n";
                 }
-                return "👥 **Field Workers:** Total **{$tot}** (Active: **{$act}**)\nTop performers:\n" . rtrim($enKList);
+                return "👥 **Field Workers Performance:**\n" .
+                       "• Total Workers: **{$tot}** (Active: **{$act}**)\n\n" .
+                       "🏆 **Top Active Workers:**\n" . rtrim($enKList);
             }
         }
 
         // 10. Submissions & Approvals
         if ($intent === 'SUBMISSIONS_APPROVAL') {
-            $tot = $d['total_submissions'];
-            $pend = $d['pending_approvals'];
-            $app = $d['approved_count'];
+            $tot = $d['total_submissions'] ?? DB::table('admin_field_submissions')->count();
+            $pend = $d['pending_approvals'] ?? DB::table('admin_field_submissions')->where('status', 'PENDING_APPROVAL')->count();
+            $app = $d['approved_count'] ?? DB::table('admin_field_submissions')->where('status', 'APPROVED')->count();
+            $rej = $d['rejected_count'] ?? DB::table('admin_field_submissions')->where('status', 'REJECTED')->count();
 
             if ($isMr) {
-                return "📋 **सर्व्हे नोंदी:** एकूण **{$tot}** (प्रलंबित: 🟠 **{$pend}**, मंजूर: 🟢 **{$app}**)";
+                return "📋 **फील्ड सर्व्हे नोंदणी व मंजुरी अहवाल:**\n" .
+                       "• एकूण सादर नोंदी: **{$tot}**\n" .
+                       "• तपासणीसाठी प्रलंबित: 🟠 **{$pend} नोंदी**\n" .
+                       "• मंजूर (Approved): 🟢 **{$app} नोंदी**\n" .
+                       "• नाकारलेले (Rejected): 🔴 **{$rej} नोंदी**\n\n" .
+                       "💡 प्रलंबित नोंदी तपासण्यासाठी 'फील्ड डेटा मंजुरी' कक्षात जाऊन मंजुरी किंवा दुरुस्ती करू शकता.";
             } else {
-                return "📋 **Survey Submissions:** Total **{$tot}** (Pending: 🟠 **{$pend}**, Approved: 🟢 **{$app}**)";
+                return "📋 **Field Survey Submissions & Approvals:**\n" .
+                       "• Total Submissions: **{$tot}**\n" .
+                       "• Pending Verification: 🟠 **{$pend}**\n" .
+                       "• Approved: 🟢 **{$app}**\n" .
+                       "• Rejected: 🔴 **{$rej}**\n\n" .
+                       "💡 You can review and approve submissions in the Data Approval Desk.";
             }
         }
 
         // 11. Official Documents
         if ($intent === 'OFFICIAL_DOCUMENTS') {
-            $tot = $d['total_documents'];
+            $tot = $d['total_documents'] ?? DB::table('admin_media_documents')->count();
             if ($isMr) {
-                return "📁 **दस्तऐवज:** केंद्रीय भांडारात एकूण **{$tot} अधिकृत फाइल्स** उपलब्ध आहेत.";
+                return "📁 **दस्तऐवज भांडार:** केंद्रीय भांडारात एकूण **{$tot} अधिकृत शासकीय व मोहीम फाइल्स** उपलब्ध आहेत.";
             } else {
-                return "📁 **Documents:** Total **{$tot} official files** available in repository.";
+                return "📁 **Official Documents:** Total **{$tot} files** available in central repository.";
             }
         }
 
-        // 12. General Overview
+        // 12. Campaign Strategy / Slogans / Speeches / Advice (Offline & Direct)
+        if ($intent === 'CAMPAIGN_STRATEGY') {
+            // Check specific sub-intent: slogans, speech, social media, or door-to-door
+            if (preg_match('/(?:घोषणा|slogan)/iu', $message)) {
+                if ($isMr) {
+                    return "📢 **निवडणूक प्रचार घोषणा (Campaign Slogans):**\n" .
+                           "• *\"कामाचा ध्यास, विकासाचा विश्वास! आपलं एक मत, प्रगतीचा संकल्प!\"*\n" .
+                           "• *\"प्रत्येक घरात समृद्धी, प्रत्येक गावात विकास! जनसेवेचा एकच ध्यास!\"*\n" .
+                           "• *\"युवकांना रोजगार, बळीराजाला सन्मान! चला घडवूया नवा महाराष्ट्र!\"*\n" .
+                           "• *\"आपला हक्काचा माणूस, आपल्या हक्काचा विकास!\"*";
+                } else {
+                    return "📢 **Campaign Slogans:**\n" .
+                           "• *\"Commitment to Work, Trust in Progress! Your vote, our pledge!\"*\n" .
+                           "• *\"Prosperity in every home, development in every village!\"*\n" .
+                           "• *\"Empowerment for youth, dignity for farmers!\"*";
+                }
+            }
+
+            if (preg_match('/(?:भाषण|speech|मुद्दे)/iu', $message)) {
+                if ($isMr) {
+                    return "🎤 **सभेसाठी भाषणाचे प्रमुख मुद्दे (Speech Points):**\n" .
+                           "1. **प्रस्तावना:** उपस्थितांचे आभार व मतदारसंघाशी असलेली आपुलकी.\n" .
+                           "2. **स्थानिक विकास:** रस्ते, पाणी, वीज व आरोग्यासाठी केलेली व प्रस्तावित कामे.\n" .
+                           "3. **शासकीय योजना:** लाडकी बहीण, शेतकरी सन्मान निधी योजनांचा लाभ प्रत्येक घरापर्यंत.\n" .
+                           "4. **भविष्यकालीन संकल्प:** तरुणांसाठी स्थानिक रोजगार व पायाभूत सुविधा.\n" .
+                           "5. **आवाहन:** विकासाच्या पाठीशी ठाम उभे राहून भरघोस मतांनी विजयी करण्याचे आवाहन.";
+                } else {
+                    return "🎤 **Key Rally Speech Outline:**\n" .
+                           "1. **Greeting:** Gratitude to citizens and emotional connect to the constituency.\n" .
+                           "2. **Local Issues:** Accomplishments and future commitments on roads, water & health.\n" .
+                           "3. **Welfare Schemes:** Ensuring 100% reach of farmer & women welfare initiatives.\n" .
+                           "4. **Future Vision:** Job creation, educational hubs, and modern infrastructure.\n" .
+                           "5. **Call to Action:** Vote for decisive development and reliable leadership.";
+                }
+            }
+
+            if (preg_match('/(?:सोशल मीडिया|social media|पोस्ट|post)/iu', $message)) {
+                if ($isMr) {
+                    return "📱 **सोशल मीडिया प्रचार रणनीती (Social Media Tips):**\n" .
+                           "• **सकाळची वेळ (8 ते 10 AM):** सकारात्मक विकासकामे व दैनंदिन भेटींचे छोटे 30-सेकंद व्हिडिओ रिल्स.\n" .
+                           "• **दुपारची वेळ (1 ते 3 PM):** शासकीय योजना लाभार्थी यशोगाथा (Testimonials) व इन्फोग्राफिक्स.\n" .
+                           "• **संध्याकाळची वेळ (7 ते 9 PM):** जाहीर सभा थेट प्रक्षेपण (Live) व प्रमुख आश्वासने.\n" .
+                           "• **WhatsApp गट:** प्रत्येक बूथनिहाय स्थानिक प्रश्न व त्वरित निवारणाचे फोटो शेअर करा.";
+                } else {
+                    return "📱 **Social Media Strategy:**\n" .
+                           "• **Morning (8-10 AM):** Positive 30s development reels & morning walk interactions.\n" .
+                           "• **Afternoon (1-3 PM):** Beneficiary testimonials and project infographics.\n" .
+                           "• **Evening (7-9 PM):** Live rally stream and key speech highlights.\n" .
+                           "• **WhatsApp Groups:** Booth-specific updates and quick redressal updates.";
+                }
+            }
+
+            // General Campaign Advice
+            if ($isMr) {
+                return "🎯 **प्रचार मोहीम नियोजन व मार्गदर्शन (Campaign Guidance):**\n" .
+                       "• **बूथनिहाय संपर्क:** प्रत्येक कार्यकर्त्याला 50 घरांची जबाबदारी देऊन थेट संवाद साधा.\n" .
+                       "• **तटस्थ मतदार:** 'तटस्थ (Neutral)' मतदारांच्या घरी जाऊन स्थानिक समस्या जाणून घ्या.\n" .
+                       "• **योजना लाभार्थी:** लाडकी बहीण व शेतकरी योजना लाभार्थी कुटुंबांना प्राधान्याने भेटा.\n" .
+                       "• **प्रचार फलक:** केलेल्या विकासकामांचे संक्षिप्त फलक प्रमुख चौकात लावा.";
+            } else {
+                return "🎯 **Field Campaign Guidance:**\n" .
+                       "• **Booth-level assignment:** Assign 50 households per karyakarta for personal contact.\n" .
+                       "• **Swing voters:** Focus on neutral voters by addressing their micro-local issues.\n" .
+                       "• **Beneficiary outreach:** Prioritize visits to welfare scheme beneficiaries.\n" .
+                       "• **Visibility:** Position hoardings highlighting verified completed work.";
+            }
+        }
+
+        // 13. Election Model Code of Conduct
+        if ($intent === 'CODE_OF_CONDUCT') {
+            if ($isMr) {
+                return "📜 **निवडणूक आदर्श आचारसंहिता (Model Code of Conduct):**\n" .
+                       "• **ध्वनिक्षेपक (Loudspeaker):** सकाळी ६:०० ते रात्री १०:०० पर्यंतच पूर्वपरवानगीने वापरता येईल.\n" .
+                       "• **प्रचार सभा व रॅली:** स्थानिक पोलीस व निवडणूक अधिकाऱ्यांची किमान २४ तास आधी लेखी परवानगी आवश्यक.\n" .
+                       "• **मतदान केंद्र (Polling Station):** मतदानाच्या दिवशी केंद्राच्या १०० मीटर परिसरात प्रचार करण्यास सक्त मनाई.\n" .
+                       "• **प्रचार समाप्ती:** मतदानाच्या वेळेच्या ४८ तास आधी सर्व जाहीर प्रचार, सभा व भोंगे बंद करणे बंधनकारक.";
+            } else {
+                return "📜 **Model Code of Conduct Guidelines:**\n" .
+                       "• **Loudspeakers:** Permitted only between 6:00 AM and 10:00 PM with official prior approval.\n" .
+                       "• **Rallies & Meetings:** Written permission required from Police & RO at least 24 hours in advance.\n" .
+                       "• **Polling Stations:** Zero campaigning allowed within 100 meters on voting day.\n" .
+                       "• **Campaign Silence:** Public campaigning, rallies, and loudspeakers must stop 48 hours prior to poll close.";
+            }
+        }
+
+        // 14. Help / Capabilities Guide
+        if ($intent === 'HELP_GUIDE') {
+            if ($isMr) {
+                return "🤖 **मी खालील विषयांवर थेट डेटाबेस माहिती व सल्ला देऊ शकतो:**\n" .
+                       "1. 🏘️ **गाव व प्रभाग लोकसंख्या:** (उदा. *'माधवनगर ची लोकसंख्या व मतदार'*, *'गाव लोकसंख्या'*)\n" .
+                       "2. 📊 **मतदार व राजकीय कल:** (उदा. *'एकूण मतदार सारांश'*, *'अनुकूल मतदार संख्या'*)\n" .
+                       "3. 🗳️ **बूथनिहाय प्रगती:** (उदा. *'बूथ क्र. १ ची माहिती'*, *'आघाडीचे बूथ'*)\n" .
+                       "4. ⚠️ **नागरी समस्या:** (उदा. *'प्रलंबित नागरी समस्या'*, *'पाणी व रस्ते तक्रारी'*)\n" .
+                       "5. 👥 **कार्यकर्ते व सर्व्हे:** (उदा. *'सक्रिय कार्यकर्ते'*, *'Priya Kadam'*)\n" .
+                       "6. 📋 **सर्व्हे मंजुरी:** (उदा. *'तपासणीसाठी प्रलंबित सर्व्हे नोंदी'*)\n" .
+                       "7. 🏛️ **शासकीय योजना:** (उदा. *'लाडकी बहीण योजना व लाभार्थी'*)\n" .
+                       "8. 📢 **प्रचार घोषणा व भाषण:** (उदा. *'प्रचार घोषणा'*, *'भाषण मुद्दे'*, *'आचारसंहिता'*)\n\n" .
+                       "💡 खालीलपैकी कोणत्याही पर्यायावर क्लिक करा किंवा आपला प्रश्न लिहा!";
+            } else {
+                return "🤖 **I can provide verified live database facts and campaign intelligence on:**\n" .
+                       "1. 🏘️ **Village Demographics:** (e.g. *'Madhavnagar population & voters'*, *'Villages list'*)\n" .
+                       "2. 📊 **Voters & Sentiment:** (e.g. *'Total voters summary'*, *'Favorable voters'*)\n" .
+                       "3. 🗳️ **Booth Progress:** (e.g. *'Booth 1 details'*, *'Top covered booths'*)\n" .
+                       "4. ⚠️ **Civic Issues:** (e.g. *'Pending grievances'*, *'Water and road complaints'*)\n" .
+                       "5. 👥 **Field Workers:** (e.g. *'Active karyakartas'*, *'Priya Kadam'*)\n" .
+                       "6. 📋 **Survey Approvals:** (e.g. *'Pending survey submissions'*)\n" .
+                       "7. 🏛️ **Welfare Schemes:** (e.g. *'Government scheme beneficiaries'*)\n" .
+                       "8. 📢 **Campaign Strategy:** (e.g. *'Campaign slogans'*, *'Rally speech outline'*, *'Code of conduct'*)\n\n" .
+                       "💡 Tap a suggestion below or type your question!";
+            }
+        }
+
+        // 15. General Overview / Safe Default Database Summary
+        $totCitizens = $d['citizens_total'] ?? DB::table('neta_citizens')->count();
+        $anukul = $d['sentiment_anukul'] ?? DB::table('neta_citizens')->where('sentiment', 'anukul')->count();
+        $totBooths = $d['total_booths'] ?? DB::table('neta_booth_progress')->count();
+        $totWorkers = $d['total_karyakartas'] ?? DB::table('neta_karyakartas')->count();
+        $pendIssues = $d['pending_issues'] ?? DB::table('neta_crm_issues')->where('status', 'PENDING')->count();
+        $totProjects = $d['total_projects'] ?? DB::table('projects')->count();
+
         if ($isMr) {
-            return "📊 **मोहीम सद्यस्थिती:**\n• एकूण मतदार: **{$d['citizens_total']}** (अनुकूल: **{$d['sentiment_anukul']}**)\n• सक्रिय बूथ: **{$d['total_booths']}**\n• कार्यकर्ते: **{$d['total_karyakartas']}**\n• नागरी समस्या: **{$d['pending_issues']}** प्रलंबित\n• चालू प्रकल्प: **{$d['total_projects']}**";
+            return "📊 **मोहीम सद्यस्थिती:**\n• एकूण मतदार: **{$totCitizens}** (अनुकूल: **{$anukul}**)\n• सक्रिय बूथ: **{$totBooths}**\n• कार्यकर्ते: **{$totWorkers}**\n• नागरी समस्या: **{$pendIssues}** प्रलंबित\n• चालू प्रकल्प: **{$totProjects}**";
         } else {
-            return "📊 **Campaign Summary:**\n• Voters: **{$d['citizens_total']}** ({$d['sentiment_anukul']} favorable)\n• Booths: **{$d['total_booths']}**\n• Workers: **{$d['total_karyakartas']}**\n• Pending Issues: **{$d['pending_issues']}**\n• Projects: **{$d['total_projects']}**";
+            return "📊 **Campaign Summary:**\n• Voters: **{$totCitizens}** ({$anukul} favorable)\n• Booths: **{$totBooths}**\n• Workers: **{$totWorkers}**\n• Pending Issues: **{$pendIssues}**\n• Projects: **{$totProjects}**";
         }
     }
 
     /**
-     * Calls Gemini API (Model: gemini-2.5-flash).
+     * Calls Gemini API (Model: gemini-1.5-flash).
      * 1st check DB facts when matched, then check other side (general political/campaign help) if outside DB.
      */
     private function queryGeminiApi(string $userPrompt, array $contextData, bool $isMr, bool $hasDbMatch): ?string
     {
-        $apiKey = env('GEMINI_API_KEY');
+        $apiKey = env('GEMINI_API_KEY') ?: env('OPENAI_API_KEY');
         if (!$apiKey) return null;
 
         try {
-            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}";
+            $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$apiKey}";
             $langInstruction = $isMr 
                 ? "Reply strictly in simple, natural Marathi (मराठी)." 
                 : "Reply strictly in simple, natural English.";
@@ -684,7 +1129,7 @@ class AdminChatbotController extends Controller
                     "5. Easy to read in 5 seconds on a mobile screen.";
             }
 
-            $res = Http::withoutVerifying()->timeout(15)->post($url, [
+            $res = Http::withoutVerifying()->timeout(8)->post($url, [
                 'contents' => [
                     [
                         'role' => 'user',

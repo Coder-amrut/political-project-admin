@@ -102,8 +102,7 @@ const marathi = {
   'members assigned': 'सदस्य नियुक्त केले',
   'Loading assigned members…': 'नियुक्त सदस्य लोड होत आहेत…',
   'No members assigned to this project yet.': 'या प्रकल्पासाठी अद्याप कोणतेही सदस्य नियुक्त केलेले नाहीत.',
-  'You can assign active field workers and officers to this project.': 'तुम्ही या प्रकल्पासाठी सक्रिय क्षेत्र अधिकारी नियुक्त करू शकता.',
-  'You can assign active field officers to this project.': 'तुम्ही या प्रकल्पासाठी सक्रिय क्षेत्र अधिकारी नियुक्त करू शकता.',
+  'You can assign active field workers and officers to this project.': 'तुम्ही या प्रकल्पासाठी सक्रिय क्षेत्रीय कार्यकर्ते आणि अधिकारी नियुक्त करू शकता.',
   'Assign members now': 'आता सदस्य नियुक्त करा',
   'Click to view assigned members': 'नियुक्त सदस्य पाहण्यासाठी क्लिक करा',
   'Member status updated.': 'सदस्याची स्थिती अद्यतनित केली.',
@@ -150,14 +149,54 @@ export function translateText(text, language = 'en') {
 }
 
 export function translateTree(node, language = 'en') {
-  if (language !== 'mr') return node;
+  if (language !== 'mr' || node == null) return node;
   if (typeof node === 'string') return translateText(node, language);
-  if (Array.isArray(node)) return node.map((child) => translateTree(child, language));
+  if (typeof node === 'number' || typeof node === 'boolean') return node;
+
+  if (Array.isArray(node)) {
+    return node.map((child, idx) => {
+      const translated = translateTree(child, language);
+      if (React.isValidElement(translated)) {
+        const key = child?.key != null ? child.key : (translated.key != null ? translated.key : `_i18n_${idx}`);
+        return React.cloneElement(translated, { key });
+      }
+      return translated;
+    });
+  }
+
   if (!React.isValidElement(node)) return node;
 
-  const translatedProps = { ...node.props };
+  const translatedProps = {};
   for (const prop of ['placeholder', 'aria-label', 'title']) {
-    if (typeof translatedProps[prop] === 'string') translatedProps[prop] = translateText(translatedProps[prop], language);
+    if (typeof node.props[prop] === 'string') {
+      translatedProps[prop] = translateText(node.props[prop], language);
+    }
   }
-  return React.cloneElement(node, translatedProps, translateTree(node.props.children, language));
+
+  const { children } = node.props;
+  if (children === undefined || children === null) {
+    return Object.keys(translatedProps).length > 0
+      ? React.cloneElement(node, translatedProps)
+      : node;
+  }
+
+  if (typeof children === 'string') {
+    const translatedText = translateText(children, language);
+    return React.cloneElement(node, translatedProps, translatedText);
+  }
+
+  if (Array.isArray(children)) {
+    const translatedChildren = children.map((child, idx) => {
+      const translated = translateTree(child, language);
+      if (React.isValidElement(translated)) {
+        const key = child?.key != null ? child.key : (translated.key != null ? translated.key : `_i18n_c_${idx}`);
+        return React.cloneElement(translated, { key });
+      }
+      return translated;
+    });
+    return React.cloneElement(node, translatedProps, ...translatedChildren);
+  }
+
+  const translatedChild = translateTree(children, language);
+  return React.cloneElement(node, translatedProps, translatedChild);
 }

@@ -13,6 +13,15 @@ export default function DataExportCenter({ lang = 'mr' }) {
   // Printable Report modal state
   const [printableData, setPrintableData] = useState(null);
 
+  // Helper to format a single CSV row safely
+  const toCsvRow = (arr) =>
+    arr
+      .map((val) => {
+        const str = (val ?? '').toString().replace(/"/g, '""');
+        return `"${str}"`;
+      })
+      .join(',');
+
   // Export as CSV (With UTF-8 BOM for authentic Marathi/Devanagari characters in MS Excel)
   const exportToCSV = (filename, headers, rows) => {
     const csvContent =
@@ -40,6 +49,332 @@ export default function DataExportCenter({ lang = 'mr' }) {
     URL.revokeObjectURL(url);
   };
 
+  // Export Complete Multi-table Database Backup in a Structured Master CSV (Excel Compatible)
+  const exportFullBackupCSV = (filename, data) => {
+    const lines = [];
+    const addLine = (row) => lines.push(toCsvRow(row));
+    const addEmpty = () => lines.push('');
+
+    // Header Metadata
+    addLine(['=== २८२ - सांगली विधानसभा मतदारसंघ | संपूर्ण डेटाबेस महा-बॅकअप (MASTER DATABASE BACKUP) ===']);
+    addLine(['तयार केल्याची तारीख व वेळ', new Date().toLocaleString(isMr ? 'mr-IN' : 'en-US')]);
+    addLine(['मतदारसंघ', '२८२ - सांगली विधानसभा मतदारसंघ (महाराष्ट्र)']);
+    addLine(['प्रणाली', 'Political Project Management System (Live Sync DB)']);
+    addEmpty();
+
+    // 1. Users
+    const users = data.users || [];
+    addLine([`--- विभाग १: प्रणाली वापरकर्ते व अधिकारी (${users.length} खाती) ---`]);
+    addLine(['आयडी', 'पूर्ण नाव', 'मोबाईल नंबर', 'ईमेल', 'भूमिका (Roles)', 'सद्यस्थिती', 'नोंदणी तारीख']);
+    users.forEach((u) => {
+      addLine([
+        u.id,
+        u.full_name || '-',
+        u.phone || '-',
+        u.email || '-',
+        u.roles || 'USER',
+        u.status || 'ACTIVE',
+        u.created_at ? new Date(u.created_at).toLocaleDateString() : '-',
+      ]);
+    });
+    addEmpty();
+
+    // 2. Citizens CRM
+    const citizens = data.citizens || [];
+    addLine([`--- विभाग २: नागरिक संपर्क ३६०° मतदार यादी (${citizens.length} मतदार) ---`]);
+    addLine(['नाव', 'EPIC मतदार ओळखपत्र', 'मोबाईल', 'वय/लिंग', 'बूथ क्र.', 'पत्ता', 'राजकीय कल', 'जबाबदार कार्यकर्ता']);
+    citizens.forEach((c) => {
+      addLine([
+        isMr ? c.full_name_mr : (c.full_name_en || c.full_name_mr),
+        c.voter_id_number || '-',
+        c.phone || '-',
+        `${c.age || '-'} / ${c.gender === 'male' ? (isMr ? 'पु' : 'M') : (isMr ? 'म' : 'F')}`,
+        c.booth_no,
+        isMr ? c.address_mr : (c.address_en || c.address_mr),
+        isMr ? (c.sentiment_label_mr || c.sentiment) : (c.sentiment_label_en || c.sentiment),
+        c.assigned_worker_name || '-',
+      ]);
+    });
+    addEmpty();
+
+    // 3. Booths
+    const booths = data.booths || [];
+    addLine([`--- विभाग ३: बूथनिहाय प्रगती व मतदार सांख्यिकी (${booths.length} बूथ) ---`]);
+    addLine(['बूथ क्र.', 'केंद्राचे नाव', 'तालुका', 'गाव/वॉर्ड', 'एकूण मतदार', 'सर्व्हे मतदार', 'कव्हरेज %', 'बूथ इनचार्ज', 'मोबाईल', 'कल']);
+    booths.forEach((b) => {
+      addLine([
+        b.booth_no,
+        isMr ? b.booth_name_mr : (b.booth_name_en || b.booth_name_mr),
+        isMr ? b.taluka_mr : (b.taluka_en || b.taluka_mr),
+        isMr ? b.village_mr : (b.village_en || b.village_mr),
+        b.total_voters,
+        b.surveyed_voters,
+        `${b.coverage_pct}%`,
+        b.incharge_name || '-',
+        b.incharge_phone || '-',
+        isMr ? b.sentiment_label_mr : (b.sentiment_label_en || b.sentiment_label_mr),
+      ]);
+    });
+    addEmpty();
+
+    // 4. Workers
+    const workers = data.workers || [];
+    addLine([`--- विभाग ४: कार्यकर्ते व संघटन अहवाल (${workers.length} कार्यकर्ते) ---`]);
+    addLine(['नाव', 'मोबाईल', 'पद / जबाबदारी', 'परिसर', 'एकूण सर्व्हे', 'आजचे सर्व्हे', 'रेटिंग', 'स्थिती']);
+    workers.forEach((w) => {
+      addLine([
+        w.name,
+        w.phone,
+        isMr ? w.role_mr : (w.role_en || w.role_mr),
+        isMr ? w.assigned_area_mr : (w.assigned_area_en || w.assigned_area_mr),
+        w.total_surveys,
+        w.today_surveys,
+        `${w.rating} / 5`,
+        w.status === 'active' ? (isMr ? 'सक्रिय' : 'Active') : (isMr ? 'ऑफलाइन' : 'Offline'),
+      ]);
+    });
+    addEmpty();
+
+    // 5. Survey Submissions
+    const surveys = data.survey_submissions || [];
+    addLine([`--- विभाग ५: मतदार पाहणी प्रत्यक्ष सर्व्हे नोंदी (${surveys.length} सर्व्हे) ---`]);
+    addLine(['सर्व्हे कोड', 'फॉर्मचे नाव', 'मतदाराचे नाव', 'EPIC ओळखपत्र', 'मोबाईल', 'बूथ क्र.', 'गाव / परिसर', 'सर्व्हेयर कार्यकर्ता', 'स्थिती', 'तारीख']);
+    surveys.forEach((s) => {
+      addLine([
+        s.submission_code || `SUB-${s.id}`,
+        isMr ? (s.form_title_mr || 'मतदार पाहणी') : (s.form_title_en || s.form_title_mr || 'Voter Survey'),
+        s.citizen_name_mr || s.citizen_name || '-',
+        s.voter_id_number || '-',
+        s.phone || '-',
+        s.booth_no || '-',
+        s.village_mr || '-',
+        s.submitted_by_name || '-',
+        s.status === 'APPROVED' ? (isMr ? 'मंजूर' : 'Approved') : (isMr ? 'पडताळणी बाकी' : 'Pending'),
+        s.created_at ? new Date(s.created_at).toLocaleDateString() : '-',
+      ]);
+    });
+    addEmpty();
+
+    // 6. Civic Grievances
+    const issues = data.crm_issues || [];
+    addLine([`--- विभाग ६: नागरी समस्या व तक्रारी नोंदवही (${issues.length} तक्रारी) ---`]);
+    addLine(['तक्रार क्र.', 'समस्या शीर्षक', 'नागरिकाचे नाव', 'मोबाईल', 'बूथ', 'प्राधान्य', 'स्थिती']);
+    issues.forEach((iss) => {
+      addLine([
+        iss.tracking_no || `TKT-${iss.id}`,
+        isMr ? iss.title_mr : (iss.title_en || iss.title_mr),
+        iss.citizen_name || '-',
+        iss.citizen_phone || '-',
+        iss.booth_no || '-',
+        iss.priority === 'urgent' ? (isMr ? 'तातडीचे' : 'Urgent') : (isMr ? 'सामान्य' : 'Normal'),
+        iss.status === 'resolved'
+          ? (isMr ? 'सोडवली' : 'Resolved')
+          : iss.status === 'in_progress'
+          ? (isMr ? 'प्रगतीपथावर' : 'In Progress')
+          : (isMr ? 'प्रलंबित' : 'Pending'),
+      ]);
+    });
+    addEmpty();
+
+    // 7. Tasks
+    const tasks = data.tasks || [];
+    addLine([`--- विभाग ७: प्रलंबित कामे व पाठपुरावा अहवाल (${tasks.length} कामे) ---`]);
+    addLine(['कामाचे शीर्षक', 'प्रकार', 'जबाबदार व्यक्ती', 'प्राधान्य', 'अंतिम मुदत', 'स्थिती']);
+    tasks.forEach((t) => {
+      addLine([
+        isMr ? t.title_mr : (t.title_en || t.title_mr),
+        isMr ? t.category_mr : (t.category_en || t.category_mr),
+        t.assigned_to,
+        t.priority === 'urgent' ? (isMr ? 'तातडीचे' : 'Urgent') : t.priority,
+        t.deadline,
+        t.status === 'completed' ? (isMr ? 'पूर्ण' : 'Completed') : (isMr ? 'प्रलंबित' : 'Pending'),
+      ]);
+    });
+    addEmpty();
+
+    // 8. Meetings
+    const meetings = data.meetings || [];
+    addLine([`--- विभाग ८: बैठका व दौरे वेळापत्रक पत्रिका (${meetings.length} कार्यक्रम) ---`]);
+    addLine(['दौरा / बैठक', 'प्रकार', 'तारीख', 'वेळ', 'ठिकाण', 'अपेक्षित उपस्थिती', 'प्रमुख']);
+    meetings.forEach((m) => {
+      addLine([
+        isMr ? m.title_mr : (m.title_en || m.title_mr),
+        isMr ? m.type_mr : (m.type_en || m.type_mr),
+        m.date,
+        m.time,
+        isMr ? m.venue_mr : (m.venue_en || m.venue_mr),
+        m.expected_attendees || '-',
+        m.incharge || '-',
+      ]);
+    });
+    addEmpty();
+
+    // 9. Survey Forms
+    const forms = data.survey_forms || [];
+    addLine([`--- विभाग ९: सर्व्हे फॉर्म्स व प्रश्नावली संच (${forms.length} फॉर्म्स) ---`]);
+    addLine(['फॉर्म कोड', 'शीर्षक', 'उद्दिष्ट', 'लक्षित वर्ग', 'स्थिती', 'तयार केल्याची तारीख']);
+    forms.forEach((f) => {
+      addLine([
+        f.form_code || `FRM-${f.id}`,
+        isMr ? f.title_mr : (f.title_en || f.title_mr),
+        f.campaign_objective || '-',
+        f.target_audience || '-',
+        f.status || 'ACTIVE',
+        f.created_at ? new Date(f.created_at).toLocaleDateString() : '-',
+      ]);
+    });
+
+    const csvContent = '\uFEFF' + lines.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // Open Master Printable PDF Dossier for Full Database Backup
+  const openFullBackupPDF = (data) => {
+    const users = data.users || [];
+    const citizens = data.citizens || [];
+    const booths = data.booths || [];
+    const workers = data.workers || [];
+    const surveys = data.survey_submissions || [];
+    const issues = data.crm_issues || [];
+    const tasks = data.tasks || [];
+    const meetings = data.meetings || [];
+
+    const sections = [
+      {
+        title: isMr ? '१. प्रणाली वापरकर्ते व अधिकारी (System Users & Officers)' : '1. System Users & Officers',
+        headers: isMr ? ['आयडी', 'नाव', 'मोबाईल', 'ईमेल', 'भूमिका', 'स्थिती'] : ['ID', 'Name', 'Phone', 'Email', 'Roles', 'Status'],
+        rows: users.map((u) => [
+          u.id,
+          u.full_name || '-',
+          u.phone || '-',
+          u.email || '-',
+          u.roles || 'USER',
+          u.status || 'ACTIVE',
+        ]),
+      },
+      {
+        title: isMr ? '२. नागरिक संपर्क ३६०° मतदार यादी (Citizen CRM Directory)' : '2. Citizen 360 CRM Directory',
+        headers: isMr ? ['नाव', 'EPIC ओळखपत्र', 'मोबाईल', 'वय/लिंग', 'बूथ', 'राजकीय कल'] : ['Name', 'EPIC Voter ID', 'Phone', 'Age / Gender', 'Booth', 'Sentiment'],
+        rows: citizens.map((c) => [
+          isMr ? c.full_name_mr : (c.full_name_en || c.full_name_mr),
+          c.voter_id_number || '-',
+          c.phone || '-',
+          `${c.age || '-'} / ${c.gender === 'male' ? (isMr ? 'पु' : 'M') : (isMr ? 'म' : 'F')}`,
+          c.booth_no,
+          isMr ? (c.sentiment_label_mr || c.sentiment) : (c.sentiment_label_en || c.sentiment),
+        ]),
+      },
+      {
+        title: isMr ? '३. बूथनिहाय प्रगती व मतदार सांख्यिकी (Booth Progress)' : '3. Booth Progress Ledger',
+        headers: isMr ? ['बूथ क्र.', 'केंद्राचे नाव', 'गाव/वॉर्ड', 'एकूण मतदार', 'सर्व्हे मतदार', 'कव्हरेज', 'बूथ प्रमुख', 'कल'] : ['Booth', 'Booth Name', 'Village', 'Total Voters', 'Surveyed', 'Coverage', 'In-charge', 'Sentiment'],
+        rows: booths.map((b) => [
+          b.booth_no,
+          isMr ? b.booth_name_mr : (b.booth_name_en || b.booth_name_mr),
+          isMr ? b.village_mr : (b.village_en || b.village_mr),
+          b.total_voters,
+          b.surveyed_voters,
+          `${b.coverage_pct}%`,
+          b.incharge_name || '-',
+          isMr ? b.sentiment_label_mr : (b.sentiment_label_en || b.sentiment_label_mr),
+        ]),
+      },
+      {
+        title: isMr ? '४. कार्यकर्ते संघटन व कामगिरी (Worker Roster)' : '4. Worker Roster & Performance',
+        headers: isMr ? ['नाव', 'मोबाईल', 'पद / जबाबदारी', 'परिसर', 'सर्व्हे', 'रेटिंग', 'स्थिती'] : ['Worker Name', 'Phone', 'Role', 'Area', 'Surveys', 'Rating', 'Status'],
+        rows: workers.map((w) => [
+          w.name,
+          w.phone,
+          isMr ? w.role_mr : (w.role_en || w.role_mr),
+          isMr ? w.assigned_area_mr : (w.assigned_area_en || w.assigned_area_mr),
+          w.total_surveys,
+          `${w.rating} / 5`,
+          w.status === 'active' ? (isMr ? 'सक्रिय' : 'Active') : (isMr ? 'ऑफलाइन' : 'Offline'),
+        ]),
+      },
+      {
+        title: isMr ? '५. मतदार पाहणी प्रत्यक्ष सर्व्हे नोंदी (Survey Submissions)' : '5. Field Survey Submissions',
+        headers: isMr ? ['कोड', 'फॉर्म', 'मतदाराचे नाव', 'EPIC ID', 'मोबाईल', 'बूथ', 'कार्यकर्ता', 'स्थिती'] : ['Code', 'Form', 'Voter Name', 'EPIC ID', 'Phone', 'Booth', 'Worker', 'Status'],
+        rows: surveys.map((s) => [
+          s.submission_code || `SUB-${s.id}`,
+          isMr ? (s.form_title_mr || 'मतदार पाहणी') : (s.form_title_en || s.form_title_mr || 'Survey'),
+          s.citizen_name_mr || s.citizen_name || '-',
+          s.voter_id_number || '-',
+          s.phone || '-',
+          s.booth_no || '-',
+          s.submitted_by_name || '-',
+          s.status === 'APPROVED' ? (isMr ? 'मंजूर' : 'Approved') : (isMr ? 'पडताळणी बाकी' : 'Pending'),
+        ]),
+      },
+      {
+        title: isMr ? '६. नागरी समस्या व तक्रारी नोंदवही (Civic Grievances)' : '6. Civic Grievances Ledger',
+        headers: isMr ? ['तक्रार क्र.', 'समस्या शीर्षक', 'नागरिक', 'मोबाईल', 'बूथ', 'प्राधान्य', 'स्थिती'] : ['Ticket No', 'Issue Title', 'Citizen', 'Phone', 'Booth', 'Priority', 'Status'],
+        rows: issues.map((iss) => [
+          iss.tracking_no || `TKT-${iss.id}`,
+          isMr ? iss.title_mr : (iss.title_en || iss.title_mr),
+          iss.citizen_name || '-',
+          iss.citizen_phone || '-',
+          iss.booth_no || '-',
+          iss.priority === 'urgent' ? (isMr ? 'तातडीचे' : 'Urgent') : (isMr ? 'सामान्य' : 'Normal'),
+          iss.status === 'resolved'
+            ? (isMr ? 'सोडवली' : 'Resolved')
+            : iss.status === 'in_progress'
+            ? (isMr ? 'प्रगतीपथावर' : 'In Progress')
+            : (isMr ? 'प्रलंबित' : 'Pending'),
+        ]),
+      },
+      {
+        title: isMr ? '७. प्रलंबित कामे व पाठपुरावा (Action Tasks)' : '7. Action Tasks & Follow-ups',
+        headers: isMr ? ['काम शीर्षक', 'प्रकार', 'जबाबदार व्यक्ती', 'प्राधान्य', 'मुदत', 'स्थिती'] : ['Task Title', 'Category', 'Assigned To', 'Priority', 'Deadline', 'Status'],
+        rows: tasks.map((t) => [
+          isMr ? t.title_mr : (t.title_en || t.title_mr),
+          isMr ? t.category_mr : (t.category_en || t.category_mr),
+          t.assigned_to,
+          t.priority === 'urgent' ? (isMr ? 'तातडीचे' : 'Urgent') : t.priority,
+          t.deadline,
+          t.status === 'completed' ? (isMr ? 'पूर्ण' : 'Completed') : (isMr ? 'प्रलंबित' : 'Pending'),
+        ]),
+      },
+      {
+        title: isMr ? '८. बैठका व दौरे वेळापत्रक (Meetings & Tours)' : '8. Tours & Meetings Schedule',
+        headers: isMr ? ['कार्यक्रम', 'प्रकार', 'तारीख / वेळ', 'ठिकाण', 'उपस्थिती', 'प्रमुख'] : ['Event', 'Type', 'Date & Time', 'Venue', 'Attendance', 'In-charge'],
+        rows: meetings.map((m) => [
+          isMr ? m.title_mr : (m.title_en || m.title_mr),
+          isMr ? m.type_mr : (m.type_en || m.type_mr),
+          `${m.date || ''} ${m.time || ''}`,
+          isMr ? m.venue_mr : (m.venue_en || m.venue_mr),
+          m.expected_attendees || '-',
+          m.incharge || '-',
+        ]),
+      },
+    ];
+
+    setPrintableData({
+      title: isMr ? 'संपूर्ण डेटाबेस महा-अहवाल व बॅकअप दस्तऐवज' : 'Master Database Backup & Executive Dossier',
+      subtitle: isMr ? '२८२ - सांगली विधानसभा मतदारसंघ | सर्व विभागांचा एकत्रित अधिकृत अहवाल' : '282 - Sangli Assembly Constituency | Comprehensive System DB Dossier',
+      filters: {
+        [isMr ? 'बॅकअप प्रकार' : 'Backup Type']: isMr ? 'सर्व डेटा मॉड्यूल्स (Full Database Roster)' : 'All Database Modules',
+        [isMr ? 'मतदारसंघ' : 'Constituency']: isMr ? '२८२ - सांगली विधानसभा' : '282 - Sangli Assembly',
+      },
+      summaryStats: [
+        { label: isMr ? 'वापरकर्ते' : 'Users', value: users.length },
+        { label: isMr ? 'मतदार CRM' : 'Voters CRM', value: citizens.length },
+        { label: isMr ? 'बूथ सांख्यिकी' : 'Booths', value: booths.length },
+        { label: isMr ? 'कार्यकर्ते' : 'Workers', value: workers.length },
+        { label: isMr ? 'सर्व्हे नोंदी' : 'Surveys', value: surveys.length },
+        { label: isMr ? 'नागरी तक्रारी' : 'Issues', value: issues.length },
+      ],
+      sections,
+    });
+  };
+
   // Export as JSON backup file
   const exportToJSON = (filename, data) => {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
@@ -52,7 +387,8 @@ export default function DataExportCenter({ lang = 'mr' }) {
   };
 
   // Trigger export handler
-  const handleExport = async (targetType = selectedReport) => {
+  const handleExport = async (targetType = selectedReport, explicitFormat = null) => {
+    const activeFormat = explicitFormat || selectedFormat;
     setIsExporting(true);
 
     try {
@@ -64,20 +400,36 @@ export default function DataExportCenter({ lang = 'mr' }) {
       const records = res.data || [];
       const nowStr = new Date().toISOString().split('T')[0];
 
-      // Handle Full Backup
+      // Handle Full Backup in CSV, PDF or JSON
       if (targetType === 'full_backup') {
-        exportToJSON(`Political_Project_Full_DB_Backup_${nowStr}.json`, records);
-        setSuccessToast(
-          isMr
-            ? 'संपूर्ण डेटाबेस सुरक्षित बॅकअप (JSON) यशस्वीरीत्या डाउनलोड झाला!'
-            : 'Complete database snapshot backup (JSON) exported successfully!'
-        );
+        if (activeFormat === 'csv') {
+          exportFullBackupCSV(`Political_Project_Master_DB_Backup_${nowStr}.csv`, records);
+          setSuccessToast(
+            isMr
+              ? 'संपूर्ण डेटाबेस Master Excel/CSV बॅकअप यशस्वीरीत्या डाऊनलोड झाला!'
+              : 'Master Database Excel/CSV backup downloaded successfully!'
+          );
+        } else if (activeFormat === 'pdf') {
+          openFullBackupPDF(records);
+          setSuccessToast(
+            isMr
+              ? 'संपूर्ण डेटाबेस अधिकृत PDF अहवाल प्रिव्ह्यू उघडला आहे!'
+              : 'Official full database PDF dossier generated!'
+          );
+        } else {
+          exportToJSON(`Political_Project_Full_DB_Backup_${nowStr}.json`, records);
+          setSuccessToast(
+            isMr
+              ? 'संपूर्ण डेटाबेस सुरक्षित बॅकअप (JSON) यशस्वीरीत्या डाउनलोड झाला!'
+              : 'Complete database snapshot backup (JSON) exported successfully!'
+          );
+        }
         setIsExporting(false);
         return;
       }
 
       // If JSON format is chosen
-      if (selectedFormat === 'json') {
+      if (activeFormat === 'json') {
         exportToJSON(`${targetType}_data_backup_${nowStr}.json`, records);
         setSuccessToast(
           isMr
@@ -103,18 +455,18 @@ export default function DataExportCenter({ lang = 'mr' }) {
           u.created_at ? new Date(u.created_at).toLocaleDateString() : '-',
         ]);
 
-        if (selectedFormat === 'csv') {
+        if (activeFormat === 'csv') {
           exportToCSV(`System_Users_List_${nowStr}.csv`, headers, rows);
         } else {
           setPrintableData({
             title: isMr ? 'प्रणाली वापरकर्ते व पदाधिकारी यादी (System Users Roster)' : 'System Users & Officers Directory',
-            subtitle: isMr ? '२८२ - सांगली विधानसभा मतदारसंघ | ॲडमिन व क्षेत्र अधिकारी' : '282 - Sangli Assembly | Admin & Field Officers',
+            subtitle: isMr ? '२८२ - सांगली विधानसभा मतदारसंघ | ॲडमिन, अधिकारी व कार्यकर्ते' : '282 - Sangli Assembly | Admin, Officers & Workers',
             filters: { [isMr ? 'एकूण वापरकर्ते' : 'Total Users']: records.length },
             summaryStats: [
               { label: isMr ? 'एकूण खाती' : 'Total Accounts', value: records.length },
               { label: isMr ? 'ॲडमिन' : 'Admins', value: records.filter((u) => (u.roles || '').includes('ADMIN')).length },
               { label: isMr ? 'अधिकारी' : 'Officers', value: records.filter((u) => (u.roles || '').includes('OFFICER')).length },
-              { label: isMr ? 'क्षेत्र अधिकारी' : 'Field Officers', value: records.filter((u) => (u.roles || '').includes('WORKER')).length },
+              { label: isMr ? 'कार्यकर्ते' : 'Workers', value: records.filter((u) => (u.roles || '').includes('WORKER')).length },
             ],
             headers,
             rows,
@@ -122,8 +474,8 @@ export default function DataExportCenter({ lang = 'mr' }) {
         }
       } else if (targetType === 'surveys') {
         const headers = isMr
-          ? ['सर्व्हे कोड', 'फॉर्मचे नाव', 'मतदाराचे नाव', 'EPIC मतदार ओळखपत्र', 'मोबाईल', 'बूथ क्र.', 'गाव / परिसर', 'सर्व्हेयर अधिकारी', 'स्थिती', 'तारीख']
-          : ['Survey Code', 'Form Name', 'Voter Name', 'EPIC Voter ID', 'Phone', 'Booth No', 'Village', 'Field Officer', 'Status', 'Date'];
+          ? ['सर्व्हे कोड', 'फॉर्मचे नाव', 'मतदाराचे नाव', 'EPIC मतदार ओळखपत्र', 'मोबाईल', 'बूथ क्र.', 'गाव / परिसर', 'सर्व्हेयर कार्यकर्ता', 'स्थिती', 'तारीख']
+          : ['Survey Code', 'Form Name', 'Voter Name', 'EPIC Voter ID', 'Phone', 'Booth No', 'Village', 'Field Worker', 'Status', 'Date'];
         const rows = records.map((s) => [
           s.submission_code || `SUB-${s.id}`,
           isMr ? (s.form_title_mr || 'मतदार पाहणी') : (s.form_title_en || s.form_title_mr || 'Voter Survey'),
@@ -137,7 +489,7 @@ export default function DataExportCenter({ lang = 'mr' }) {
           s.created_at ? new Date(s.created_at).toLocaleDateString() : '-',
         ]);
 
-        if (selectedFormat === 'csv') {
+        if (activeFormat === 'csv') {
           exportToCSV(`Field_Survey_Submissions_${nowStr}.csv`, headers, rows);
         } else {
           setPrintableData({
@@ -155,8 +507,8 @@ export default function DataExportCenter({ lang = 'mr' }) {
         }
       } else if (targetType === 'crm_citizens') {
         const headers = isMr
-          ? ['नाव', 'EPIC ओळखपत्र', 'मोबाईल', 'वय/लिंग', 'बूथ क्र.', 'पत्ता', 'राजकीय कल', 'जबाबदार अधिकारी']
-          : ['Name', 'EPIC Voter ID', 'Phone', 'Age / Gender', 'Booth No', 'Address', 'Political Sentiment', 'Assigned Officer'];
+          ? ['नाव', 'EPIC ओळखपत्र', 'मोबाईल', 'वय/लिंग', 'बूथ क्र.', 'पत्ता', 'राजकीय कल', 'जबाबदार कार्यकर्ता']
+          : ['Name', 'EPIC Voter ID', 'Phone', 'Age / Gender', 'Booth No', 'Address', 'Political Sentiment', 'Assigned Worker'];
         const rows = records.map((c) => [
           isMr ? c.full_name_mr : (c.full_name_en || c.full_name_mr),
           c.voter_id_number || '-',
@@ -168,7 +520,7 @@ export default function DataExportCenter({ lang = 'mr' }) {
           c.assigned_worker_name || '-',
         ]);
 
-        if (selectedFormat === 'csv') {
+        if (activeFormat === 'csv') {
           exportToCSV(`Citizen_CRM_Voter_Directory_${nowStr}.csv`, headers, rows);
         } else {
           setPrintableData({
@@ -202,7 +554,7 @@ export default function DataExportCenter({ lang = 'mr' }) {
           isMr ? b.sentiment_label_mr : (b.sentiment_label_en || b.sentiment_label_mr),
         ]);
 
-        if (selectedFormat === 'csv') {
+        if (activeFormat === 'csv') {
           exportToCSV(`Booth_Progress_Report_${nowStr}.csv`, headers, rows);
         } else {
           setPrintableData({
@@ -232,15 +584,15 @@ export default function DataExportCenter({ lang = 'mr' }) {
           w.status === 'active' ? (isMr ? 'सक्रिय' : 'Active') : (isMr ? 'ऑफलाइन' : 'Offline'),
         ]);
 
-        if (selectedFormat === 'csv') {
+        if (activeFormat === 'csv') {
           exportToCSV(`Karyakarta_Roster_${nowStr}.csv`, headers, rows);
         } else {
           setPrintableData({
-            title: isMr ? 'क्षेत्र अधिकारी कामगिरी व हजेरी अहवाल' : 'Field Officer Performance Roster',
+            title: isMr ? 'कार्यकर्ते कामगिरी व क्षेत्रीय हजेरी अहवाल' : 'Worker Performance Roster',
             subtitle: isMr ? '२८२ - सांगली विधानसभा मतदारसंघ | संघटन कक्ष' : '282 - Sangli Assembly Constituency | Operations Desk',
-            filters: { [isMr ? 'एकूण अधिकारी' : 'Officer Count']: records.length },
+            filters: { [isMr ? 'एकूण कार्यकर्ते' : 'Worker Count']: records.length },
             summaryStats: [
-              { label: isMr ? 'नोंदणीकृत अधिकारी' : 'Total Officers', value: records.length },
+              { label: isMr ? 'नोंदणीकृत कार्यकर्ते' : 'Total Workers', value: records.length },
               { label: isMr ? 'सक्रिय' : 'Active', value: records.filter((w) => w.status === 'active').length },
             ],
             headers,
@@ -265,7 +617,7 @@ export default function DataExportCenter({ lang = 'mr' }) {
             : (isMr ? 'प्रलंबित' : 'Pending'),
         ]);
 
-        if (selectedFormat === 'csv') {
+        if (activeFormat === 'csv') {
           exportToCSV(`Civic_Grievances_Ledger_${nowStr}.csv`, headers, rows);
         } else {
           setPrintableData({
@@ -294,7 +646,7 @@ export default function DataExportCenter({ lang = 'mr' }) {
           t.status === 'completed' ? (isMr ? 'पूर्ण' : 'Completed') : (isMr ? 'प्रलंबित' : 'Pending'),
         ]);
 
-        if (selectedFormat === 'csv') {
+        if (activeFormat === 'csv') {
           exportToCSV(`Pending_Tasks_Report_${nowStr}.csv`, headers, rows);
         } else {
           setPrintableData({
@@ -323,7 +675,7 @@ export default function DataExportCenter({ lang = 'mr' }) {
           m.incharge || '-',
         ]);
 
-        if (selectedFormat === 'csv') {
+        if (activeFormat === 'csv') {
           exportToCSV(`Meetings_and_Tours_Schedule_${nowStr}.csv`, headers, rows);
         } else {
           setPrintableData({
@@ -351,7 +703,7 @@ export default function DataExportCenter({ lang = 'mr' }) {
           f.created_at ? new Date(f.created_at).toLocaleDateString() : '-',
         ]);
 
-        if (selectedFormat === 'csv') {
+        if (activeFormat === 'csv') {
           exportToCSV(`Survey_Forms_Templates_${nowStr}.csv`, headers, rows);
         } else {
           setPrintableData({
@@ -385,8 +737,8 @@ export default function DataExportCenter({ lang = 'mr' }) {
       id: 'users',
       title_mr: 'युझर व ॲडमिन डेटा (User Accounts)',
       title_en: 'User Accounts & Roles',
-      desc_mr: 'सर्व ॲडमिन, नेते व क्षेत्र अधिकारी फोन व भूमिका तपशील',
-      desc_en: 'All admin, leader and field officer accounts with roles & phones',
+      desc_mr: 'सर्व ॲडमिन, अधिकारी, कार्यकर्ते फोन व भूमिका तपशील',
+      desc_en: 'All admin, officer and worker accounts with roles & phones',
       icon: '👤',
       badge: isMr ? 'खाती' : 'Accounts',
       badgeColor: '#2563eb',
@@ -395,7 +747,7 @@ export default function DataExportCenter({ lang = 'mr' }) {
       id: 'surveys',
       title_mr: 'मतदार सर्वेक्षण डेटा (Field Surveys)',
       title_en: 'Field Survey Submissions',
-      desc_mr: 'प्रत्यक्ष जमिनीवर अधिकाऱ्यांनी भरलेले मतदार पाहणी सर्व्हे',
+      desc_mr: 'प्रत्यक्ष जमिनीवर कार्यकर्त्यांनी भरलेले मतदार पाहणी सर्व्हे',
       desc_en: 'Voter surveys filled on the ground with voter ID & responses',
       icon: '📋',
       badge: isMr ? 'सर्व्हे' : 'Surveys',
@@ -413,12 +765,12 @@ export default function DataExportCenter({ lang = 'mr' }) {
     },
     {
       id: 'workers',
-      title_mr: 'क्षेत्र अधिकारी व कामगिरी अहवाल',
-      title_en: 'Field Officer Roster & Performance',
-      desc_mr: 'अधिकाऱ्यांची हजेरी, बूथ वाटप, पूर्ण झालेले सर्व्हे व रेटिंग',
-      desc_en: 'Officer directory, booth allocations, surveys completed & rating',
+      title_mr: 'कार्यकर्ते व कामगिरी अहवाल',
+      title_en: 'Worker Roster & Performance',
+      desc_mr: 'कार्यकर्त्यांची हजेरी, बूथ वाटप, पूर्ण झालेले सर्व्हे व रेटिंग',
+      desc_en: 'Worker directory, booth allocations, surveys completed & rating',
       icon: '🚩',
-      badge: isMr ? 'अधिकारी' : 'Officers',
+      badge: isMr ? 'कार्यकर्ते' : 'Workers',
       badgeColor: '#d97706',
     },
     {
@@ -473,10 +825,10 @@ export default function DataExportCenter({ lang = 'mr' }) {
     },
     {
       id: 'full_backup',
-      title_mr: 'संपूर्ण डेटाबेस संपूर्ण बॅकअप (Full Snapshot)',
+      title_mr: 'संपूर्ण डेटाबेस महा-बॅकअप (Full System Backup)',
       title_en: 'Full Database System Snapshot',
-      desc_mr: 'सर्व टेबल्सचा (युझर, मतदार, सर्व्हे, बूथ) एकत्र सुरक्षित बॅकअप',
-      desc_en: 'Complete unified JSON backup of all database tables at once',
+      desc_mr: 'सर्व ९ विभागांचा (युझर, मतदार CRM, सर्व्हे, बूथ, तक्रारी, कामे) Excel, PDF किंवा JSON मध्ये संपूर्ण बॅकअप',
+      desc_en: 'Complete unified backup of all database modules in Excel, PDF or JSON format',
       icon: '💾',
       badge: isMr ? 'संपूर्ण बॅकअप' : 'Full Backup',
       badgeColor: '#047857',
@@ -531,31 +883,86 @@ export default function DataExportCenter({ lang = 'mr' }) {
           </p>
         </div>
 
-        {/* Quick Full Backup Button */}
-        <button
-          type="button"
-          onClick={() => handleExport('full_backup')}
-          disabled={isExporting}
-          style={{
-            background: 'linear-gradient(135deg, #047857 0%, #059669 100%)',
-            color: '#ffffff',
-            border: 'none',
-            padding: '11px 20px',
-            borderRadius: '10px',
-            fontSize: '13px',
-            fontWeight: '750',
-            cursor: isExporting ? 'wait' : 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
-            transition: 'all 0.15s ease',
-          }}
-          title={isMr ? 'सर्व टेबल्सचा एकत्र संपूर्ण बॅकअप फाइल डाउनलोड करा' : 'Download unified snapshot backup of all tables'}
-        >
-          <span>💾</span>
-          {isMr ? 'झटपट संपूर्ण बॅकअप घ्या (Full Backup)' : 'Quick Full DB Backup'}
-        </button>
+        {/* Quick Full Backup Action Buttons */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          {/* Quick Excel/CSV Full Backup */}
+          <button
+            type="button"
+            onClick={() => handleExport('full_backup', 'csv')}
+            disabled={isExporting}
+            style={{
+              background: 'linear-gradient(135deg, #15803d 0%, #16a34a 100%)',
+              color: '#ffffff',
+              border: 'none',
+              padding: '11px 18px',
+              borderRadius: '10px',
+              fontSize: '13px',
+              fontWeight: '750',
+              cursor: isExporting ? 'wait' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 12px rgba(22, 163, 74, 0.3)',
+              transition: 'all 0.15s ease',
+            }}
+            title={isMr ? 'सर्व टेबल्सचा एकत्र Master Excel/CSV बॅकअप डाउनलोड करा' : 'Download unified Excel/CSV backup'}
+          >
+            <span>📊</span>
+            {isMr ? 'संपूर्ण Excel बॅकअप' : 'Full Excel Backup'}
+          </button>
+
+          {/* Quick PDF Full Backup */}
+          <button
+            type="button"
+            onClick={() => handleExport('full_backup', 'pdf')}
+            disabled={isExporting}
+            style={{
+              background: 'linear-gradient(135deg, #b91c1c 0%, #dc2626 100%)',
+              color: '#ffffff',
+              border: 'none',
+              padding: '11px 18px',
+              borderRadius: '10px',
+              fontSize: '13px',
+              fontWeight: '750',
+              cursor: isExporting ? 'wait' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)',
+              transition: 'all 0.15s ease',
+            }}
+            title={isMr ? 'सर्व विभागांचा एकत्रित अधिकृत PDF अहवाल उघडा' : 'Open comprehensive printable PDF dossier'}
+          >
+            <span>📄</span>
+            {isMr ? 'संपूर्ण PDF अहवाल' : 'Full PDF Report'}
+          </button>
+
+          {/* Quick JSON Full Backup */}
+          <button
+            type="button"
+            onClick={() => handleExport('full_backup', 'json')}
+            disabled={isExporting}
+            style={{
+              background: 'linear-gradient(135deg, #334155 0%, #475569 100%)',
+              color: '#ffffff',
+              border: 'none',
+              padding: '11px 18px',
+              borderRadius: '10px',
+              fontSize: '13px',
+              fontWeight: '750',
+              cursor: isExporting ? 'wait' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 12px rgba(71, 85, 105, 0.25)',
+              transition: 'all 0.15s ease',
+            }}
+            title={isMr ? 'सर्व टेबल्सचा सुरक्षित सिस्टीम JSON बॅकअप डाउनलोड करा' : 'Download system snapshot JSON file'}
+          >
+            <span>💾</span>
+            {isMr ? 'JSON स्नॅपशॉट' : 'JSON Snapshot'}
+          </button>
+        </div>
       </div>
 
       {/* Toast Notification */}

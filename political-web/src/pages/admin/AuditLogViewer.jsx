@@ -154,8 +154,8 @@ export const getDetailedStory = (log, lang = 'mr') => {
     case 'PROJECT_MEMBERS_ASSIGNED':
       return {
         title: isMr
-          ? `${actor} यांनी '${targetProject || `प्रकल्प #${entityId}`}' प्रकल्पात क्षेत्र अधिकारी नियुक्त केले.`
-          : `${actor} assigned field officers to project '${targetProject || `Project #${entityId}`}'.`,
+          ? `${actor} यांनी '${targetProject || `प्रकल्प #${entityId}`}' प्रकल्पात कार्यकर्ते व अधिकारी नियुक्त केले.`
+          : `${actor} assigned workers/officers to project '${targetProject || `Project #${entityId}`}'.`,
         category: isMr ? 'सदस्य नियुक्ती' : 'Team Assigned',
         targetLabel: targetProject || (isMr ? `प्रकल्प #${entityId}` : `Project #${entityId}`),
         badgeColor: { bg: '#ecfdf5', text: '#059669', border: '#a7f3d0' },
@@ -482,15 +482,51 @@ function AuditLogViewer({ logs = [], currentUser, language = 'mr', onRefresh }) 
     window.print();
   };
 
+  const categoryTabs = [
+    { key: 'ALL', label_mr: 'सर्व घडामोडी', label_en: 'All Activities', icon: '🌐' },
+    { key: 'AUTH', label_mr: 'प्रवेश / बाहेर पडणे', label_en: 'Login / Logout', icon: '🔑' },
+    { key: 'PROJECTS', label_mr: 'प्रकल्प घडामोडी', label_en: 'Projects', icon: '📁' },
+    { key: 'APPROVALS', label_mr: 'वापरकर्ते व खाते मंजुरी', label_en: 'Approvals & Users', icon: '👥' },
+  ];
+
+  const counts = useMemo(() => {
+    let auth = 0;
+    let proj = 0;
+    let apprv = 0;
+    logs.forEach((log) => {
+      const act = log.action || '';
+      if (['ADMIN_LOGIN', 'USER_LOGIN', 'USER_LOGOUT', 'USER_REGISTERED'].includes(act)) auth++;
+      if (act.startsWith('PROJECT_') || act.startsWith('MEMBER_')) proj++;
+      if ([
+        'USER_APPROVED',
+        'USER_REJECTED',
+        'USER_CREATED',
+        'ROLE_PERMISSIONS_UPDATED',
+        'ROLE_PERMISSION_GRANTED',
+        'ROLE_PERMISSION_REVOKED',
+        'USER_PERMISSIONS_UPDATED',
+        'USER_PERMISSION_GRANTED',
+        'USER_PERMISSION_REVOKED',
+      ].includes(act)) apprv++;
+    });
+    return {
+      ALL: logs.length,
+      AUTH: auth,
+      PROJECTS: proj,
+      APPROVALS: apprv,
+    };
+  }, [logs]);
+
   // Modern Clean Styles
   const styles = {
     card: {
       background: '#ffffff',
       border: '1px solid #e2e8f0',
-      borderRadius: 12,
+      borderTop: '4px solid #1e40af',
+      borderRadius: 14,
       padding: '22px 24px',
       marginBottom: 20,
-      boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+      boxShadow: '0 4px 18px rgba(15, 23, 42, 0.05)',
       fontFamily: "'Inter', 'Noto Sans Devanagari', 'Mukta', -apple-system, sans-serif",
     },
     topBar: {
@@ -499,7 +535,7 @@ function AuditLogViewer({ logs = [], currentUser, language = 'mr', onRefresh }) 
       alignItems: 'center',
       flexWrap: 'wrap',
       gap: 12,
-      marginBottom: 16,
+      marginBottom: 18,
     },
     badge: (bg, col, border = 'transparent') => ({
       display: 'inline-flex',
@@ -515,30 +551,21 @@ function AuditLogViewer({ logs = [], currentUser, language = 'mr', onRefresh }) 
     }),
     btnPdf: {
       padding: '8px 14px',
-      background: '#dc2626',
-      color: '#ffffff',
-      border: 0,
-      borderRadius: 7,
+      fontWeight: 750,
+      fontSize: 12.5,
+      cursor: 'pointer',
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 6,
+    },
+    btnSecondary: {
+      padding: '8px 14px',
       fontWeight: 700,
       fontSize: 12.5,
       cursor: 'pointer',
       display: 'inline-flex',
       alignItems: 'center',
       gap: 6,
-      boxShadow: '0 1px 3px rgba(220, 38, 38, 0.2)',
-    },
-    btnSecondary: {
-      padding: '7px 12px',
-      background: '#ffffff',
-      color: '#334155',
-      border: '1px solid #cbd5e1',
-      borderRadius: 6,
-      fontWeight: 650,
-      fontSize: 12,
-      cursor: 'pointer',
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: 5,
     },
     filterBar: {
       display: 'flex',
@@ -548,28 +575,29 @@ function AuditLogViewer({ logs = [], currentUser, language = 'mr', onRefresh }) 
       gap: 10,
       padding: '12px 14px',
       background: '#f8fafc',
-      borderRadius: 8,
+      borderRadius: 10,
       border: '1px solid #e2e8f0',
       marginBottom: 14,
     },
     select: {
-      padding: '7px 11px',
+      padding: '8px 12px',
       border: '1px solid #cbd5e1',
-      borderRadius: 6,
+      borderRadius: 8,
       fontSize: 13,
+      fontWeight: '600',
       color: '#0f172a',
       background: '#ffffff',
       cursor: 'pointer',
       outline: 'none',
     },
     input: {
-      padding: '7px 12px',
+      padding: '8px 12px',
       border: '1px solid #cbd5e1',
-      borderRadius: 6,
+      borderRadius: 8,
       fontSize: 13,
       color: '#0f172a',
       background: '#ffffff',
-      width: 270,
+      width: 290,
       outline: 'none',
     },
     table: {
@@ -579,9 +607,9 @@ function AuditLogViewer({ logs = [], currentUser, language = 'mr', onRefresh }) 
     },
     th: {
       textAlign: 'left',
-      padding: '11px 14px',
-      background: '#f8fafc',
-      color: '#475569',
+      padding: '12px 14px',
+      background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
+      color: '#334155',
       fontWeight: 750,
       borderBottom: '2px solid #e2e8f0',
       fontSize: 12.5,
@@ -597,6 +625,188 @@ function AuditLogViewer({ logs = [], currentUser, language = 'mr', onRefresh }) 
   return (
     <div style={styles.card} className="printable-audit-section">
       <style>{`
+        /* 3D Active Filter Tab (Vibrant Royal Blue) */
+        .audit-tab-3d-active {
+          background: linear-gradient(180deg, #3b82f6 0%, #2563eb 52%, #1d4ed8 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.35) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+          border-bottom: 3.5px solid #1743a4 !important;
+          box-shadow: 0 4px 14px -1px rgba(37, 99, 235, 0.55), 0 2px 4px rgba(0, 0, 0, 0.14), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.65) !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28) !important;
+          border-radius: 10px !important;
+          transform-style: preserve-3d;
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+        }
+        .audit-tab-3d-active:hover {
+          transform: translateY(-2.5px) scale(1.02) !important;
+          box-shadow: 0 8px 24px -2px rgba(37, 99, 235, 0.7), 0 4px 8px rgba(0, 0, 0, 0.16), inset 0 1.5px 2px rgba(255, 255, 255, 0.85) !important;
+        }
+        .audit-tab-3d-active:active {
+          transform: translateY(2px) scale(0.98) !important;
+          border-bottom: 1.5px solid #1743a4 !important;
+          box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4), inset 0 1px 3px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        /* 3D Inactive Filter Tab */
+        .audit-tab-3d-inactive {
+          background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+          color: #475569 !important;
+          border: 1px solid #cbd5e1 !important;
+          border-top: 1.5px solid #ffffff !important;
+          border-bottom: 3px solid #cbd5e1 !important;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+          border-radius: 10px !important;
+          transform-style: preserve-3d;
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+        }
+        .audit-tab-3d-inactive:hover {
+          transform: translateY(-2px) !important;
+          background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%) !important;
+          color: #1e40af !important;
+          border-color: #93c5fd !important;
+          box-shadow: 0 6px 16px -2px rgba(37, 99, 235, 0.25), 0 2px 6px rgba(0, 0, 0, 0.06) !important;
+        }
+        .audit-tab-3d-inactive:active {
+          transform: translateY(2px) !important;
+          border-bottom: 1.5px solid #cbd5e1 !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* 3D PDF Download Button (Crimson / Red) */
+        .audit-btn-3d-pdf {
+          background: linear-gradient(180deg, #dc2626 0%, #b91c1c 55%, #991b1b 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.35) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+          border-bottom: 3.5px solid #7f1d1d !important;
+          box-shadow: 0 4px 14px -1px rgba(220, 38, 38, 0.45), 0 2px 4px rgba(0, 0, 0, 0.12), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.5) !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+          border-radius: 9px !important;
+          transform-style: preserve-3d;
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+        }
+        .audit-btn-3d-pdf:hover {
+          transform: translateY(-2px) scale(1.02) !important;
+          box-shadow: 0 8px 20px -2px rgba(220, 38, 38, 0.6), 0 4px 8px rgba(0, 0, 0, 0.15), inset 0 1.5px 2px rgba(255, 255, 255, 0.7) !important;
+        }
+        .audit-btn-3d-pdf:active {
+          transform: translateY(2px) scale(0.98) !important;
+          border-bottom: 1.5px solid #7f1d1d !important;
+          box-shadow: 0 2px 5px rgba(220, 38, 38, 0.35), inset 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* 3D CSV Download Button (Emerald Green) */
+        .audit-btn-3d-csv {
+          background: linear-gradient(180deg, #10b981 0%, #059669 55%, #047857 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.35) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+          border-bottom: 3.5px solid #065f46 !important;
+          box-shadow: 0 4px 14px -1px rgba(16, 185, 129, 0.45), 0 2px 4px rgba(0, 0, 0, 0.12), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.5) !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+          border-radius: 9px !important;
+          transform-style: preserve-3d;
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+        }
+        .audit-btn-3d-csv:hover {
+          transform: translateY(-2px) scale(1.02) !important;
+          box-shadow: 0 8px 20px -2px rgba(16, 185, 129, 0.6), 0 4px 8px rgba(0, 0, 0, 0.15), inset 0 1.5px 2px rgba(255, 255, 255, 0.7) !important;
+        }
+        .audit-btn-3d-csv:active {
+          transform: translateY(2px) scale(0.98) !important;
+          border-bottom: 1.5px solid #065f46 !important;
+          box-shadow: 0 2px 5px rgba(16, 185, 129, 0.35), inset 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* 3D Print Button (Indigo / Royal) */
+        .audit-btn-3d-print {
+          background: linear-gradient(180deg, #6366f1 0%, #4f46e5 55%, #4338ca 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.35) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+          border-bottom: 3.5px solid #312e81 !important;
+          box-shadow: 0 4px 14px -1px rgba(79, 70, 229, 0.45), 0 2px 4px rgba(0, 0, 0, 0.12), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.5) !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+          border-radius: 9px !important;
+          transform-style: preserve-3d;
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+        }
+        .audit-btn-3d-print:hover {
+          transform: translateY(-2px) scale(1.02) !important;
+          box-shadow: 0 8px 20px -2px rgba(79, 70, 229, 0.6), 0 4px 8px rgba(0, 0, 0, 0.15), inset 0 1.5px 2px rgba(255, 255, 255, 0.7) !important;
+        }
+        .audit-btn-3d-print:active {
+          transform: translateY(2px) scale(0.98) !important;
+          border-bottom: 1.5px solid #312e81 !important;
+          box-shadow: 0 2px 5px rgba(79, 70, 229, 0.35), inset 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        /* 3D Blue Action Button (Refresh / Primary) */
+        .audit-btn-3d-blue {
+          background: linear-gradient(180deg, #3b82f6 0%, #2563eb 52%, #1d4ed8 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.35) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+          border-bottom: 3.5px solid #1743a4 !important;
+          box-shadow: 0 4px 14px -1px rgba(37, 99, 235, 0.55), 0 2px 4px rgba(0, 0, 0, 0.14), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.65) !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.28) !important;
+          border-radius: 9px !important;
+          transform-style: preserve-3d;
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+        }
+        .audit-btn-3d-blue:hover {
+          transform: translateY(-2px) scale(1.02) !important;
+          box-shadow: 0 8px 24px -2px rgba(37, 99, 235, 0.7), 0 4px 8px rgba(0, 0, 0, 0.16), inset 0 1.5px 2px rgba(255, 255, 255, 0.85) !important;
+        }
+        .audit-btn-3d-blue:active {
+          transform: translateY(2px) scale(0.98) !important;
+          border-bottom: 1.5px solid #1743a4 !important;
+          box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4), inset 0 1px 3px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        /* 3D KPI Summary Card */
+        .audit-kpi-card-3d {
+          background: #ffffff;
+          padding: 14px 16px;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+          transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+          cursor: pointer;
+        }
+        .audit-kpi-card-3d:hover {
+          transform: translateY(-3.5px) scale(1.01);
+          box-shadow: 0 10px 24px -3px rgba(15, 23, 42, 0.1) !important;
+        }
+
+        /* 3D Inputs & Selects */
+        .audit-input-3d {
+          transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), inset 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+        }
+        .audit-input-3d:focus {
+          transform: translateY(-1px) !important;
+          border-color: #3b82f6 !important;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.22), inset 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+        }
+
+        .audit-btn-3d-disabled {
+          background: #f1f5f9 !important;
+          color: #94a3b8 !important;
+          border: 1px solid #e2e8f0 !important;
+          border-bottom: 2px solid #cbd5e1 !important;
+          border-radius: 8px !important;
+          cursor: not-allowed !important;
+          opacity: 0.6 !important;
+        }
+
         @media print {
           body * {
             visibility: hidden;
@@ -623,24 +833,25 @@ function AuditLogViewer({ logs = [], currentUser, language = 'mr', onRefresh }) 
       <div style={styles.topBar}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: '22px' }}>🔒</span>
-            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#0f172a' }}>
+            <span style={{ fontSize: '24px' }}>🔒</span>
+            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>
               {t.title}
             </h2>
             <span style={styles.badge('#eff6ff', '#1d4ed8', '#bfdbfe')}>
               {filteredLogs.length} {t.recordsCount}
             </span>
           </div>
-          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#64748b' }}>
+          <p style={{ margin: '5px 0 0', fontSize: 13, color: '#64748b' }}>
             {t.subtitle}
           </p>
         </div>
 
-        {/* Action Buttons: Export PDF, Print, CSV, Refresh */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }} className="no-print">
+        {/* Action Buttons: Export PDF, Print, CSV, Refresh with 3D animation */}
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }} className="no-print">
           <button
             type="button"
             onClick={handleExportPdf}
+            className="audit-btn-3d-pdf"
             style={styles.btnPdf}
             title={isMr ? 'थेट PDF रिपोर्ट डाऊनलोड करा' : 'Download PDF report directly'}
           >
@@ -649,14 +860,18 @@ function AuditLogViewer({ logs = [], currentUser, language = 'mr', onRefresh }) 
           <button
             type="button"
             onClick={handleExportCsv}
+            className="audit-btn-3d-csv"
             style={styles.btnSecondary}
+            title={isMr ? 'सीएसव्ही फॉरमॅटमध्ये डाऊनलोड करा' : 'Export records as CSV'}
           >
             {t.exportCsvBtn}
           </button>
           <button
             type="button"
             onClick={handlePrint}
+            className="audit-btn-3d-print"
             style={styles.btnSecondary}
+            title={isMr ? 'प्रिंट किंवा PDF सेव्ह करा' : 'Print or save report'}
           >
             {t.printBtn}
           </button>
@@ -664,7 +879,9 @@ function AuditLogViewer({ logs = [], currentUser, language = 'mr', onRefresh }) 
             <button
               type="button"
               onClick={onRefresh}
+              className="audit-btn-3d-blue"
               style={styles.btnSecondary}
+              title={isMr ? 'नोंदी रिफ्रेश करा' : 'Refresh recent records'}
             >
               {t.refreshBtn}
             </button>
@@ -672,11 +889,149 @@ function AuditLogViewer({ logs = [], currentUser, language = 'mr', onRefresh }) 
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
+      {/* 3D KPI Statistics Cards */}
+      <div
+        className="no-print"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+          gap: 12,
+          marginBottom: 16,
+        }}
+      >
+        <div
+          className="audit-kpi-card-3d"
+          onClick={() => { setCategoryFilter('ALL'); setPage(1); }}
+          style={{ borderTop: '3.5px solid #1e60d5', background: categoryFilter === 'ALL' ? '#f0f7ff' : '#ffffff' }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>
+              {isMr ? 'एकूण सुरक्षा नोंदी' : 'Total Events'}
+            </span>
+            <span style={{ fontSize: 20 }}>🛡️</span>
+          </div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', marginTop: 4 }}>
+            {counts.ALL}
+          </div>
+          <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2 }}>
+            {isMr ? 'सिस्टिममधील सर्व घडामोडी' : 'All recorded activities'}
+          </div>
+        </div>
+
+        <div
+          className="audit-kpi-card-3d"
+          onClick={() => { setCategoryFilter('AUTH'); setPage(1); }}
+          style={{ borderTop: '3.5px solid #10b981', background: categoryFilter === 'AUTH' ? '#f0fdf4' : '#ffffff' }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>
+              {isMr ? 'प्रवेश व बाहेर पडणे' : 'Authentication'}
+            </span>
+            <span style={{ fontSize: 20 }}>🔑</span>
+          </div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: '#047857', marginTop: 4 }}>
+            {counts.AUTH}
+          </div>
+          <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2 }}>
+            {isMr ? 'लॉगिन / लॉगआउट सत्रे' : 'Logins & security sessions'}
+          </div>
+        </div>
+
+        <div
+          className="audit-kpi-card-3d"
+          onClick={() => { setCategoryFilter('PROJECTS'); setPage(1); }}
+          style={{ borderTop: '3.5px solid #2563eb', background: categoryFilter === 'PROJECTS' ? '#eff6ff' : '#ffffff' }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>
+              {isMr ? 'प्रकल्प घडामोडी' : 'Project Events'}
+            </span>
+            <span style={{ fontSize: 20 }}>📁</span>
+          </div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: '#1d4ed8', marginTop: 4 }}>
+            {counts.PROJECTS}
+          </div>
+          <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2 }}>
+            {isMr ? 'प्रकल्प निर्मिती व बदल' : 'Creation & assignment updates'}
+          </div>
+        </div>
+
+        <div
+          className="audit-kpi-card-3d"
+          onClick={() => { setCategoryFilter('APPROVALS'); setPage(1); }}
+          style={{ borderTop: '3.5px solid #f59e0b', background: categoryFilter === 'APPROVALS' ? '#fffbeb' : '#ffffff' }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>
+              {isMr ? 'वापरकर्ते व मंजुरी' : 'Approvals & Users'}
+            </span>
+            <span style={{ fontSize: 20 }}>👥</span>
+          </div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: '#b45309', marginTop: 4 }}>
+            {counts.APPROVALS}
+          </div>
+          <div style={{ fontSize: 11.5, color: '#64748b', marginTop: 2 }}>
+            {isMr ? 'खाते मंजुरी व परवानग्या' : 'Approvals & role privileges'}
+          </div>
+        </div>
+      </div>
+
+      {/* 3D Category Filter Tabs */}
+      <div
+        className="no-print"
+        style={{
+          display: 'flex',
+          gap: 10,
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          marginBottom: 14,
+        }}
+      >
+        {categoryTabs.map((tab) => {
+          const isActive = categoryFilter === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => {
+                setCategoryFilter(tab.key);
+                setPage(1);
+              }}
+              className={isActive ? 'audit-tab-3d-active' : 'audit-tab-3d-inactive'}
+              style={{
+                padding: '9px 16px',
+                fontSize: '13px',
+                fontWeight: '750',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <span style={{ fontSize: '15px' }}>{tab.icon}</span>
+              <span>{isMr ? tab.label_mr : tab.label_en}</span>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: '800',
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                  background: isActive ? 'rgba(255, 255, 255, 0.28)' : '#e2e8f0',
+                  color: isActive ? '#ffffff' : '#334155',
+                  boxShadow: isActive ? 'inset 0 1px 2px rgba(0,0,0,0.2)' : 'none',
+                }}
+              >
+                {counts[tab.key] || 0}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Filter & Search Bar with 3D Inputs */}
       <div style={styles.filterBar} className="no-print">
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: '#334155' }}>
-            {isMr ? 'फिल्टर प्रकार:' : 'Filter:'}
+          <span style={{ fontSize: 13, fontWeight: 750, color: '#334155', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span>🔍</span> {isMr ? 'फिल्टर निवडा:' : 'Filter Selection:'}
           </span>
           <select
             value={categoryFilter}
@@ -684,25 +1039,68 @@ function AuditLogViewer({ logs = [], currentUser, language = 'mr', onRefresh }) 
               setCategoryFilter(e.target.value);
               setPage(1);
             }}
+            className="audit-input-3d"
             style={styles.select}
           >
-            <option value="ALL">{t.filterAll}</option>
-            <option value="AUTH">{t.filterAuth}</option>
-            <option value="PROJECTS">{t.filterProjects}</option>
-            <option value="APPROVALS">{t.filterApprovals}</option>
+            <option value="ALL">{t.filterAll} ({counts.ALL})</option>
+            <option value="AUTH">{t.filterAuth} ({counts.AUTH})</option>
+            <option value="PROJECTS">{t.filterProjects} ({counts.PROJECTS})</option>
+            <option value="APPROVALS">{t.filterApprovals} ({counts.APPROVALS})</option>
           </select>
         </div>
 
-        <div>
-          <input
-            placeholder={t.searchPlaceholder}
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setPage(1);
-            }}
-            style={styles.input}
-          />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+            <span style={{ position: 'absolute', left: 10, color: '#94a3b8', fontSize: 13 }}>🔎</span>
+            <input
+              placeholder={t.searchPlaceholder}
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
+              className="audit-input-3d"
+              style={{ ...styles.input, paddingLeft: 30, paddingRight: searchTerm ? 28 : 12 }}
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                style={{
+                  position: 'absolute',
+                  right: 8,
+                  border: 0,
+                  background: 'transparent',
+                  color: '#64748b',
+                  fontSize: 16,
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+                title="Clear"
+              >
+                ×
+              </button>
+            )}
+          </div>
+          {(categoryFilter !== 'ALL' || searchTerm) && (
+            <button
+              type="button"
+              onClick={() => {
+                setCategoryFilter('ALL');
+                setSearchTerm('');
+                setPage(1);
+              }}
+              className="audit-tab-3d-inactive"
+              style={{
+                padding: '7px 12px',
+                fontSize: '12px',
+                fontWeight: '700',
+                color: '#dc2626',
+              }}
+            >
+              ✕ {isMr ? 'रीसेट' : 'Reset'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -789,8 +1187,8 @@ function AuditLogViewer({ logs = [], currentUser, language = 'mr', onRefresh }) 
                           }}
                         >
                           {isMr
-                            ? (log.user?.role === 'ADMIN' ? 'प्रशासक' : log.user?.role === 'WORKER' ? 'क्षेत्र अधिकारी' : log.user?.role === 'OFFICER' ? 'अधिकारी' : (log.user?.role || 'प्रशासक'))
-                            : (log.user?.role === 'WORKER' ? 'Field Officer' : (log.user?.role || 'ADMIN'))}
+                            ? (log.user?.role === 'ADMIN' ? 'प्रशासक' : log.user?.role === 'WORKER' ? 'कार्यकर्ता' : log.user?.role === 'OFFICER' ? 'अधिकारी' : (log.user?.role || 'प्रशासक'))
+                            : (log.user?.role || 'ADMIN')}
                         </span>
                       </div>
                     </td>
@@ -841,15 +1239,19 @@ function AuditLogViewer({ logs = [], currentUser, language = 'mr', onRefresh }) 
           <div style={{ color: '#64748b' }}>
             {t.page} <b>{page}</b> {t.of} <b>{totalPages}</b>
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
             <button
               type="button"
               disabled={page <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className={page <= 1 ? 'audit-btn-3d-disabled' : 'audit-tab-3d-inactive'}
               style={{
-                ...styles.btnSecondary,
-                opacity: page <= 1 ? 0.5 : 1,
-                cursor: page <= 1 ? 'not-allowed' : 'pointer',
+                padding: '7px 14px',
+                fontSize: '12.5px',
+                fontWeight: '750',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
               }}
             >
               {t.prevBtn}
@@ -858,10 +1260,14 @@ function AuditLogViewer({ logs = [], currentUser, language = 'mr', onRefresh }) 
               type="button"
               disabled={page >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className={page >= totalPages ? 'audit-btn-3d-disabled' : 'audit-tab-3d-inactive'}
               style={{
-                ...styles.btnSecondary,
-                opacity: page >= totalPages ? 0.5 : 1,
-                cursor: page >= totalPages ? 'not-allowed' : 'pointer',
+                padding: '7px 14px',
+                fontSize: '12.5px',
+                fontWeight: '750',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
               }}
             >
               {t.nextBtn}

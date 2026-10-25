@@ -71,10 +71,31 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Register a new user account (pending admin approval).
+   * Register a new user account.
    */
   const register = async (userData) => {
-    return await authService.registerUser(userData);
+    const data = await authService.registerUser(userData);
+    if (data.token) {
+      setToken(data.token);
+    }
+    if (data.user) {
+      setUser(data.user);
+    }
+    return data;
+  };
+
+  /**
+   * Verify OTP and optionally log in if user token returned
+   */
+  const verifyAndLoginOtp = async (phone, otp) => {
+    const data = await authService.verifyOtp(phone, otp);
+    if (data.token) {
+      setToken(data.token);
+    }
+    if (data.user) {
+      setUser(data.user);
+    }
+    return data;
   };
 
   /**
@@ -120,6 +141,7 @@ export function AuthProvider({ children }) {
     login,
     devLogin,
     register,
+    verifyAndLoginOtp,
     logout,
     refreshUser,
   };

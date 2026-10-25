@@ -1383,13 +1383,31 @@ class NetaDashboardController extends Controller
                     'backup_date' => now()->toIso8601String(),
                     'constituency' => '282 - Sangli Assembly',
                 ],
-                'users' => DB::table('users')->select('id', 'uuid', 'full_name', 'phone', 'email', 'status', 'created_at')->get(),
+                'users' => DB::table('users as u')
+                    ->leftJoin('user_roles as ur', 'u.id', '=', 'ur.user_id')
+                    ->leftJoin('roles as r', 'ur.role_id', '=', 'r.id')
+                    ->select(
+                        'u.id',
+                        'u.uuid',
+                        'u.full_name',
+                        'u.phone',
+                        'u.email',
+                        'u.status',
+                        'u.registration_source',
+                        'u.created_at',
+                        DB::raw('GROUP_CONCAT(r.name) as roles')
+                    )
+                    ->groupBy('u.id', 'u.uuid', 'u.full_name', 'u.phone', 'u.email', 'u.status', 'u.registration_source', 'u.created_at')
+                    ->get(),
                 'citizens' => DB::table('neta_citizens')->get(),
                 'booths' => DB::table('neta_booth_progress')->get(),
                 'workers' => DB::table('neta_karyakartas')->get(),
                 'survey_submissions' => DB::table('admin_field_submissions')->get(),
                 'survey_forms' => DB::table('survey_form')->get(),
-                'crm_issues' => DB::table('neta_crm_issues')->get(),
+                'crm_issues' => DB::table('neta_crm_issues as i')
+                    ->leftJoin('neta_citizens as c', 'i.citizen_id', '=', 'c.id')
+                    ->select('i.*', 'c.full_name_mr as citizen_name', 'c.phone as citizen_phone', 'c.booth_no')
+                    ->get(),
                 'meetings' => DB::table('neta_meetings_tours')->get(),
                 'tasks' => DB::table('neta_pending_tasks')->get(),
             ];

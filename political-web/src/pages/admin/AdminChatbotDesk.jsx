@@ -13,10 +13,11 @@ export default function AdminChatbotDesk({ lang = 'mr', isFloating = false, onCl
         : '👋 Hello! I am your Campaign & Field Operations Assistant.',
       structuredItems: [],
       suggestedActions: [
+        { label: isMr ? '🏘️ गाव लोकसंख्या व मतदार' : '🏘️ Village Population & Voters', query: isMr ? 'गावानुसार एकूण लोकसंख्या आणि मतदार संख्या दाखवा' : 'Show village population and total voters summary' },
         { label: isMr ? '📊 एकूण मतदार सारांश' : '📊 Total Voters Summary', query: isMr ? 'एकूण मतदार संख्या आणि राजकीय कल दाखवा' : 'Show total voters and sentiment' },
         { label: isMr ? '🗳️ बूथनिहाय प्रगती' : '🗳️ Booth Progress', query: isMr ? 'बूथनिहाय प्रगती आणि आघाडीवरील बूथ दाखवा' : 'Show booth progress' },
         { label: isMr ? '⚠️ प्रलंबित समस्या' : '⚠️ Pending Issues', query: isMr ? 'सध्याच्या प्रलंबित नागरी समस्या कोणत्या आहेत?' : 'What are pending civic issues?' },
-        { label: isMr ? '👥 सक्रिय अधिकारी' : '👥 Active Officers', query: isMr ? 'सक्रिय अधिकारी आणि त्यांची कामगिरी दाखवा' : 'Show active field officers' },
+        { label: isMr ? '👥 सक्रिय कार्यकर्ते' : '👥 Active Workers', query: isMr ? 'सक्रिय कार्यकर्ते आणि त्यांची कामगिरी दाखवा' : 'Show active karyakartas' },
       ],
       timestamp: new Date().toLocaleTimeString(isMr ? 'mr-IN' : 'en-IN', { hour: '2-digit', minute: '2-digit' }),
     },
@@ -299,12 +300,13 @@ export default function AdminChatbotDesk({ lang = 'mr', isFloating = false, onCl
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: isFloating ? '540px' : 'calc(100vh - 120px)',
-        minHeight: isFloating ? '500px' : '650px',
+        height: isFloating ? '100%' : 'calc(100vh - 120px)',
+        minHeight: isFloating ? '0' : 'min(650px, 75vh)',
+        maxHeight: '100%',
         background: '#ffffff',
-        borderRadius: '16px',
-        border: '1px solid #e2e8f0',
-        boxShadow: isFloating ? '0 20px 25px -5px rgba(0, 0, 0, 0.25)' : '0 2px 4px rgba(0, 0, 0, 0.04)',
+        borderRadius: isFloating ? 'inherit' : '16px',
+        border: isFloating ? 'none' : '1px solid #e2e8f0',
+        boxShadow: isFloating ? 'none' : '0 2px 4px rgba(0, 0, 0, 0.04)',
         fontFamily: isMr ? "'Noto Sans Devanagari', 'Mukta', 'Inter', sans-serif" : "'Inter', 'Noto Sans Devanagari', 'Mukta', sans-serif",
         overflow: 'hidden',
       }}
@@ -314,96 +316,167 @@ export default function AdminChatbotDesk({ lang = 'mr', isFloating = false, onCl
         style={{
           background: 'linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%)',
           color: '#ffffff',
-          padding: '14px 20px',
+          padding: isFloating ? '10px 14px 12px 14px' : '14px 20px',
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
+          flexDirection: 'column',
           flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* Mobile Pull Handle Indicator (visible in floating mode on small screens) */}
+        {isFloating && (
           <div
             style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '10px',
-              background: 'rgba(255, 255, 255, 0.15)',
-              backdropFilter: 'blur(4px)',
               display: 'flex',
-              alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '20px',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
+              width: '100%',
+              marginBottom: '6px',
             }}
           >
-            🤖
-          </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '800' }}>
-                {isMr ? 'AI प्रचार व निवडणूक सहाय्यक' : 'AI Campaign & Field Assistant'}
-              </h3>
-              <span
-                style={{
-                  background: '#10b981',
-                  color: '#ffffff',
-                  fontSize: '10px',
-                  fontWeight: '800',
-                  padding: '2px 7px',
-                  borderRadius: '10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                }}
-              >
-                <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#ffffff' }} />
-                LIVE
-              </span>
-            </div>
-            <div style={{ fontSize: '11px', color: '#93c5fd', marginTop: '2px' }}>
-              {isMr ? 'थेट माहिती सहाय्यक • त्वरित उत्तरे' : 'Real-time Campaign Intelligence'}
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            type="button"
-            onClick={handleClearChat}
-            title={isMr ? 'चॅट रीसेट करा' : 'Clear chat'}
-            style={{
-              background: 'rgba(255, 255, 255, 0.15)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
-              color: '#ffffff',
-              padding: '5px 10px',
-              borderRadius: '6px',
-              fontSize: '11px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            🔄 {isMr ? 'रीसेट' : 'Reset'}
-          </button>
-
-          {isFloating && onClose && (
-            <button
-              type="button"
-              onClick={onClose}
+            <div
               style={{
-                background: 'none',
-                border: 'none',
-                color: '#ffffff',
-                fontSize: '18px',
-                cursor: 'pointer',
-                padding: '4px',
+                width: '38px',
+                height: '4px',
+                background: 'rgba(255, 255, 255, 0.4)',
+                borderRadius: '999px',
+              }}
+            />
+          </div>
+        )}
+
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '8px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: isFloating ? '8px' : '12px', minWidth: 0, flex: 1 }}>
+            <div
+              style={{
+                width: isFloating ? '34px' : '38px',
+                height: isFloating ? '34px' : '38px',
+                borderRadius: '10px',
+                background: 'rgba(255, 255, 255, 0.15)',
+                backdropFilter: 'blur(4px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: isFloating ? '18px' : '20px',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                flexShrink: 0,
               }}
             >
-              ✕
+              🤖
+            </div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0 }}>
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: isFloating ? '14px' : '16px',
+                    fontWeight: '800',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    color: '#ffffff',
+                  }}
+                >
+                  {isMr ? (isFloating ? 'AI निवडणूक सहाय्यक' : 'AI प्रचार व निवडणूक सहाय्यक') : (isFloating ? 'AI Campaign Assistant' : 'AI Campaign & Field Assistant')}
+                </h3>
+                <span
+                  style={{
+                    background: '#10b981',
+                    color: '#ffffff',
+                    fontSize: '9.5px',
+                    fontWeight: '800',
+                    padding: '2px 6px',
+                    borderRadius: '10px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    flexShrink: 0,
+                  }}
+                >
+                  <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#ffffff' }} />
+                  LIVE
+                </span>
+              </div>
+              <div
+                style={{
+                  fontSize: '10.5px',
+                  color: '#93c5fd',
+                  marginTop: '1px',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {isMr ? 'थेट माहिती सहाय्यक • त्वरित उत्तरे' : 'Real-time Campaign Intelligence'}
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+            <button
+              type="button"
+              onClick={handleClearChat}
+              title={isMr ? 'चॅट रीसेट करा' : 'Clear chat'}
+              style={{
+                background: 'rgba(255, 255, 255, 0.15)',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                color: '#ffffff',
+                padding: '5px 8px',
+                borderRadius: '6px',
+                fontSize: '11px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              🔄 <span>{isMr ? 'रीसेट' : 'Reset'}</span>
             </button>
-          )}
+
+            {isFloating && onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                title={isMr ? 'बंद करा' : 'Close'}
+                aria-label={isMr ? 'बंद करा' : 'Close'}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  color: '#ffffff',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  fontSize: '15px',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0,
+                  lineHeight: 1,
+                  transition: 'all 0.15s ease',
+                  flexShrink: 0,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#ef4444';
+                  e.currentTarget.style.borderColor = '#dc2626';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -412,16 +485,17 @@ export default function AdminChatbotDesk({ lang = 'mr', isFloating = false, onCl
         style={{
           background: '#f8fafc',
           borderBottom: '1px solid #e2e8f0',
-          padding: '10px 16px',
+          padding: isFloating ? '8px 12px' : '10px 16px',
           display: 'flex',
-          gap: '8px',
+          gap: '6px',
           overflowX: 'auto',
           whiteSpace: 'nowrap',
-          scrollbarWidth: 'thin',
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch',
           flexShrink: 0,
         }}
       >
-        <span style={{ fontSize: '11px', fontWeight: '750', color: '#64748b', alignSelf: 'center', marginRight: '4px' }}>
+        <span style={{ fontSize: '11px', fontWeight: '750', color: '#64748b', alignSelf: 'center', marginRight: '4px', flexShrink: 0 }}>
           {isMr ? 'त्वरित प्रश्न:' : 'Quick Queries:'}
         </span>
         {suggestions.map((sug) => (
@@ -464,12 +538,14 @@ export default function AdminChatbotDesk({ lang = 'mr', isFloating = false, onCl
       <div
         style={{
           flex: 1,
+          minHeight: 0,
           overflowY: 'auto',
-          padding: '20px',
+          padding: isFloating ? '12px 10px' : '20px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '16px',
+          gap: isFloating ? '12px' : '16px',
           background: '#f8fafc',
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         {messages.map((msg) => {
@@ -486,14 +562,16 @@ export default function AdminChatbotDesk({ lang = 'mr', isFloating = false, onCl
             >
               <div
                 style={{
-                  maxWidth: isFloating ? '90%' : '80%',
+                  maxWidth: isFloating ? '94%' : '80%',
                   background: isUser ? '#1d4ed8' : '#ffffff',
                   color: isUser ? '#ffffff' : '#0f172a',
-                  padding: '14px 18px',
+                  padding: isFloating ? '10px 14px' : '14px 18px',
                   borderRadius: isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                   boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
                   border: isUser ? 'none' : '1px solid #e2e8f0',
                   boxSizing: 'border-box',
+                  wordBreak: 'break-word',
+                  overflowWrap: 'anywhere',
                 }}
               >
                 {/* Message Header */}
@@ -513,18 +591,18 @@ export default function AdminChatbotDesk({ lang = 'mr', isFloating = false, onCl
 
                 {/* Message Content */}
                 {isUser ? (
-                  <div style={{ fontSize: '13.5px', lineHeight: 1.45, whiteSpace: 'pre-wrap' }}>{msg.text}</div>
+                  <div style={{ fontSize: isFloating ? '13px' : '13.5px', lineHeight: 1.45, whiteSpace: 'pre-wrap' }}>{msg.text}</div>
                 ) : (
                   <div>{renderFormattedText(msg.text)}</div>
                 )}
 
                 {/* Structured Interactive Clickable Items (e.g. Citizens, Booths, Issues) */}
                 {msg.structuredItems && msg.structuredItems.length > 0 && (
-                  <div style={{ marginTop: '14px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                       {isMr ? '📌 संबंधित रेकॉर्ड्स (क्लिक करा):' : '📌 Related Records (Clickable):'}
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '8px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: isFloating ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
                       {msg.structuredItems.map((item, idx) => (
                         <div
                           key={idx}
@@ -536,7 +614,7 @@ export default function AdminChatbotDesk({ lang = 'mr', isFloating = false, onCl
                             } else if (item.type === 'issue') {
                               handleSend(`तक्रार ${item.title} चे सविस्तर निवारण अपडेट`);
                             } else if (item.type === 'worker') {
-                              handleSend(`अधिकारी ${item.title} यांनी केलेले सर्व्हे अहवाल`);
+                              handleSend(`कार्यकर्ता ${item.title} यांनी केलेले सर्व्हे अहवाल`);
                             }
                           }}
                           style={{
@@ -639,9 +717,10 @@ export default function AdminChatbotDesk({ lang = 'mr', isFloating = false, onCl
         style={{
           background: '#ffffff',
           borderTop: '1px solid #e2e8f0',
-          padding: '14px 18px',
+          padding: isFloating ? '8px 10px' : '14px 18px',
+          paddingBottom: isFloating ? 'max(10px, env(safe-area-inset-bottom, 10px))' : '14px',
           display: 'flex',
-          gap: '10px',
+          gap: isFloating ? '6px' : '10px',
           alignItems: 'center',
           flexShrink: 0,
         }}
@@ -657,14 +736,17 @@ export default function AdminChatbotDesk({ lang = 'mr', isFloating = false, onCl
             }
           }}
           placeholder={
-            isMr
-              ? 'उदा. "बूथ क्र. १ ची सद्यस्थिती काय आहे?", "सतीश खोत यांची माहिती", "नागरी समस्या"...'
-              : 'E.g. "What is status of Booth 1?", "Search voter Satish Khot", "Pending issues"...'
+            isFloating
+              ? (isMr ? 'उदा. "बूथ क्र. १", "सतीश खोत", "समस्या"...' : 'E.g. "Booth 1", "Search voter"...')
+              : (isMr
+                  ? 'उदा. "बूथ क्र. १ ची सद्यस्थिती काय आहे?", "सतीश खोत यांची माहिती", "नागरी समस्या"...'
+                  : 'E.g. "What is status of Booth 1?", "Search voter Satish Khot", "Pending issues"...')
           }
           disabled={loading}
           style={{
             flex: 1,
-            padding: '11px 16px',
+            minWidth: 0,
+            padding: isFloating ? '9px 12px' : '11px 16px',
             borderRadius: '10px',
             border: '1px solid #cbd5e1',
             fontSize: '13px',
@@ -684,18 +766,20 @@ export default function AdminChatbotDesk({ lang = 'mr', isFloating = false, onCl
             background: loading || !input.trim() ? '#94a3b8' : 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
             color: '#ffffff',
             border: 'none',
-            padding: '11px 22px',
+            padding: isFloating ? '9px 13px' : '11px 22px',
             borderRadius: '10px',
-            fontSize: '13px',
+            fontSize: isFloating ? '12px' : '13px',
             fontWeight: '750',
             cursor: loading || !input.trim() ? 'not-allowed' : 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '6px',
+            gap: '5px',
             boxShadow: '0 2px 6px rgba(29, 78, 216, 0.25)',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
           }}
         >
-          {loading ? (isMr ? 'शोधत आहे...' : 'Querying...') : (isMr ? 'विचारा ➔' : 'Ask ➔')}
+          {loading ? (isMr ? 'शोधत...' : 'Searching...') : (isMr ? 'विचारा ➔' : 'Ask ➔')}
         </button>
       </div>
     </div>

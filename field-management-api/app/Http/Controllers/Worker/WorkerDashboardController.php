@@ -544,7 +544,7 @@ class WorkerDashboardController extends Controller
         }
 
         $members = $request->input('members', []);
-        $totalMatdar = $request->input('total_matdar', count($members) > 0 ? count($members) : 1);
+        $totalMatdar = $request->has('total_matdar') ? (int) $request->input('total_matdar') : count($members);
         $customAnswers = $request->input('custom_answers', []);
         $firstVoterId = ! empty($members[0]['voter_id_no']) ? $members[0]['voter_id_no'] : $request->input('voterId');
 

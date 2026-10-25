@@ -371,8 +371,8 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
     setSavingForm(true);
     const finalTitleEn = (formTitleEn && formTitleEn.trim()) ? formTitleEn.trim() : (campaignName ? `${campaignName} Survey Form` : 'Survey Form');
     const finalTitleMr = (formTitleMr && formTitleMr.trim()) ? formTitleMr.trim() : (formTitleEn || `${finalTitleEn} सर्व्हे फॉर्म`);
-    const finalProjectName = (campaignName && campaignName.trim()) 
-      ? campaignName.trim() 
+    const finalProjectName = (campaignName && campaignName.trim())
+      ? campaignName.trim()
       : (selectedProject?.name || finalTitleEn || 'सांगली मोहीम');
 
     try {
@@ -417,8 +417,8 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
     setPublishingForm(true);
     const finalTitleEn = (formTitleEn && formTitleEn.trim()) ? formTitleEn.trim() : (campaignName ? `${campaignName} Survey Form` : 'Survey Form');
     const finalTitleMr = (formTitleMr && formTitleMr.trim()) ? formTitleMr.trim() : (formTitleEn || `${finalTitleEn} सर्व्हे फॉर्म`);
-    const finalProjectName = (campaignName && campaignName.trim()) 
-      ? campaignName.trim() 
+    const finalProjectName = (campaignName && campaignName.trim())
+      ? campaignName.trim()
       : (selectedProject?.name || finalTitleEn || 'सांगली मोहीम');
 
     try {
@@ -449,8 +449,8 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
 
       showToast(
         isMr
-          ? `🚀 '${finalTitleMr}' फॉर्म published_forms टेबलमध्ये यशस्वीरीत्या सेव्ह व प्रकाशित झाला! (${assignedCount} अधिकाऱ्यांना ॲक्सेस मिळाला)`
-          : `🚀 '${finalTitleEn}' created and saved into published_forms table! (${assignedCount} officers granted access)`
+          ? `🚀 '${finalTitleMr}' फॉर्म published_forms टेबलमध्ये यशस्वीरीत्या सेव्ह व प्रकाशित झाला! (${assignedCount} कार्यकर्त्यांना ॲक्सेस मिळाला)`
+          : `🚀 '${finalTitleEn}' created and saved into published_forms table! (${assignedCount} workers granted access)`
       );
     } catch (err) {
       console.error('Publish error:', err);
@@ -544,7 +544,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
 
       setShowUserAccessModal(false);
       fetchPublishedForms();
-      showToast(isMr ? '✓ अधिकाऱ्यांचे ॲक्सेस अधिकार यशस्वीरित्या सेव्ह झाले!' : '✓ Officer access saved successfully!');
+      showToast(isMr ? '✓ कार्यकर्त्यांचे ॲक्सेस अधिकार यशस्वीरित्या सेव्ह झाले!' : '✓ Worker access saved successfully!');
     } catch (err) {
       console.error('Error saving user access:', err);
       alert(isMr ? 'अधिकार सेव्ह करताना त्रुटी आली.' : 'Failed to save access.');
@@ -705,6 +705,201 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', fontFamily: 'inherit', color: '#0f172a' }}>
+      {/* 3D Animations & Tactile Button / Tab Stylesheet */}
+      <style>{`
+        /* 3D Primary Active Mode Tab */
+        .fb-tab-3d-active {
+          background: linear-gradient(180deg, #2b74f0 0%, #1e60d5 50%, #1754be 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.35) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+          border-bottom: 3.5px solid #0f3a88 !important;
+          box-shadow: 0 4px 14px rgba(23, 84, 190, 0.42), 0 2px 4px rgba(0, 0, 0, 0.12), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.5) !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+          border-radius: 10px !important;
+          transform-style: preserve-3d;
+          transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+          font-weight: 850 !important;
+        }
+        .fb-tab-3d-active:hover {
+          transform: translateY(-2px) scale(1.02) !important;
+          box-shadow: 0 8px 22px rgba(23, 84, 190, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.75) !important;
+        }
+        .fb-tab-3d-active:active {
+          transform: translateY(2px) scale(0.98) !important;
+          border-bottom: 1.5px solid #0f3a88 !important;
+          box-shadow: 0 2px 6px rgba(23, 84, 190, 0.3) !important;
+        }
+
+        /* 3D Inactive Mode Tab */
+        .fb-tab-3d-inactive {
+          background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+          color: #334155 !important;
+          border: 1px solid #cbd5e1 !important;
+          border-bottom: 3px solid #94a3b8 !important;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05), inset 0 1px 1px #ffffff !important;
+          border-radius: 10px !important;
+          transform-style: preserve-3d;
+          transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+          font-weight: 800 !important;
+        }
+        .fb-tab-3d-inactive:hover {
+          transform: translateY(-2px) !important;
+          color: #1e60d5 !important;
+          border-color: #93c5fd !important;
+          border-bottom-color: #3b82f6 !important;
+          box-shadow: 0 6px 14px rgba(30, 96, 213, 0.18), inset 0 1px 1px #ffffff !important;
+        }
+        .fb-tab-3d-inactive:active {
+          transform: translateY(1.5px) !important;
+          border-bottom: 1.5px solid #94a3b8 !important;
+        }
+
+        /* 3D Action / Primary Button (Royal Blue) */
+        .fb-btn-3d-primary {
+          background: linear-gradient(180deg, #2b74f0 0%, #1e60d5 50%, #1754be 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.35) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+          border-bottom: 3.5px solid #0f3a88 !important;
+          box-shadow: 0 4px 14px rgba(23, 84, 190, 0.4), 0 2px 4px rgba(0, 0, 0, 0.12), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.45) !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+          border-radius: 8px !important;
+          transform-style: preserve-3d;
+          transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+          font-weight: 850 !important;
+        }
+        .fb-btn-3d-primary:hover:not(:disabled) {
+          transform: translateY(-2px) scale(1.02) !important;
+          box-shadow: 0 8px 22px rgba(23, 84, 190, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.75) !important;
+        }
+        .fb-btn-3d-primary:active:not(:disabled) {
+          transform: translateY(2px) scale(0.98) !important;
+          border-bottom: 1.5px solid #0f3a88 !important;
+          box-shadow: 0 2px 6px rgba(23, 84, 190, 0.3) !important;
+        }
+
+        /* 3D Secondary Button (Slate / White) */
+        .fb-btn-3d-secondary {
+          background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+          color: #475569 !important;
+          border: 1px solid #cbd5e1 !important;
+          border-bottom: 2.8px solid #94a3b8 !important;
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05), inset 0 1px 1px #ffffff !important;
+          border-radius: 8px !important;
+          transform-style: preserve-3d;
+          transition: all 0.16s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+          font-weight: 750 !important;
+        }
+        .fb-btn-3d-secondary:hover:not(:disabled) {
+          transform: translateY(-1.5px) !important;
+          color: #1e293b !important;
+          border-color: #94a3b8 !important;
+          border-bottom-color: #64748b !important;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+        }
+        .fb-btn-3d-secondary:active:not(:disabled) {
+          transform: translateY(1.5px) !important;
+          border-bottom: 1.2px solid #94a3b8 !important;
+        }
+
+        /* 3D Publish Button (Emerald Green) */
+        .fb-btn-3d-publish {
+          background: linear-gradient(180deg, #10b981 0%, #059669 50%, #047857 100%) !important;
+          color: #ffffff !important;
+          border: 1px solid rgba(255, 255, 255, 0.35) !important;
+          border-top: 1.5px solid rgba(255, 255, 255, 0.65) !important;
+          border-bottom: 3.5px solid #064e3b !important;
+          box-shadow: 0 4px 14px rgba(5, 150, 105, 0.42), 0 2px 4px rgba(0, 0, 0, 0.12), inset 0 1.5px 1.5px rgba(255, 255, 255, 0.5) !important;
+          text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+          border-radius: 10px !important;
+          transform-style: preserve-3d;
+          transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+          font-weight: 900 !important;
+        }
+        .fb-btn-3d-publish:hover:not(:disabled) {
+          transform: translateY(-2px) scale(1.02) !important;
+          box-shadow: 0 8px 22px rgba(5, 150, 105, 0.6), inset 0 1.5px 2px rgba(255, 255, 255, 0.75) !important;
+        }
+        .fb-btn-3d-publish:active:not(:disabled) {
+          transform: translateY(2px) scale(0.98) !important;
+          border-bottom: 1.5px solid #064e3b !important;
+          box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3) !important;
+        }
+
+        /* 3D Danger / Delete Button */
+        .fb-btn-3d-danger {
+          background: linear-gradient(180deg, #ffffff 0%, #fff1f2 100%) !important;
+          color: #e11d48 !important;
+          border: 1px solid #fecdd3 !important;
+          border-bottom: 2.8px solid #be123c !important;
+          box-shadow: 0 2px 4px rgba(225, 29, 72, 0.1) !important;
+          border-radius: 8px !important;
+          transition: all 0.16s ease !important;
+          cursor: pointer;
+          font-weight: 750 !important;
+        }
+        .fb-btn-3d-danger:hover:not(:disabled) {
+          background: #ffe4e6 !important;
+          color: #9f1239 !important;
+          transform: translateY(-1.5px) !important;
+          box-shadow: 0 4px 10px rgba(225, 29, 72, 0.25) !important;
+        }
+        .fb-btn-3d-danger:active:not(:disabled) {
+          transform: translateY(1.5px) !important;
+          border-bottom: 1px solid #be123c !important;
+        }
+
+        /* 3D Workers Pill */
+        .fb-badge-3d-workers {
+          background: linear-gradient(180deg, #eff6ff 0%, #dbeafe 100%) !important;
+          color: #1d4ed8 !important;
+          border: 1px solid #bfdbfe !important;
+          border-bottom: 2.8px solid #3b82f6 !important;
+          box-shadow: 0 2px 5px rgba(29, 78, 216, 0.12), inset 0 1px 1px #ffffff !important;
+          border-radius: 999px !important;
+          transform-style: preserve-3d;
+          transition: all 0.16s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          cursor: pointer;
+          font-weight: 800 !important;
+        }
+        .fb-badge-3d-workers:hover {
+          transform: translateY(-1.5px) scale(1.02) !important;
+          border-bottom-color: #1d4ed8 !important;
+          box-shadow: 0 5px 12px rgba(29, 78, 216, 0.22) !important;
+        }
+        .fb-badge-3d-workers:active {
+          transform: translateY(1.5px) !important;
+          border-bottom-width: 1.2px !important;
+        }
+
+        /* 3D Card Hover Lift */
+        .fb-card-3d {
+          transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+        .fb-card-3d:hover {
+          transform: translateY(-2px) !important;
+          box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06) !important;
+        }
+
+        /* 2 Tabs Per Line Grid */
+        .fb-2tab-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+        @media (max-width: 640px) {
+          .fb-2tab-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+
       {/* Toast Alert */}
       {toastMessage && (
         <div
@@ -758,8 +953,8 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
           </div>
           <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
             {isMr
-              ? 'मतदार सर्व्हे फॉर्म तयार करा, फॉर्म फॉरमॅट पहा आणि अधिकाऱ्यांना थेट ॲक्सेस अधिकार द्या.'
-              : 'Design survey forms, view published formats, and seamlessly grant form access to field officers.'}
+              ? 'मतदार सर्व्हे फॉर्म तयार करा, फॉर्म फॉरमॅट पहा आणि कार्यकर्त्यांना थेट ॲक्सेस अधिकार द्या.'
+              : 'Design survey forms, view published formats, and seamlessly grant form access to field workers.'}
           </p>
         </div>
 
@@ -809,163 +1004,135 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
       {/*    3) OTHER PROJECTS / FORMS                                   */}
       {/* ============================================================== */}
       <div
+        className="fb-2tab-grid"
         style={{
           background: '#ffffff',
           borderRadius: '14px',
           border: '1.5px solid #e2e8f0',
-          padding: '14px 18px',
+          padding: '16px 18px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
         }}
       >
-        {/* Left Side: The 3 Dedicated Primary Mode Buttons */}
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-          {/* BUTTON 1: PUBLISHED FORMS & ACCESS (TABLE VIEW) */}
-          <button
-            type="button"
-            onClick={() => {
-              fetchPublishedForms();
-              setActiveView('published');
-            }}
+        {/* ROW 1 - TAB 1: PUBLISHED FORMS & ACCESS (TABLE VIEW) */}
+        <button
+          type="button"
+          onClick={() => {
+            fetchPublishedForms();
+            setActiveView('published');
+          }}
+          className={activeView === 'published' ? 'fb-tab-3d-active' : 'fb-tab-3d-inactive'}
+          style={{
+            padding: '12px 20px',
+            fontSize: '13.5px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            width: '100%',
+          }}
+        >
+          <span style={{ fontSize: '16px' }}>🚀</span>
+          <span>{isMr ? 'प्रकाशित फॉर्म व ॲक्सेस (Published Forms)' : 'Published Forms & Access'}</span>
+          <span
             style={{
-              background: activeView === 'published'
-                ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
-                : '#f8fafc',
-              color: activeView === 'published' ? '#ffffff' : '#1e293b',
-              border: activeView === 'published' ? 'none' : '1.5px solid #cbd5e1',
-              padding: '11px 22px',
-              borderRadius: '10px',
-              fontSize: '14px',
-              fontWeight: '850',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: activeView === 'published' ? '0 4px 12px rgba(15,23,42,0.25)' : 'none',
-              transition: 'all 0.15s ease',
+              background: activeView === 'published' ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+              color: activeView === 'published' ? '#ffffff' : '#334155',
+              padding: '2px 8px',
+              borderRadius: '999px',
+              fontSize: '11.5px',
+              fontWeight: '800',
+              marginLeft: '4px',
             }}
           >
-            <span style={{ fontSize: '16px' }}>🚀</span>
-            <span>{isMr ? 'प्रकाशित फॉर्म व ॲक्सेस (Published Forms)' : 'Published Forms & Access'}</span>
-            <span
-              style={{
-                background: activeView === 'published' ? 'rgba(255,255,255,0.2)' : '#e2e8f0',
-                color: activeView === 'published' ? '#ffffff' : '#334155',
-                padding: '2px 8px',
-                borderRadius: '999px',
-                fontSize: '11.5px',
-                fontWeight: '800',
-                marginLeft: '4px',
-              }}
-            >
-              {publishedFormsList.length}
-            </span>
-          </button>
+            {publishedFormsList.length}
+          </span>
+        </button>
 
-          {/* BUTTON 2: CREATE / EDIT FORM */}
-          <button
-            type="button"
-            onClick={() => {
-              if (!selectedProject && !isNewForm && !editingPublishedForm) {
-                handleCreateNewForm();
-              } else {
-                setActiveView('builder');
-              }
-            }}
+        {/* ROW 1 - TAB 2: CREATE / EDIT FORM */}
+        <button
+          type="button"
+          onClick={() => {
+            if (!selectedProject && !isNewForm && !editingPublishedForm) {
+              handleCreateNewForm();
+            } else {
+              setActiveView('builder');
+            }
+          }}
+          className={activeView === 'builder' ? 'fb-tab-3d-active' : 'fb-tab-3d-inactive'}
+          style={{
+            padding: '12px 20px',
+            fontSize: '13.5px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            width: '100%',
+          }}
+        >
+          <span style={{ fontSize: '16px' }}>✏️</span>
+          <span>{isMr ? 'फॉर्म तयार करा / रचना (Create Form)' : 'Create / Edit Form'}</span>
+        </button>
+
+        {/* ROW 2 - TAB 1: OTHER PROJECTS / FORMS */}
+        <button
+          type="button"
+          onClick={() => setActiveView('all_forms')}
+          className={activeView === 'all_forms' ? 'fb-tab-3d-active' : 'fb-tab-3d-inactive'}
+          style={{
+            padding: '12px 20px',
+            fontSize: '13.5px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            width: '100%',
+          }}
+        >
+          <span style={{ fontSize: '16px' }}>📂</span>
+          <span>{isMr ? 'इतर प्रकल्प फॉर्म (Other Forms)' : 'Other Project Forms'}</span>
+          <span
             style={{
-              background: activeView === 'builder'
-                ? 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)'
-                : '#f8fafc',
-              color: activeView === 'builder' ? '#ffffff' : '#1e293b',
-              border: activeView === 'builder' ? 'none' : '1.5px solid #cbd5e1',
-              padding: '11px 22px',
-              borderRadius: '10px',
-              fontSize: '14px',
-              fontWeight: '850',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: activeView === 'builder' ? '0 4px 12px rgba(37,99,235,0.25)' : 'none',
-              transition: 'all 0.15s ease',
+              background: activeView === 'all_forms' ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+              color: activeView === 'all_forms' ? '#ffffff' : '#334155',
+              padding: '2px 8px',
+              borderRadius: '999px',
+              fontSize: '11.5px',
+              fontWeight: '800',
+              marginLeft: '4px',
             }}
           >
-            <span style={{ fontSize: '16px' }}>✏️</span>
-            <span>{isMr ? 'फॉर्म तयार करा / रचना (Create Form)' : 'Create / Edit Form'}</span>
-          </button>
+            {projectsList.length}
+          </span>
+        </button>
 
-          {/* BUTTON 3: OTHER PROJECTS / FORMS */}
-          <button
-            type="button"
-            onClick={() => setActiveView('all_forms')}
-            style={{
-              background: activeView === 'all_forms'
-                ? 'linear-gradient(135deg, #334155 0%, #475569 100%)'
-                : '#f8fafc',
-              color: activeView === 'all_forms' ? '#ffffff' : '#1e293b',
-              border: activeView === 'all_forms' ? 'none' : '1.5px solid #cbd5e1',
-              padding: '11px 22px',
-              borderRadius: '10px',
-              fontSize: '14px',
-              fontWeight: '850',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: activeView === 'all_forms' ? '0 4px 12px rgba(51,65,85,0.25)' : 'none',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <span style={{ fontSize: '16px' }}>📂</span>
-            <span>{isMr ? 'इतर प्रकल्प फॉर्म (Other Forms)' : 'Other Project Forms'}</span>
-            <span
-              style={{
-                background: activeView === 'all_forms' ? 'rgba(255,255,255,0.2)' : '#e2e8f0',
-                color: activeView === 'all_forms' ? '#ffffff' : '#334155',
-                padding: '2px 8px',
-                borderRadius: '999px',
-                fontSize: '11.5px',
-                fontWeight: '800',
-                marginLeft: '4px',
-              }}
-            >
-              {projectsList.length}
-            </span>
-          </button>
-        </div>
-
-        {/* Right Side: Action Trigger: PUBLISH FORM (EMERALD GLOW BUTTON) */}
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-          {selectedProject && (
-            <button
-              type="button"
-              disabled={publishingForm}
-              onClick={() => setShowPublishModal(true)}
-              style={{
-                background: 'linear-gradient(135deg, #15803d 0%, #16a34a 100%)',
-                color: '#ffffff',
-                border: 'none',
-                padding: '11px 24px',
-                borderRadius: '10px',
-                fontSize: '14px',
-                fontWeight: '900',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 14px rgba(22, 163, 74, 0.4)',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <span style={{ fontSize: '17px' }}>🚀</span>
-              <span>{isMr ? 'फॉर्म प्रकाशित करा (Publish Form)' : 'Publish Form'}</span>
-            </button>
-          )}
-        </div>
+        {/* ROW 2 - TAB 2: ACTION TRIGGER: PUBLISH FORM (3D WHITE BUTTON) */}
+        <button
+          type="button"
+          disabled={!selectedProject || publishingForm}
+          onClick={() => {
+            if (selectedProject) {
+              setShowPublishModal(true);
+            } else {
+              alert(isMr ? 'कृपया आधी प्रकल्प निवडा किंवा तयार करा.' : 'Please select or create a project first.');
+            }
+          }}
+          className="fb-tab-3d-inactive"
+          style={{
+            padding: '12px 20px',
+            fontSize: '13.5px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            width: '100%',
+            opacity: selectedProject ? 1 : 0.65,
+            cursor: selectedProject ? 'pointer' : 'not-allowed',
+          }}
+          title={!selectedProject ? (isMr ? 'कृपया आधी प्रकल्प निवडा' : 'Please select a project first') : ''}
+        >
+          <span style={{ fontSize: '17px' }}>🚀</span>
+          <span>{isMr ? 'फॉर्म प्रकाशित करा (Publish Form)' : 'Publish Form'}</span>
+        </button>
       </div>
 
       {/* ============================================================== */}
@@ -999,7 +1166,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
               </h2>
               <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
                 {isMr
-                  ? 'येथे सर्व प्रकाशित फॉर्म, त्यांचे सर्व फॉरमॅट्स आणि ॲक्सेस असलेले अधिकारी दिसतील. येथून थेट वापरकर्त्यांना अधिकार द्या.'
+                  ? 'येथे सर्व प्रकाशित फॉर्म, त्यांचे सर्व फॉरमॅट्स आणि ॲक्सेस असलेले कार्यकर्ते दिसतील. येथून थेट वापरकर्त्यांना अधिकार द्या.'
                   : 'All published forms from `published_forms` table with their full schema and assigned users. Manage access seamlessly.'}
               </p>
             </div>
@@ -1027,15 +1194,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
               <button
                 type="button"
                 onClick={fetchPublishedForms}
+                className="fb-btn-3d-secondary"
                 style={{
-                  background: '#f8fafc',
-                  border: '1px solid #cbd5e1',
-                  borderRadius: '8px',
-                  padding: '8px 12px',
+                  padding: '7px 14px',
                   fontSize: '13px',
-                  fontWeight: '750',
-                  color: '#334155',
-                  cursor: 'pointer',
                 }}
               >
                 🔄 {isMr ? 'रिफ्रेश' : 'Refresh'}
@@ -1044,19 +1206,13 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
               <button
                 type="button"
                 onClick={handleCreateNewForm}
+                className="fb-btn-3d-primary"
                 style={{
-                  background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '8px 16px',
+                  padding: '8px 18px',
                   fontSize: '13px',
-                  fontWeight: '850',
-                  cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  boxShadow: '0 2px 6px rgba(37,99,235,0.25)',
                 }}
               >
                 <span>➕</span>
@@ -1092,15 +1248,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
               <button
                 type="button"
                 onClick={handleCreateNewForm}
+                className="fb-btn-3d-primary"
                 style={{
-                  background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
-                  color: '#ffffff',
-                  border: 'none',
                   padding: '10px 22px',
-                  borderRadius: '8px',
                   fontSize: '13.5px',
-                  fontWeight: '800',
-                  cursor: 'pointer',
                 }}
               >
                 ✏️ {isMr ? 'नवीन फॉर्म तयार करा (+ Create Form)' : '+ Create New Form'}
@@ -1116,7 +1267,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                   <tr style={{ color: '#475569', fontSize: '12.5px', fontWeight: '800', textAlign: 'left', textTransform: 'uppercase' }}>
                     <th style={{ padding: '0 16px 8px' }}>{isMr ? 'फॉर्म नाव व प्रकल्प' : 'Form Title & Project'}</th>
                     <th style={{ padding: '0 16px 8px' }}>{isMr ? 'व्याप्ती (Scope)' : 'Scope'}</th>
-                    <th style={{ padding: '0 16px 8px' }}>{isMr ? 'ॲक्सेस असलेले अधिकारी' : 'Assigned Officers'}</th>
+                    <th style={{ padding: '0 16px 8px' }}>{isMr ? 'ॲक्सेस असलेले कार्यकर्ते' : 'Assigned Users (Workers)'}</th>
                     <th style={{ padding: '0 16px 8px' }}>{isMr ? 'स्थिती (Status)' : 'Status'}</th>
                     <th style={{ padding: '0 16px 8px', textAlign: 'right' }}>{isMr ? 'कृती / ॲक्सेस' : 'Actions'}</th>
                   </tr>
@@ -1130,6 +1281,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                     return (
                       <tr
                         key={pForm.id}
+                        className="fb-card-3d"
                         style={{
                           background: '#ffffff',
                           boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
@@ -1156,15 +1308,12 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                                     setShowFormatModal(true);
                                   }}
                                   title="View Form Schema"
+                                  className="fb-btn-3d-secondary"
                                   style={{
-                                    border: '1px solid #e2e8f0',
-                                    background: '#f8fafc',
-                                    color: '#2563eb',
                                     fontSize: '11px',
-                                    fontWeight: '800',
-                                    cursor: 'pointer',
-                                    padding: '1px 6px',
-                                    borderRadius: '4px',
+                                    padding: '2px 8px',
+                                    borderRadius: '5px',
+                                    color: '#1d4ed8',
                                   }}
                                 >
                                   👁️ {isMr ? 'स्कीमा' : 'Schema'}
@@ -1196,25 +1345,18 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                             type="button"
                             data-dropup-btn="true"
                             onClick={(e) => handleToggleWorkersDropup(e, pForm.id)}
+                            className="fb-badge-3d-workers"
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '8px',
-                              background: assignedUsers.length > 0 ? '#eff6ff' : '#fef2f2',
-                              color: assignedUsers.length > 0 ? '#1d4ed8' : '#b91c1c',
-                              border: assignedUsers.length > 0 ? '1.5px solid #bfdbfe' : '1.5px solid #fecaca',
                               padding: '7px 15px',
-                              borderRadius: '999px',
                               fontSize: '12.5px',
-                              fontWeight: '800',
-                              cursor: 'pointer',
-                              transition: 'all 0.15s ease',
-                              boxShadow: openWorkersDropupId === pForm.id ? '0 0 0 3px rgba(37,99,235,0.25)' : 'none',
                             }}
                           >
                             <span style={{ fontSize: '14px' }}>👥</span>
                             <span>
-                              {pForm.assigned_users_count || assignedUsers.length} {isMr ? 'अधिकारी' : 'Officers'}
+                              {pForm.assigned_users_count || assignedUsers.length} {isMr ? 'कार्यकर्ते' : 'Workers'}
                             </span>
                             <span
                               style={{
@@ -1246,20 +1388,20 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                                     pForm.status === 'PUBLISHED' || pForm.status === 'ACTIVE'
                                       ? '#ecfdf5'
                                       : pForm.status === 'DRAFT'
-                                      ? '#fffbeb'
-                                      : '#fef2f2',
+                                        ? '#fffbeb'
+                                        : '#fef2f2',
                                   color:
                                     pForm.status === 'PUBLISHED' || pForm.status === 'ACTIVE'
                                       ? '#047857'
                                       : pForm.status === 'DRAFT'
-                                      ? '#b45309'
-                                      : '#b91c1c',
+                                        ? '#b45309'
+                                        : '#b91c1c',
                                   border:
                                     pForm.status === 'PUBLISHED' || pForm.status === 'ACTIVE'
                                       ? '1.5px solid #a7f3d0'
                                       : pForm.status === 'DRAFT'
-                                      ? '1.5px solid #fde68a'
-                                      : '1.5px solid #fecaca',
+                                        ? '1.5px solid #fde68a'
+                                        : '1.5px solid #fecaca',
                                   outline: 'none',
                                   boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
                                 }}
@@ -1287,45 +1429,35 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                         {/* 6. Action: Manage User Access & Demo */}
                         <td style={{ padding: '16px', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', borderRadius: '0 12px 12px 0', textAlign: 'right' }}>
                           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
-                            {/* PROMINENT BUTTON: GIVE / MANAGE USER ACCESS */}
+                            {/* PROMINENT 3D BUTTON: GIVE / MANAGE USER ACCESS */}
                             <button
                               type="button"
                               onClick={() => handleOpenUserAccessModal(pForm)}
+                              className="fb-btn-3d-primary"
                               style={{
-                                background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
-                                color: '#ffffff',
-                                border: 'none',
-                                padding: '8px 14px',
-                                borderRadius: '8px',
+                                padding: '7.5px 14px',
                                 fontSize: '12.5px',
-                                fontWeight: '850',
-                                cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '5px',
-                                boxShadow: '0 2px 6px rgba(37,99,235,0.25)',
                               }}
                             >
                               <span>👥</span>
                               <span>{isMr ? 'ॲक्सेस द्या / बदला' : 'Manage Access'}</span>
                             </button>
 
-                            {/* EDIT BUTTON: LOAD FORM IN BUILDER */}
+                            {/* EDIT 3D BUTTON: LOAD FORM IN BUILDER */}
                             <button
                               type="button"
                               onClick={() => handleEditPublishedForm(pForm)}
+                              className="fb-btn-3d-secondary"
                               style={{
-                                background: '#eff6ff',
-                                color: '#1d4ed8',
-                                border: '1px solid #bfdbfe',
-                                padding: '8px 12px',
-                                borderRadius: '8px',
+                                padding: '7.5px 12px',
                                 fontSize: '12.5px',
-                                fontWeight: '750',
-                                cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '4px',
+                                color: '#1d4ed8',
                               }}
                               title={isMr ? 'हा फॉर्म फॉर्म बिल्डरमध्ये एडिट करा' : 'Edit this form in Form Builder'}
                             >
@@ -1333,41 +1465,31 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                               <span>{isMr ? 'एडिट' : 'Edit'}</span>
                             </button>
 
-                            {/* LIVE DEMO BUTTON */}
+                            {/* LIVE DEMO 3D BUTTON */}
                             <button
                               type="button"
                               onClick={() => {
                                 handleEditPublishedForm(pForm);
                                 setBuilderTab('demo');
                               }}
+                              className="fb-btn-3d-secondary"
                               style={{
-                                background: '#f8fafc',
-                                color: '#334155',
-                                border: '1px solid #cbd5e1',
-                                padding: '8px 12px',
-                                borderRadius: '8px',
+                                padding: '7.5px 12px',
                                 fontSize: '12.5px',
-                                fontWeight: '750',
-                                cursor: 'pointer',
                               }}
                             >
                               📱 {isMr ? 'डेमो' : 'Demo'}
                             </button>
 
-                            {/* DELETE BUTTON: REMOVE FROM published_forms */}
+                            {/* DELETE 3D BUTTON: REMOVE FROM published_forms */}
                             <button
                               type="button"
                               disabled={deletingFormId === pForm.id}
                               onClick={() => handleDeletePublishedForm(pForm)}
+                              className="fb-btn-3d-danger"
                               style={{
-                                background: '#fff1f2',
-                                color: '#e11d48',
-                                border: '1px solid #fecdd3',
-                                padding: '8px 12px',
-                                borderRadius: '8px',
+                                padding: '7.5px 12px',
                                 fontSize: '12.5px',
-                                fontWeight: '750',
-                                cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '4px',
@@ -1441,7 +1563,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                 >
                   <div>
                     <strong style={{ fontSize: '13.5px', color: '#0f172a', display: 'block' }}>
-                      👥 {isMr ? 'ॲक्सेस असलेले अधिकारी' : 'Assigned Officers'} ({filteredUsers.length}/{assignedUsers.length})
+                      👥 {isMr ? 'ॲक्सेस असलेले कार्यकर्ते' : 'Assigned Workers'} ({filteredUsers.length}/{assignedUsers.length})
                     </strong>
                     <span style={{ fontSize: '11px', color: '#64748b' }}>
                       📁 {activeDropupForm.project_name}
@@ -1479,7 +1601,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                     <input
                       type="text"
                       autoFocus
-                      placeholder={isMr ? 'अधिकाऱ्याचे नाव किंवा मोबाईल शोधा...' : 'Search officer by name, phone...'}
+                      placeholder={isMr ? 'कार्यकर्त्याचे नाव किंवा मोबाईल शोधा...' : 'Search worker by name, phone...'}
                       value={workerDropupSearch}
                       onChange={(e) => setWorkerDropupSearch(e.target.value)}
                       style={{
@@ -1519,11 +1641,11 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                 <div style={{ maxHeight: '220px', overflowY: 'auto', padding: '8px 10px', background: '#f8fafc' }}>
                   {assignedUsers.length === 0 ? (
                     <div style={{ padding: '18px 12px', textAlign: 'center', color: '#dc2626', fontSize: '12.5px', fontWeight: '750' }}>
-                      ⚠️ {isMr ? 'कोणताही अधिकारी जोडलेला नाही' : 'No officers assigned yet'}
+                      ⚠️ {isMr ? 'कोणताही कार्यकर्ता जोडलेला नाही' : 'No workers assigned yet'}
                     </div>
                   ) : filteredUsers.length === 0 ? (
                     <div style={{ padding: '18px 12px', textAlign: 'center', color: '#64748b', fontSize: '12.5px' }}>
-                      🔍 {isMr ? 'या शोध निकषात कोणताही अधिकारी सापडला नाही' : `No officers match "${workerDropupSearch}"`}
+                      🔍 {isMr ? 'या शोध निकषात कोणताही कार्यकर्ता सापडला नाही' : `No workers match "${workerDropupSearch}"`}
                     </div>
                   ) : (
                     filteredUsers.map((u) => (
@@ -1600,25 +1722,15 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                       setDropupAnchor(null);
                       handleOpenUserAccessModal(activeDropupForm);
                     }}
+                    className="fb-btn-3d-primary"
                     style={{
                       width: '100%',
-                      background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
-                      color: '#ffffff',
-                      border: 'none',
-                      padding: '8px 14px',
-                      borderRadius: '8px',
+                      padding: '9px 14px',
                       fontSize: '12.5px',
-                      fontWeight: '800',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      boxShadow: '0 2px 6px rgba(37,99,235,0.25)',
                     }}
                   >
                     <span>⚙️</span>
-                    <span>{isMr ? 'अधिकारी ॲक्सेस बदला / जोडा' : 'Manage / Assign Officers'}</span>
+                    <span>{isMr ? 'कार्यकर्ते ॲक्सेस बदला / जोडा' : 'Manage / Assign Workers'}</span>
                   </button>
                 </div>
               </div>
@@ -1632,156 +1744,165 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
       {/* ============================================================== */}
       {activeView === 'builder' && (selectedProject || isNewForm || editingPublishedForm) && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          {/* Sub-Header Bar: Switch between Designer vs Live Mobile Demo */}
+          {/* Sub-Header Bar: Switch between Designer vs Live Mobile Demo - Single Line with Exactly Same Length & Height */}
           <div
             style={{
-              background: '#f8fafc',
-              border: '1px solid #cbd5e1',
-              borderRadius: '12px',
-              padding: '12px 18px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '12px',
+              background: '#ffffff',
+              border: '1.5px solid #cbd5e1',
+              borderRadius: '14px',
+              padding: '10px 14px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(6, minmax(130px, 1fr))',
+              gap: '8px',
+              overflowX: 'auto',
+              boxShadow: '0 4px 12px rgba(15, 23, 42, 0.04)',
             }}
           >
-            {/* View Mode Toggle */}
-            <div style={{ display: 'flex', background: '#e2e8f0', padding: '3px', borderRadius: '9px', gap: '3px' }}>
-              <button
-                type="button"
-                onClick={() => setBuilderTab('designer')}
-                style={{
-                  border: 'none',
-                  background: builderTab === 'designer' ? '#ffffff' : 'transparent',
-                  color: builderTab === 'designer' ? '#1d4ed8' : '#475569',
-                  padding: '7px 16px',
-                  borderRadius: '7px',
-                  fontSize: '13px',
-                  fontWeight: '800',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: builderTab === 'designer' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                }}
-              >
-                <span>🛠️</span>
-                <span>{isMr ? 'फॉर्म रचना व प्रश्न (Form Designer)' : 'Form Designer & Questions'}</span>
-              </button>
+            {/* BUTTON 1: FORM DESIGNER */}
+            <button
+              type="button"
+              onClick={() => setBuilderTab('designer')}
+              className={builderTab === 'designer' ? 'fb-tab-3d-active' : 'fb-tab-3d-inactive'}
+              style={{
+                width: '100%',
+                height: '38px',
+                padding: '0 6px',
+                fontSize: '12px',
+                fontWeight: '750',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '5px',
+                borderRadius: '9px',
+                whiteSpace: 'nowrap',
+                boxSizing: 'border-box',
+              }}
+            >
+              <span>🛠️</span>
+              <span>{isMr ? 'फॉर्म रचना व प्रश्न' : 'Form Designer'}</span>
+            </button>
 
-              <button
-                type="button"
-                onClick={() => setBuilderTab('demo')}
-                style={{
-                  border: 'none',
-                  background: builderTab === 'demo' ? '#ffffff' : 'transparent',
-                  color: builderTab === 'demo' ? '#1d4ed8' : '#475569',
-                  padding: '7px 16px',
-                  borderRadius: '7px',
-                  fontSize: '13px',
-                  fontWeight: '800',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: builderTab === 'demo' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                }}
-              >
-                <span>📱</span>
-                <span>{isMr ? 'प्रत्यक्ष मोबाईल डेमो (Live Demo Preview)' : 'Live Mobile Demo'}</span>
-              </button>
-            </div>
+            {/* BUTTON 2: LIVE DEMO */}
+            <button
+              type="button"
+              onClick={() => setBuilderTab('demo')}
+              className={builderTab === 'demo' ? 'fb-tab-3d-active' : 'fb-tab-3d-inactive'}
+              style={{
+                width: '100%',
+                height: '38px',
+                padding: '0 6px',
+                fontSize: '12px',
+                fontWeight: '750',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '5px',
+                borderRadius: '9px',
+                whiteSpace: 'nowrap',
+                boxSizing: 'border-box',
+              }}
+            >
+              <span>📱</span>
+              <span>{isMr ? 'मोबाईल डेमो' : 'Mobile Demo'}</span>
+            </button>
 
-            {/* Quick Actions */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                onClick={() => setShowAddQuestionModal(true)}
-                style={{
-                  background: '#2563eb',
-                  color: '#ffffff',
-                  border: 'none',
-                  padding: '8px 14px',
-                  borderRadius: '8px',
-                  fontSize: '12.5px',
-                  fontWeight: '800',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}
-              >
-                <span>➕</span>
-                <span>{isMr ? 'प्रश्न जोडा' : 'Add Question'}</span>
-              </button>
+            {/* BUTTON 3: ADD QUESTION */}
+            <button
+              type="button"
+              onClick={() => setShowAddQuestionModal(true)}
+              className="fb-btn-3d-primary"
+              style={{
+                width: '100%',
+                height: '38px',
+                padding: '0 6px',
+                fontSize: '12px',
+                fontWeight: '750',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '5px',
+                borderRadius: '9px',
+                whiteSpace: 'nowrap',
+                boxSizing: 'border-box',
+              }}
+            >
+              <span>➕</span>
+              <span>{isMr ? 'प्रश्न जोडा' : 'Add Question'}</span>
+            </button>
 
-              <button
-                type="button"
-                disabled={savingForm || publishingForm}
-                onClick={handleSaveDraft}
-                style={{
-                  background: '#f8fafc',
-                  color: '#334155',
-                  border: '1.5px solid #cbd5e1',
-                  padding: '8px 13px',
-                  borderRadius: '8px',
-                  fontSize: '12.5px',
-                  fontWeight: '750',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                }}
-              >
-                <span>💾</span>
-                <span>{savingForm ? (isMr ? 'सेव्ह होत आहे...' : 'Saving...') : (isMr ? 'मसुदा सेव्ह करा' : 'Save Draft')}</span>
-              </button>
+            {/* BUTTON 4: SAVE DRAFT */}
+            <button
+              type="button"
+              disabled={savingForm || publishingForm}
+              onClick={handleSaveDraft}
+              className="fb-btn-3d-secondary"
+              style={{
+                width: '100%',
+                height: '38px',
+                padding: '0 6px',
+                fontSize: '12px',
+                fontWeight: '750',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '5px',
+                borderRadius: '9px',
+                whiteSpace: 'nowrap',
+                boxSizing: 'border-box',
+              }}
+            >
+              <span>💾</span>
+              <span>{savingForm ? (isMr ? 'सेव्ह होत आहे...' : 'Saving...') : (isMr ? 'मसुदा सेव्ह करा' : 'Save Draft')}</span>
+            </button>
 
-              <button
-                type="button"
-                disabled={publishingForm || savingForm}
-                onClick={handleConfirmPublish}
-                style={{
-                  background: 'linear-gradient(135deg, #15803d 0%, #16a34a 100%)',
-                  color: '#ffffff',
-                  border: 'none',
-                  padding: '8px 15px',
-                  borderRadius: '8px',
-                  fontSize: '12.5px',
-                  fontWeight: '850',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  boxShadow: '0 2px 8px rgba(22,163,74,0.3)',
-                }}
-              >
-                <span>🚀</span>
-                <span>{publishingForm ? (isMr ? 'सेव्ह होत आहे...' : 'Saving to DB...') : (isMr ? 'प्रकाशित करा (Save to DB)' : 'Publish to DB')}</span>
-              </button>
+            {/* BUTTON 5: PUBLISH TO DB */}
+            <button
+              type="button"
+              disabled={publishingForm || savingForm}
+              onClick={handleConfirmPublish}
+              className="fb-btn-3d-publish"
+              style={{
+                width: '100%',
+                height: '38px',
+                padding: '0 6px',
+                fontSize: '12px',
+                fontWeight: '750',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '5px',
+                borderRadius: '9px',
+                whiteSpace: 'nowrap',
+                boxSizing: 'border-box',
+              }}
+            >
+              <span>🚀</span>
+              <span>{publishingForm ? (isMr ? 'सेव्ह होत आहे...' : 'Saving...') : (isMr ? 'प्रकाशित करा' : 'Publish')}</span>
+            </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveView('published')}
-                style={{
-                  background: '#f1f5f9',
-                  color: '#1e293b',
-                  border: '1px solid #cbd5e1',
-                  padding: '8px 13px',
-                  borderRadius: '8px',
-                  fontSize: '12.5px',
-                  fontWeight: '750',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                }}
-              >
-                <span>📋</span>
-                <span>{isMr ? 'प्रकाशित फॉर्म यादी' : 'View Forms'}</span>
-              </button>
-            </div>
+            {/* BUTTON 6: VIEW FORMS LIST */}
+            <button
+              type="button"
+              onClick={() => setActiveView('published')}
+              className="fb-btn-3d-secondary"
+              style={{
+                width: '100%',
+                height: '38px',
+                padding: '0 6px',
+                fontSize: '12px',
+                fontWeight: '750',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '5px',
+                borderRadius: '9px',
+                whiteSpace: 'nowrap',
+                boxSizing: 'border-box',
+              }}
+            >
+              <span>📋</span>
+              <span>{isMr ? 'प्रकाशित फॉर्म यादी' : 'View Forms'}</span>
+            </button>
           </div>
 
           {/* SUB-VIEW: FORM DESIGNER */}
@@ -1834,23 +1955,15 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <button
                       type="button"
                       disabled={savingForm || publishingForm}
                       onClick={handleSaveDraft}
+                      className="fb-btn-3d-secondary"
                       style={{
-                        background: '#f8fafc',
-                        border: '1.5px solid #cbd5e1',
-                        color: '#334155',
-                        padding: '7px 15px',
-                        borderRadius: '8px',
+                        padding: '8px 16px',
                         fontSize: '12.5px',
-                        fontWeight: '750',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
                       }}
                     >
                       <span>💾</span>
@@ -1861,19 +1974,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                       type="button"
                       disabled={publishingForm || savingForm}
                       onClick={handleConfirmPublish}
+                      className="fb-btn-3d-publish"
                       style={{
-                        background: 'linear-gradient(135deg, #15803d 0%, #16a34a 100%)',
-                        color: '#ffffff',
-                        border: 'none',
-                        padding: '7px 16px',
-                        borderRadius: '8px',
+                        padding: '8px 18px',
                         fontSize: '12.5px',
-                        fontWeight: '850',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        boxShadow: '0 2px 6px rgba(22,163,74,0.25)',
                       }}
                     >
                       <span>🚀</span>
@@ -1907,7 +2011,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                       }}
                     />
                     <span style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px', display: 'block' }}>
-                      {isMr ? 'अधिकाऱ्यांना व ॲडमिनला इंग्रजी भाषेत दिसणारे नाव' : 'Visible to officers & admin in English'}
+                      {isMr ? 'कार्यकर्त्यांना व ॲडमिनला इंग्रजी भाषेत दिसणारे नाव' : 'Visible to workers & admin in English'}
                     </span>
                   </div>
 
@@ -1935,7 +2039,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                       }}
                     />
                     <span style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px', display: 'block' }}>
-                      {isMr ? 'अधिकाऱ्यांना व ॲडमिनला मराठी भाषेत दिसणारे नाव' : 'Visible to officers & admin in Marathi'}
+                      {isMr ? 'कार्यकर्त्यांना व ॲडमिनला मराठी भाषेत दिसणारे नाव' : 'Visible to workers & admin in Marathi'}
                     </span>
                   </div>
 
@@ -2025,7 +2129,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                       }}
                     />
                     <span style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px', display: 'block' }}>
-                      {isMr ? 'अधिकाऱ्यांना allocated कुटुंब संख्या' : 'Household target allocated for officers'}
+                      {isMr ? 'कार्यकर्त्यांना allocated कुटुंब संख्या' : 'Household target allocated for workers'}
                     </span>
                   </div>
                 </div>
@@ -2041,8 +2145,8 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                     />
                     <span style={{ fontSize: '13px', fontWeight: '750', color: '#1e293b' }}>
                       {isMr
-                        ? '✓ सर्व सक्रिय अधिकाऱ्यांना हा फॉर्म भरण्याचा अधिकार (Access) द्या'
-                        : '✓ Automatically grant form access to all active field officers in `published_form_users`'}
+                        ? '✓ सर्व सक्रिय कार्यकर्त्यांना हा फॉर्म भरण्याचा अधिकार (Access) द्या'
+                        : '✓ Automatically grant form access to all active field workers in `published_form_users`'}
                     </span>
                   </label>
                 </div>
@@ -2191,19 +2295,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                   <button
                     type="button"
                     onClick={() => setShowAddQuestionModal(true)}
+                    className="fb-btn-3d-primary"
                     style={{
-                      background: '#2563eb',
-                      color: '#ffffff',
-                      border: 'none',
                       padding: '9px 18px',
-                      borderRadius: '8px',
-                      fontSize: '13.5px',
-                      fontWeight: '850',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      boxShadow: '0 2px 6px rgba(37,99,235,0.25)',
+                      fontSize: '13px',
                     }}
                   >
                     <span>➕</span>
@@ -2233,15 +2328,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                     <button
                       type="button"
                       onClick={() => setShowAddQuestionModal(true)}
+                      className="fb-btn-3d-primary"
                       style={{
-                        background: '#2563eb',
-                        color: '#ffffff',
-                        border: 'none',
-                        padding: '10px 20px',
-                        borderRadius: '8px',
+                        padding: '10px 22px',
                         fontSize: '13px',
-                        fontWeight: '800',
-                        cursor: 'pointer',
                       }}
                     >
                       ➕ {isMr ? 'पहिला प्रश्न जोडा' : 'Add First Question'}
@@ -2312,15 +2402,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                         <button
                           type="button"
                           onClick={() => handleDeleteQuestion(q.id)}
+                          className="fb-btn-3d-danger"
                           style={{
-                            border: 'none',
-                            background: '#fee2e2',
-                            color: '#dc2626',
-                            padding: '7px 12px',
-                            borderRadius: '6px',
+                            padding: '7px 14px',
                             fontSize: '12px',
-                            fontWeight: '750',
-                            cursor: 'pointer',
                           }}
                         >
                           🗑️ {isMr ? 'हटवा' : 'Delete'}
@@ -2336,14 +2421,14 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                 style={{
                   background: '#ffffff',
                   border: '1.5px solid #cbd5e1',
-                  borderRadius: '12px',
+                  borderRadius: '14px',
                   padding: '16px 20px',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   flexWrap: 'wrap',
                   gap: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+                  boxShadow: '0 6px 16px rgba(15, 23, 42, 0.05)',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -2375,15 +2460,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                     type="button"
                     onClick={handleSaveDraft}
                     disabled={savingForm}
+                    className="fb-btn-3d-secondary"
                     style={{
-                      background: '#ffffff',
-                      color: '#334155',
-                      border: '1.5px solid #cbd5e1',
                       padding: '10px 18px',
-                      borderRadius: '8px',
                       fontSize: '13px',
-                      fontWeight: '800',
-                      cursor: 'pointer',
                     }}
                   >
                     💾 {savingForm ? (isMr ? 'सेव्ह होत आहे...' : 'Saving...') : (isMr ? 'मसुदा सेव्ह करा' : 'Save Draft')}
@@ -2393,19 +2473,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                     type="button"
                     disabled={publishingForm}
                     onClick={handleConfirmPublish}
+                    className="fb-btn-3d-publish"
                     style={{
-                      background: 'linear-gradient(135deg, #15803d 0%, #16a34a 100%)',
-                      color: '#ffffff',
-                      border: 'none',
                       padding: '10px 22px',
-                      borderRadius: '8px',
                       fontSize: '13.5px',
-                      fontWeight: '850',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      boxShadow: '0 4px 12px rgba(22,163,74,0.3)',
                     }}
                   >
                     <span>🚀</span>
@@ -2445,13 +2516,13 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '18px' }}>📱</span>
                     <strong style={{ fontSize: '14.5px', color: '#0f172a' }}>
-                      {isMr ? 'मोबाईल ॲप फॉर्म भरण्याचा प्रत्यक्ष डेमो (Live Officer View)' : 'Live Mobile Survey Form Filling Demo'}
+                      {isMr ? 'मोबाईल ॲप फॉर्म भरण्याचा प्रत्यक्ष डेमो (Live Worker View)' : 'Live Mobile Survey Form Filling Demo'}
                     </strong>
                   </div>
                   <p style={{ margin: '3px 0 0', fontSize: '12.5px', color: '#64748b' }}>
                     {isMr
-                      ? 'अधिकारी प्रत्यक्ष फील्डवर अशाच प्रकारे फॉर्म भरतील. खाली माहिती भरून चाचणी घ्या.'
-                      : 'This is the exact interactive form field officers fill in the mobile app. Test filling it below.'}
+                      ? 'कार्यकर्ते प्रत्यक्ष फील्डवर अशाच प्रकारे फॉर्म भरतील. खाली माहिती भरून चाचणी घ्या.'
+                      : 'This is the exact interactive form field workers fill in the mobile app. Test filling it below.'}
                   </p>
                 </div>
 
@@ -2459,15 +2530,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                   <button
                     type="button"
                     onClick={() => setBuilderTab('designer')}
+                    className="fb-btn-3d-secondary"
                     style={{
-                      background: '#ffffff',
-                      color: '#475569',
-                      border: '1px solid #cbd5e1',
-                      padding: '7px 14px',
-                      borderRadius: '7px',
+                      padding: '8px 16px',
                       fontSize: '12.5px',
-                      fontWeight: '750',
-                      cursor: 'pointer',
                     }}
                   >
                     ← {isMr ? 'रचना बदला (Edit Form)' : 'Back to Designer'}
@@ -2491,7 +2557,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '750', fontSize: '13.5px' }}>
                     <span>✓</span>
-                    <span>{isMr ? 'चाचणी यशस्वी! अधिकाऱ्यांना प्रत्यक्ष ॲपमध्ये हा फॉर्म असाच दिसेल.' : 'Demo submission recorded successfully!'}</span>
+                    <span>{isMr ? 'चाचणी यशस्वी! कार्यकर्त्यांना प्रत्यक्ष ॲपमध्ये हा फॉर्म असाच दिसेल.' : 'Demo submission recorded successfully!'}</span>
                   </div>
                   <button
                     type="button"
@@ -2598,18 +2664,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                     <button
                       type="button"
                       onClick={handleAddMember}
+                      className="fb-btn-3d-primary"
                       style={{
-                        background: '#2563eb',
-                        color: '#ffffff',
-                        border: 'none',
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        fontSize: '12.5px',
-                        fontWeight: '750',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '5px',
+                        padding: '6px 14px',
+                        fontSize: '12px',
                       }}
                     >
                       ➕ {isMr ? 'नवीन सदस्य जोडा (Add Member)' : 'Add Member'}
@@ -2620,9 +2678,8 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                     {demoForm.members.map((member, index) => (
                       <div
                         key={member.id}
+                        className="fb-card-3d"
                         style={{
-                          background: '#ffffff',
-                          border: '1px solid #cbd5e1',
                           borderRadius: '10px',
                           padding: '14px 16px',
                         }}
@@ -2636,7 +2693,11 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                             <button
                               type="button"
                               onClick={() => handleRemoveMember(member.id)}
-                              style={{ border: 'none', background: 'transparent', color: '#dc2626', fontSize: '12px', fontWeight: '750', cursor: 'pointer' }}
+                              className="fb-btn-3d-danger"
+                              style={{
+                                padding: '4px 10px',
+                                fontSize: '11.5px',
+                              }}
                             >
                               ✕ {isMr ? 'काढा' : 'Remove'}
                             </button>
@@ -2864,19 +2925,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '6px' }}>
                   <button
                     type="submit"
+                    className="fb-btn-3d-publish"
                     style={{
-                      background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)',
-                      color: '#ffffff',
-                      border: 'none',
-                      padding: '12px 26px',
-                      borderRadius: '9px',
+                      padding: '12px 28px',
                       fontSize: '14px',
-                      fontWeight: '850',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      boxShadow: '0 4px 12px rgba(22, 163, 74, 0.3)',
                     }}
                   >
                     <span>✓</span>
@@ -2906,22 +2958,16 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
           </h2>
           <p style={{ fontSize: '13.5px', color: '#64748b', maxWidth: '520px', margin: '0 auto 24px', lineHeight: '1.6' }}>
             {isMr
-              ? 'नवीन सर्व्हे फॉर्म तयार करा जो थेट published_forms डेटाबेस टेबलमध्ये सेव्ह होईल आणि अधिकाऱ्यांसाठी उपलब्ध होईल.'
-              : 'Create a survey form that saves directly into the `published_forms` database table and activates for field officers.'}
+              ? 'नवीन सर्व्हे फॉर्म तयार करा जो थेट published_forms डेटाबेस टेबलमध्ये सेव्ह होईल आणि कार्यकर्त्यांसाठी उपलब्ध होईल.'
+              : 'Create a survey form that saves directly into the `published_forms` database table and activates for field workers.'}
           </p>
           <button
             type="button"
             onClick={handleCreateNewForm}
+            className="fb-btn-3d-primary"
             style={{
-              background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
-              color: '#ffffff',
-              border: 'none',
-              padding: '12px 28px',
-              borderRadius: '9px',
+              padding: '12px 30px',
               fontSize: '14px',
-              fontWeight: '850',
-              cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(37,99,235,0.3)',
             }}
           >
             ➕ {isMr ? 'नवीन फॉर्म तयार करा (+ Create New Form)' : '+ Create New Form'}
@@ -2958,7 +3004,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
               </h2>
               <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
                 {isMr
-                  ? 'कोणत्याही प्रकल्पासाठी फॉर्म तयार करा किंवा थेट अधिकाऱ्यांसाठी प्रकाशित करा.'
+                  ? 'कोणत्याही प्रकल्पासाठी फॉर्म तयार करा किंवा थेट कार्यकर्त्यांसाठी प्रकाशित करा.'
                   : 'Select any created project to configure, design, or publish forms.'}
               </p>
             </div>
@@ -3073,7 +3119,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                           📍 {scopeTitle}
                         </span>
                         <span style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', padding: '3px 8px', borderRadius: '6px', fontSize: '11.5px', fontWeight: '650' }}>
-                          👥 {memberCount} {isMr ? 'अधिकारी' : 'Officers'}
+                          👥 {memberCount} {isMr ? 'कार्यकर्ते' : 'Workers'}
                         </span>
                       </div>
 
@@ -3086,19 +3132,11 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                       <button
                         type="button"
                         onClick={() => handleSelectProject(project, 'builder')}
+                        className="fb-btn-3d-primary"
                         style={{
-                          background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
-                          color: '#ffffff',
-                          border: 'none',
                           padding: '10px 14px',
-                          borderRadius: '8px',
                           fontSize: '13px',
-                          fontWeight: '850',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
                           justifyContent: 'center',
-                          gap: '6px',
                         }}
                       >
                         <span>✏️</span>
@@ -3112,21 +3150,11 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                           loadProjectFormConfig(project);
                           setShowPublishModal(true);
                         }}
+                        className={isPublished ? 'fb-btn-3d-publish' : 'fb-btn-3d-secondary'}
                         style={{
-                          background: isPublished
-                            ? 'linear-gradient(135deg, #15803d 0%, #16a34a 100%)'
-                            : '#ffffff',
-                          color: isPublished ? '#ffffff' : '#16a34a',
-                          border: isPublished ? 'none' : '1.5px solid #16a34a',
                           padding: '10px 14px',
-                          borderRadius: '8px',
                           fontSize: '13px',
-                          fontWeight: '850',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
                           justifyContent: 'center',
-                          gap: '6px',
                         }}
                       >
                         <span>🚀</span>
@@ -3164,23 +3192,25 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
             style={{
               background: '#ffffff',
               borderRadius: '16px',
-              maxWidth: '680px',
+              maxWidth: 'min(680px, 96vw)',
               width: '100%',
-              maxHeight: '85vh',
+              maxHeight: '90vh',
               display: 'flex',
               flexDirection: 'column',
               boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
               border: '1px solid #e2e8f0',
+              boxSizing: 'border-box',
+              overflow: 'hidden',
             }}
           >
             {/* Modal Header */}
             <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '17px', fontWeight: '850', color: '#0f172a' }}>
-                  👥 {isMr ? 'अधिकाऱ्यांना ॲक्सेस अधिकार द्या (Manage Officer Access)' : 'Manage Officer Access for Published Form'}
+                  👥 {isMr ? 'कार्यकर्त्यांना ॲक्सेस अधिकार द्या (Manage User Access)' : 'Manage User Access for Published Form'}
                 </h3>
                 <span style={{ fontSize: '12.5px', color: '#64748b' }}>
-                  📋 {selectedPublishedForm.form_title} • ({selectedAccessUserIds.length} {isMr ? 'अधिकारी निवडले' : 'officers selected'})
+                  📋 {selectedPublishedForm.form_title} • ({selectedAccessUserIds.length} {isMr ? 'कार्यकर्ते निवडले' : 'users selected'})
                 </span>
               </div>
               <button
@@ -3196,7 +3226,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
             <div style={{ padding: '12px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
               <input
                 type="text"
-                placeholder={isMr ? 'अधिकारी नाव, फोन किंवा ईमेलने शोधा...' : 'Search officer by name, phone or email...'}
+                placeholder={isMr ? 'कार्यकर्ता नाव, फोन किंवा ईमेलने शोधा...' : 'Search user by name, phone or email...'}
                 value={accessUserSearch}
                 onChange={(e) => setAccessUserSearch(e.target.value)}
                 style={{ flex: 1, minWidth: '220px', boxSizing: 'border-box', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
@@ -3206,15 +3236,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                 <button
                   type="button"
                   onClick={handleSelectAllUsers}
+                  className="fb-btn-3d-primary"
                   style={{
-                    background: '#eff6ff',
-                    color: '#1d4ed8',
-                    border: '1px solid #bfdbfe',
-                    padding: '6px 12px',
-                    borderRadius: '6px',
+                    padding: '6px 14px',
                     fontSize: '12px',
-                    fontWeight: '750',
-                    cursor: 'pointer',
                   }}
                 >
                   ✓ {isMr ? 'सर्व निवडा (Select All)' : 'Select All'}
@@ -3223,15 +3248,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                 <button
                   type="button"
                   onClick={handleDeselectAllUsers}
+                  className="fb-btn-3d-secondary"
                   style={{
-                    background: '#f8fafc',
-                    color: '#475569',
-                    border: '1px solid #cbd5e1',
-                    padding: '6px 12px',
-                    borderRadius: '6px',
+                    padding: '6px 14px',
                     fontSize: '12px',
-                    fontWeight: '750',
-                    cursor: 'pointer',
                   }}
                 >
                   ✕ {isMr ? 'सर्व काढा (Clear All)' : 'Clear All'}
@@ -3243,7 +3263,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
             <div style={{ padding: '16px 24px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {loadingAccessUsers ? (
                 <div style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
-                  {isMr ? 'अधिकारी लोड होत आहेत...' : 'Loading officers list...'}
+                  {isMr ? 'कार्यकर्ते लोड होत आहेत...' : 'Loading users list...'}
                 </div>
               ) : accessModalUsers.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
@@ -3278,7 +3298,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                           <input
                             type="checkbox"
                             checked={isChecked}
-                            onChange={() => {}}
+                            onChange={() => { }}
                             style={{ width: '17px', height: '17px', cursor: 'pointer' }}
                           />
                           <div>
@@ -3310,22 +3330,17 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
             {/* Modal Footer */}
             <div style={{ padding: '16px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '13px', color: '#475569', fontWeight: '750' }}>
-                {selectedAccessUserIds.length} {isMr ? 'अधिकाऱ्यांना ॲक्सेस मिळेल' : 'officers will have access'}
+                {selectedAccessUserIds.length} {isMr ? 'कार्यकर्त्यांना ॲक्सेस मिळेल' : 'workers will have access'}
               </span>
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button
                   type="button"
                   onClick={() => setShowUserAccessModal(false)}
+                  className="fb-btn-3d-secondary"
                   style={{
-                    background: '#f1f5f9',
-                    color: '#475569',
-                    border: '1px solid #cbd5e1',
                     padding: '9px 18px',
-                    borderRadius: '8px',
                     fontSize: '13px',
-                    fontWeight: '750',
-                    cursor: 'pointer',
                   }}
                 >
                   {isMr ? 'रद्द करा' : 'Cancel'}
@@ -3335,16 +3350,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                   type="button"
                   disabled={savingUserAccess}
                   onClick={handleSaveUserAccess}
+                  className="fb-btn-3d-primary"
                   style={{
-                    background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
-                    color: '#ffffff',
-                    border: 'none',
                     padding: '9px 22px',
-                    borderRadius: '8px',
                     fontSize: '13.5px',
-                    fontWeight: '850',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(37,99,235,0.25)',
                   }}
                 >
                   {savingUserAccess ? (isMr ? 'सेव्ह होत आहे...' : 'Saving...') : (isMr ? '💾 अधिकार सेव्ह करा (Save Access)' : 'Save Access')}
@@ -3378,13 +3387,15 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
             style={{
               background: '#ffffff',
               borderRadius: '16px',
-              maxWidth: '650px',
+              maxWidth: 'min(650px, 96vw)',
               width: '100%',
-              maxHeight: '85vh',
+              maxHeight: '90vh',
               display: 'flex',
               flexDirection: 'column',
               boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
               border: '1px solid #e2e8f0',
+              boxSizing: 'border-box',
+              overflow: 'hidden',
             }}
           >
             <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -3465,15 +3476,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
               <button
                 type="button"
                 onClick={() => setShowFormatModal(false)}
+                className="fb-btn-3d-secondary"
                 style={{
-                  background: '#f1f5f9',
-                  color: '#475569',
-                  border: '1px solid #cbd5e1',
-                  padding: '8px 18px',
-                  borderRadius: '8px',
+                  padding: '9px 20px',
                   fontSize: '13px',
-                  fontWeight: '750',
-                  cursor: 'pointer',
                 }}
               >
                 {isMr ? 'बंद करा' : 'Close'}
@@ -3506,11 +3512,14 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
             style={{
               background: '#ffffff',
               borderRadius: '16px',
-              maxWidth: '520px',
+              maxWidth: 'min(520px, 96vw)',
               width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
               padding: '24px',
               boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
               border: '1px solid #e2e8f0',
+              boxSizing: 'border-box',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -3531,8 +3540,8 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
 
             <p style={{ margin: '0 0 16px', fontSize: '13.5px', color: '#475569', lineHeight: 1.5 }}>
               {isMr
-                ? `तुम्ही "${selectedProject.name}" या प्रकल्पासाठीचा सर्व्हे फॉर्म प्रकाशित करत आहात. हा फॉर्म 'published_forms' टेबलमध्ये सेव्ह होईल आणि सर्व संबंधित अधिकाऱ्यांना थेट ॲक्सेस मिळेल.`
-                : `You are publishing the survey form for "${selectedProject.name}". It will be saved into the \`published_forms\` table and eligible officers will automatically receive access.`}
+                ? `तुम्ही "${selectedProject.name}" या प्रकल्पासाठीचा सर्व्हे फॉर्म प्रकाशित करत आहात. हा फॉर्म 'published_forms' टेबलमध्ये सेव्ह होईल आणि सर्व संबंधित कार्यकर्त्यांना थेट ॲक्सेस मिळेल.`
+                : `You are publishing the survey form for "${selectedProject.name}". It will be saved into the \`published_forms\` table and eligible workers will automatically receive access.`}
             </p>
 
             {/* Option for giving the name of form in Publish Modal */}
@@ -3593,7 +3602,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                 <div>📁 <strong>{isMr ? 'प्रकल्प:' : 'Project:'}</strong> {selectedProject.name}</div>
                 <div>✓ <strong>{isMr ? 'डीफॉल्ट माहिती:' : 'Default Fields:'}</strong> कुटुंब प्रमुख, एकूण मतदार, सर्व सदस्य (DOB, वय, Voter ID)</div>
                 <div>❓ <strong>{isMr ? 'अतिरिक्त प्रश्न:' : 'Custom Questions:'}</strong> {customQuestions.length} {isMr ? 'प्रश्न' : 'Questions'}</div>
-                <div>👥 <strong>{isMr ? 'अधिकारी ॲक्सेस:' : 'Eligible Officers:'}</strong> {selectedProject.assigned_member_count || selectedProject.assigned_members_count || 0} {isMr ? 'अधिकारी' : 'Officers'}</div>
+                <div>👥 <strong>{isMr ? 'कार्यकर्ते ॲक्सेस:' : 'Eligible Workers:'}</strong> {selectedProject.assigned_member_count || selectedProject.assigned_members_count || 0} {isMr ? 'कार्यकर्ते' : 'Workers'}</div>
               </div>
             </div>
 
@@ -3601,15 +3610,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
               <button
                 type="button"
                 onClick={() => setShowPublishModal(false)}
+                className="fb-btn-3d-secondary"
                 style={{
-                  background: '#f1f5f9',
-                  color: '#475569',
-                  border: '1px solid #cbd5e1',
                   padding: '9px 18px',
-                  borderRadius: '8px',
                   fontSize: '13px',
-                  fontWeight: '750',
-                  cursor: 'pointer',
                 }}
               >
                 {isMr ? 'रद्द करा (Cancel)' : 'Cancel'}
@@ -3618,19 +3622,10 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                 type="button"
                 disabled={publishingForm}
                 onClick={handleConfirmPublish}
+                className="fb-btn-3d-publish"
                 style={{
-                  background: 'linear-gradient(135deg, #15803d 0%, #16a34a 100%)',
-                  color: '#ffffff',
-                  border: 'none',
                   padding: '9px 24px',
-                  borderRadius: '8px',
                   fontSize: '13.5px',
-                  fontWeight: '850',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  boxShadow: '0 4px 12px rgba(22,163,74,0.3)',
                 }}
               >
                 <span>🚀</span>
@@ -3664,11 +3659,14 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
             style={{
               background: '#ffffff',
               borderRadius: '16px',
-              maxWidth: '560px',
+              maxWidth: 'min(560px, 96vw)',
               width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
               padding: '24px',
               boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
               border: '1px solid #e2e8f0',
+              boxSizing: 'border-box',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
@@ -3746,18 +3744,20 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                     onChange={(e) => setNewQuestion({ ...newQuestion, options_text: e.target.value })}
                     style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
                   />
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '6px' }}>
                     <button
                       type="button"
                       onClick={() => setNewQuestion({ ...newQuestion, options_text: 'होय, नाही, माहित नाही' })}
-                      style={{ border: '1px solid #cbd5e1', background: '#f8fafc', borderRadius: '4px', padding: '2px 8px', fontSize: '11px', cursor: 'pointer' }}
+                      className="fb-btn-3d-secondary"
+                      style={{ padding: '4px 10px', fontSize: '11.5px' }}
                     >
                       + होय, नाही, माहित नाही
                     </button>
                     <button
                       type="button"
                       onClick={() => setNewQuestion({ ...newQuestion, options_text: 'उत्तम, समाधानकारक, असमाधानकारक' })}
-                      style={{ border: '1px solid #cbd5e1', background: '#f8fafc', borderRadius: '4px', padding: '2px 8px', fontSize: '11px', cursor: 'pointer' }}
+                      className="fb-btn-3d-secondary"
+                      style={{ padding: '4px 10px', fontSize: '11.5px' }}
                     >
                       + उत्तम, समाधानकारक, असमाधानकारक
                     </button>
@@ -3781,13 +3781,15 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                 <button
                   type="button"
                   onClick={() => setShowAddQuestionModal(false)}
-                  style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '8px', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}
+                  className="fb-btn-3d-secondary"
+                  style={{ padding: '9px 18px', fontSize: '13px' }}
                 >
                   {isMr ? 'रद्द करा' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
-                  style={{ background: '#2563eb', color: '#ffffff', border: 'none', padding: '8px 20px', borderRadius: '8px', fontSize: '13px', fontWeight: '800', cursor: 'pointer' }}
+                  className="fb-btn-3d-primary"
+                  style={{ padding: '9px 22px', fontSize: '13px' }}
                 >
                   ✓ {isMr ? 'फॉर्ममध्ये जोडा' : 'Add to Form'}
                 </button>

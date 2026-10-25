@@ -22,6 +22,8 @@ class User extends Authenticatable
         'full_name',
         'email',
         'phone',
+        'aadhar_number',
+        'pan_number',
         'password_hash',
         'profile_photo',
         'status',

@@ -64,3 +64,6 @@ Thumbs.db
 /.cursor/
 /.nova
 /.zed
+
+# Officer App (handled in separate repository)
+Officer-app/

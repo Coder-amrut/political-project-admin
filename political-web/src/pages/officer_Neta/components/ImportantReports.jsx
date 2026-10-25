@@ -219,7 +219,7 @@ export default function ImportantReports({ lang = 'mr' }) {
       </div>
 
       {/* Row 1: Civic Issues Matrix & Demographics */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
         {/* Civic Issues Priority Matrix */}
         {civicIssuesList.length > 0 && (
           <div
@@ -336,7 +336,7 @@ export default function ImportantReports({ lang = 'mr' }) {
       </div>
 
       {/* Row 2: Govt Scheme Saturation & Strategic Booth Classification */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
         {/* Scheme Saturation */}
         {schemeList.length > 0 && (
           <div
@@ -425,8 +425,8 @@ export default function ImportantReports({ lang = 'mr' }) {
                   </div>
                   <div style={{ fontSize: '12px', color: '#334155', marginTop: '4px' }}>
                     {isMr
-                      ? 'तात्काळ अतिरिक्त अधिकारी पाठवून नागरिकांच्या स्थानिक तक्रारींचे निवारण करावे.'
-                      : 'Urgent deployment of reinforcement officers to redress grievances.'}
+                      ? 'तात्काळ अतिरिक्त कार्यकर्ते पाठवून नागरिकांच्या स्थानिक तक्रारींचे निवारण करावे.'
+                      : 'Urgent deployment of reinforcement karyakartas to redress grievances.'}
                   </div>
                 </div>
               )}

@@ -117,23 +117,11 @@ export default function PendingTasksManager({ lang = 'mr' }) {
         </div>
 
         <button
+          type="button"
           onClick={() => setShowAddModal(true)}
-          style={{
-            background: 'linear-gradient(135deg, #ea580c 0%, #f97316 100%)',
-            color: '#ffffff',
-            border: 'none',
-            padding: '10px 18px',
-            borderRadius: '8px',
-            fontSize: '13px',
-            fontWeight: '700',
-            cursor: 'pointer',
-            boxShadow: '0 4px 10px rgba(234, 88, 12, 0.25)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
+          className="btn-3d-blue"
         >
-          <span>＋</span> {isMr ? 'नवीन काम जोडा' : 'Add New Task'}
+          <span style={{ fontSize: '15px', fontWeight: '900' }}>＋</span> {isMr ? 'नवीन काम जोडा' : 'Add New Task'}
         </button>
       </div>
 
@@ -177,17 +165,9 @@ export default function PendingTasksManager({ lang = 'mr' }) {
           ].map((tab) => (
             <button
               key={tab.key}
+              type="button"
               onClick={() => setFilterStatus(tab.key)}
-              style={{
-                padding: '7px 14px',
-                borderRadius: '20px',
-                fontSize: '12px',
-                fontWeight: '700',
-                cursor: 'pointer',
-                border: filterStatus === tab.key ? 'none' : '1px solid #cbd5e1',
-                background: filterStatus === tab.key ? (tab.key === 'urgent' ? '#dc2626' : '#1e3a8a') : '#ffffff',
-                color: filterStatus === tab.key ? '#ffffff' : '#475569',
-              }}
+              className={`pill-3d-box ${filterStatus === tab.key ? 'active' : 'inactive'}`}
             >
               {isMr ? tab.label_mr : tab.label_en}
             </button>
@@ -379,8 +359,11 @@ export default function PendingTasksManager({ lang = 'mr' }) {
             style={{
               background: '#ffffff',
               borderRadius: '16px',
-              maxWidth: '540px',
+              maxWidth: 'min(540px, 96vw)',
               width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxSizing: 'border-box',
               padding: '24px',
               boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)',
             }}
@@ -449,12 +432,12 @@ export default function PendingTasksManager({ lang = 'mr' }) {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#475569', marginBottom: '4px' }}>
-                    {isMr ? 'जबाबदार अधिकारी *' : 'Assigned Officer *'}
+                    {isMr ? 'जबाबदार कार्यकर्ता / अधिकारी *' : 'Assigned To *'}
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder={isMr ? 'उदा. सचिन पाटील' : 'Name of officer'}
+                    placeholder={isMr ? 'उदा. सचिन पाटील' : 'Name of worker'}
                     value={newTaskForm.assigned_to}
                     onChange={(e) => setNewTaskForm({ ...newTaskForm, assigned_to: e.target.value })}
                     style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}

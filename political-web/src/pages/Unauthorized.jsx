@@ -17,7 +17,6 @@ function Unauthorized() {
     const roles = user?.roles || [];
     if (roles.includes(RoleName.ADMIN)) return '/admin';
     if (roles.includes(RoleName.OFFICER)) return '/officer';
-    if (roles.includes(RoleName.WORKER)) return '/worker';
     return '/';
   };
 

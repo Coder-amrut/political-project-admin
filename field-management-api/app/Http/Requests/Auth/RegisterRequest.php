@@ -19,9 +19,11 @@ class RegisterRequest extends FormRequest
             'full_name'             => ['required', 'string', 'max:150'],
             'phone'                 => ['required', 'string', 'max:20', 'unique:users,phone'],
             'email'                 => ['nullable', 'email', 'max:150', 'unique:users,email'],
-            'password'              => ['required', 'confirmed', Password::min(8)->mixedCase()->numbers()],
+            'aadhar_number'         => ['nullable', 'string', 'max:25'],
+            'pan_number'            => ['nullable', 'string', 'max:20'],
+            'password'              => ['required', 'confirmed', Password::min(6)],
             'password_confirmation' => ['required'],
-            'role'                  => ['required', 'string', 'in:' . implode(',', RoleName::publicRegistrable())],
+            'role'                  => ['nullable', 'string'],
         ];
     }
 

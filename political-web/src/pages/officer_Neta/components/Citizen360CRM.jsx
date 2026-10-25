@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { netaApi } from '../api/netaApi';
+import ResponsiveSelect from '../../../components/ResponsiveSelect';
 
 export default function Citizen360CRM({ lang = 'mr' }) {
   const isMr = lang === 'mr';
@@ -247,8 +248,235 @@ export default function Citizen360CRM({ lang = 'mr' }) {
     );
   };
 
+  const boothOptions = [
+    { value: 'all', label: isMr ? 'सर्व बूथ' : 'All Booths' },
+    { value: 'बूथ क्र. १', label: isMr ? 'बूथ क्र. १ (माधवनगर पूर्व)' : 'Booth No. 1 (Madhavnagar East)' },
+    { value: 'बूथ क्र. २', label: isMr ? 'बूथ क्र. २ (माधवनगर पश्चिम)' : 'Booth No. 2 (Madhavnagar West)' },
+    { value: 'बूथ क्र. ३', label: isMr ? 'बूथ क्र. ३ (वसंत कॉलनी)' : 'Booth No. 3 (Vasant Colony)' },
+    { value: 'बूथ क्र. ४', label: isMr ? 'बूथ क्र. ४ (गावभाग)' : 'Booth No. 4 (Gavbhag)' },
+    { value: 'बूथ क्र. ५', label: isMr ? 'बूथ क्र. ५ (कुपवाड)' : 'Booth No. 5 (Kupwad)' },
+  ];
+
+  const sentimentOptions = [
+    { value: 'all', label: isMr ? 'सर्व राजकीय कल' : 'All Sentiments' },
+    { value: 'anukul', label: `🟢 ${isMr ? 'अनुकूल' : 'Supportive'}` },
+    { value: 'tatstha', label: `🟡 ${isMr ? 'तटस्थ' : 'Neutral'}` },
+    { value: 'virodhak', label: `🔴 ${isMr ? 'विरोधी' : 'Opposition'}` },
+  ];
+
+  const categoryOptions = [
+    { value: 'all', label: isMr ? 'सर्व प्रवर्ग' : 'All Categories' },
+    { value: 'influencer', label: isMr ? 'स्थानिक वजनदार व्यक्ती' : 'Influencers' },
+    { value: 'loyal_supporter', label: isMr ? 'निष्ठावान कार्यकर्ते व समर्थक' : 'Loyal Supporters' },
+    { value: 'youth', label: isMr ? 'युवा व प्रथम मतदार' : 'Youth Voters' },
+    { value: 'senior', label: isMr ? 'ज्येष्ठ नागरिक' : 'Senior Citizens' },
+  ];
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+    <div className="crm-container" style={{ display: 'flex', flexDirection: 'column', gap: '22px', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
+      <style>{`
+        /* Modal Overlay & Responsive Boxes */
+        .crm-modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(15, 23, 42, 0.65);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+          padding: 20px;
+          backdrop-filter: blur(2px);
+          box-sizing: border-box;
+        }
+        .crm-profile-modal-box {
+          background: #ffffff;
+          border-radius: 16px;
+          width: 100%;
+          max-width: 850px;
+          max-height: 90vh;
+          overflow-y: auto;
+          overflow-x: hidden;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+        }
+        .crm-modal-header {
+          padding: 20px 24px;
+          border-bottom: 1px solid #e2e8f0;
+          background: #f8fafc;
+          border-top-left-radius: 16px;
+          border-top-right-radius: 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
+          box-sizing: border-box;
+          width: 100%;
+        }
+        .crm-avatar {
+          width: 54px;
+          height: 54px;
+          border-radius: 27px;
+          background: #dbeafe;
+          color: #1d4ed8;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 22px;
+          font-weight: 800;
+          border: 2px solid #bfdbfe;
+          flex-shrink: 0;
+        }
+        .crm-profile-tabs {
+          display: flex;
+          border-bottom: 1px solid #e2e8f0;
+          background: #ffffff;
+          padding: 0 20px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          -webkit-overflow-scrolling: touch;
+          white-space: nowrap;
+          scrollbar-width: none;
+          box-sizing: border-box;
+          width: 100%;
+        }
+        .crm-profile-tabs::-webkit-scrollbar {
+          display: none;
+        }
+        .crm-tab-btn {
+          padding: 13px 18px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 13px;
+          white-space: nowrap;
+          flex-shrink: 0;
+          user-select: none;
+        }
+        .crm-info-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 14px;
+          box-sizing: border-box;
+          width: 100%;
+        }
+        .crm-info-col-span-2 {
+          grid-column: span 2;
+        }
+        .crm-tab-body {
+          padding: 22px 24px;
+          flex: 1;
+          box-sizing: border-box;
+          width: 100%;
+          overflow-x: hidden;
+        }
+        .crm-desktop-table {
+          display: block;
+        }
+        .crm-mobile-cards {
+          display: none;
+        }
+        .crm-form-modal-box {
+          background: #ffffff;
+          border-radius: 16px;
+          width: 100%;
+          max-width: 620px;
+          max-height: 90vh;
+          overflow-y: auto;
+          overflow-x: hidden;
+          padding: 24px;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+          box-sizing: border-box;
+        }
+        .crm-form-2col {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+          box-sizing: border-box;
+          width: 100%;
+        }
+
+        /* Mobile & Tablet Breakpoint (<= 768px) */
+        @media (max-width: 768px) {
+          .crm-modal-overlay {
+            padding: 8px !important;
+            align-items: center !important;
+          }
+          .crm-profile-modal-box {
+            max-height: 95vh !important;
+            border-radius: 14px !important;
+            width: 100% !important;
+            margin: 0 !important;
+          }
+          .crm-modal-header {
+            padding: 14px 12px !important;
+            gap: 10px !important;
+          }
+          .crm-avatar {
+            width: 44px !important;
+            height: 44px !important;
+            border-radius: 22px !important;
+            font-size: 18px !important;
+          }
+          .crm-modal-title {
+            font-size: 16px !important;
+            line-height: 1.3 !important;
+          }
+          .crm-profile-tabs {
+            padding: 0 4px !important;
+          }
+          .crm-tab-btn {
+            padding: 10px 12px !important;
+            font-size: 12px !important;
+            gap: 4px !important;
+          }
+          .crm-tab-body {
+            padding: 14px 10px !important;
+          }
+          .crm-info-grid {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+          }
+          .crm-info-col-span-2 {
+            grid-column: span 1 !important;
+          }
+          .crm-desktop-table {
+            display: none !important;
+          }
+          .crm-mobile-cards {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+            padding: 10px !important;
+          }
+          .crm-filter-bar {
+            padding: 12px 10px !important;
+            gap: 8px !important;
+          }
+          .crm-filter-bar > * {
+            width: 100% !important;
+            flex: 1 1 100% !important;
+          }
+          .crm-form-modal-box {
+            padding: 16px 12px !important;
+            max-height: 94vh !important;
+            border-radius: 14px !important;
+          }
+          .crm-form-2col {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+          }
+        }
+      `}</style>
+
       {/* Toast Notification */}
       {toastMsg && (
         <div
@@ -270,10 +498,9 @@ export default function Citizen360CRM({ lang = 'mr' }) {
         </div>
       )}
 
-
-
       {/* Filter & Search Bar */}
       <div
+        className="crm-filter-bar"
         style={{
           background: '#ffffff',
           borderRadius: '12px',
@@ -283,6 +510,8 @@ export default function Citizen360CRM({ lang = 'mr' }) {
           gap: '12px',
           flexWrap: 'wrap',
           alignItems: 'center',
+          boxSizing: 'border-box',
+          width: '100%',
         }}
       >
         <div style={{ flex: '1 1 260px', position: 'relative' }}>
@@ -303,41 +532,35 @@ export default function Citizen360CRM({ lang = 'mr' }) {
           />
         </div>
 
-        <select
-          value={boothFilter}
-          onChange={(e) => setBoothFilter(e.target.value)}
-          style={{ padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', outline: 'none', background: '#ffffff' }}
-        >
-          <option value="all">{isMr ? 'सर्व बूथ' : 'All Booths'}</option>
-          <option value="बूथ क्र. १">{isMr ? 'बूथ क्र. १ (माधवनगर पूर्व)' : 'Booth No. 1 (Madhavnagar East)'}</option>
-          <option value="बूथ क्र. २">{isMr ? 'बूथ क्र. २ (माधवनगर पश्चिम)' : 'Booth No. 2 (Madhavnagar West)'}</option>
-          <option value="बूथ क्र. ३">{isMr ? 'बूथ क्र. ३ (वसंत कॉलनी)' : 'Booth No. 3 (Vasant Colony)'}</option>
-          <option value="बूथ क्र. ४">{isMr ? 'बूथ क्र. ४ (गावभाग)' : 'Booth No. 4 (Gavbhag)'}</option>
-          <option value="बूथ क्र. ५">{isMr ? 'बूथ क्र. ५ (कुपवाड)' : 'Booth No. 5 (Kupwad)'}</option>
-        </select>
+        <div style={{ flex: '1 1 180px', minWidth: '150px' }}>
+          <ResponsiveSelect
+            value={boothFilter}
+            onChange={(e) => setBoothFilter(e.target.value)}
+            options={boothOptions}
+            isMr={isMr}
+            placeholder={isMr ? 'सर्व बूथ' : 'All Booths'}
+          />
+        </div>
 
-        <select
-          value={sentimentFilter}
-          onChange={(e) => setSentimentFilter(e.target.value)}
-          style={{ padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', outline: 'none', background: '#ffffff' }}
-        >
-          <option value="all">{isMr ? 'सर्व राजकीय कल' : 'All Sentiments'}</option>
-          <option value="anukul">🟢 {isMr ? 'अनुकूल' : 'Supportive'}</option>
-          <option value="tatstha">🟡 {isMr ? 'तटस्थ' : 'Neutral'}</option>
-          <option value="virodhak">🔴 {isMr ? 'विरोधी' : 'Opposition'}</option>
-        </select>
+        <div style={{ flex: '1 1 170px', minWidth: '150px' }}>
+          <ResponsiveSelect
+            value={sentimentFilter}
+            onChange={(e) => setSentimentFilter(e.target.value)}
+            options={sentimentOptions}
+            isMr={isMr}
+            placeholder={isMr ? 'सर्व राजकीय कल' : 'All Sentiments'}
+          />
+        </div>
 
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          style={{ padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', outline: 'none', background: '#ffffff' }}
-        >
-          <option value="all">{isMr ? 'सर्व प्रवर्ग' : 'All Categories'}</option>
-          <option value="influencer">{isMr ? 'स्थानिक वजनदार व्यक्ती' : 'Influencers'}</option>
-          <option value="loyal_supporter">{isMr ? 'निष्ठावान पदाधिकारी व समर्थक' : 'Loyal Supporters'}</option>
-          <option value="youth">{isMr ? 'युवा व प्रथम मतदार' : 'Youth Voters'}</option>
-          <option value="senior">{isMr ? 'ज्येष्ठ नागरिक' : 'Senior Citizens'}</option>
-        </select>
+        <div style={{ flex: '1 1 170px', minWidth: '150px' }}>
+          <ResponsiveSelect
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            options={categoryOptions}
+            isMr={isMr}
+            placeholder={isMr ? 'सर्व प्रवर्ग' : 'All Categories'}
+          />
+        </div>
       </div>
 
       {/* Main Citizens Table */}
@@ -360,23 +583,11 @@ export default function Citizen360CRM({ lang = 'mr' }) {
             </span>
           </div>
           <button
+            type="button"
             onClick={() => setShowAddCitizenModal(true)}
-            style={{
-              background: '#1d4ed8',
-              color: '#ffffff',
-              border: 'none',
-              padding: '9px 16px',
-              borderRadius: '8px',
-              fontSize: '13px',
-              fontWeight: '700',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              boxShadow: '0 2px 6px rgba(29, 78, 216, 0.25)',
-            }}
+            className="btn-3d-blue"
           >
-            ➕ {isMr ? 'नवीन नागरिक / मतदार जोडा' : 'Add New Citizen'}
+            <span style={{ fontSize: '15px', fontWeight: '900' }}>＋</span> {isMr ? 'नवीन नागरिक / मतदार जोडा' : 'Add New Citizen'}
           </button>
         </div>
 
@@ -389,165 +600,188 @@ export default function Citizen360CRM({ lang = 'mr' }) {
             {isMr ? 'कोणतेही संपर्क सापडले नाहीत.' : 'No citizen contacts match filters.'}
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-              <thead>
-                <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '12px' }}>
-                  <th style={{ padding: '12px 16px' }}>{isMr ? 'नाव व ओळख' : 'Name & Identity'}</th>
-                  <th style={{ padding: '12px 16px' }}>{isMr ? 'मोबाईल / संपर्क' : 'Mobile / Contact'}</th>
-                  <th style={{ padding: '12px 16px' }}>{isMr ? 'बूथ व परिसर' : 'Booth & Area'}</th>
-                  <th style={{ padding: '12px 16px' }}>{isMr ? 'जबाबदार अधिकारी' : 'Assigned Officer'}</th>
-                  <th style={{ padding: '12px 16px', textAlign: 'right' }}>{isMr ? 'कृती' : 'Actions'}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {citizens.map((c) => (
-                  <tr
-                    key={c.id}
-                    onClick={() => loadCitizenProfile(c.id)}
-                    style={{
-                      borderBottom: '1px solid #f1f5f9',
-                      cursor: 'pointer',
-                      transition: 'background 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = '#ffffff')}
-                  >
-                    <td style={{ padding: '14px 16px' }}>
-                      <div style={{ fontWeight: '700', color: '#0f172a' }}>{c.full_name_mr}</div>
-                      <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                        EPIC: <span style={{ fontFamily: 'monospace', fontWeight: '600' }}>{c.voter_id_number || 'N/A'}</span> • {c.age} {isMr ? 'वर्षे' : 'yrs'}, {c.gender === 'male' ? (isMr ? 'पुरुष' : 'Male') : (isMr ? 'महिला' : 'Female')}
-                      </div>
-                    </td>
-
-                    <td style={{ padding: '14px 16px' }}>
-                      <div style={{ fontWeight: '600', color: '#1e293b' }}>📞 {c.phone || '-'}</div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>
-                        {isMr ? `कुटुंब: ${c.family_members_count} सदस्य` : `Family: ${c.family_members_count} members`}
-                      </div>
-                    </td>
-
-                    <td style={{ padding: '14px 16px' }}>
-                      <div style={{ fontWeight: '600', color: '#1e293b' }}>{c.booth_no}</div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>{c.village_mr}</div>
-                    </td>
-
-                    <td style={{ padding: '14px 16px' }}>
-                      <div style={{ fontWeight: '600', color: '#334155' }}>👤 {c.assigned_worker_name || (isMr ? 'नेमलेला नाही' : 'Unassigned')}</div>
-                      <div style={{ fontSize: '11px', color: '#64748b' }}>{c.assigned_worker_phone || ''}</div>
-                    </td>
-
-                    <td style={{ padding: '14px 16px', textAlign: 'right' }}>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          loadCitizenProfile(c.id);
-                        }}
-                        style={{
-                          background: '#eff6ff',
-                          color: '#1d4ed8',
-                          border: '1px solid #bfdbfe',
-                          padding: '6px 12px',
-                          borderRadius: '6px',
-                          fontSize: '12px',
-                          fontWeight: '700',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {isMr ? '३६०° प्रोफाइल' : 'View 360°'}
-                      </button>
-                    </td>
+          <>
+            {/* Desktop Table View (Screens > 640px) */}
+            <div className="crm-desktop-table" style={{ overflowX: 'auto', width: '100%' }}>
+              <table style={{ width: '100%', minWidth: '650px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontSize: '12px' }}>
+                    <th style={{ padding: '12px 16px' }}>{isMr ? 'नाव व ओळख' : 'Name & Identity'}</th>
+                    <th style={{ padding: '12px 16px' }}>{isMr ? 'मोबाईल / संपर्क' : 'Mobile / Contact'}</th>
+                    <th style={{ padding: '12px 16px' }}>{isMr ? 'बूथ व परिसर' : 'Booth & Area'}</th>
+                    <th style={{ padding: '12px 16px' }}>{isMr ? 'जबाबदार कार्यकर्ता' : 'Assigned Worker'}</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'right' }}>{isMr ? 'कृती' : 'Actions'}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {citizens.map((c) => (
+                    <tr
+                      key={c.id}
+                      onClick={() => loadCitizenProfile(c.id)}
+                      style={{
+                        borderBottom: '1px solid #f1f5f9',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = '#ffffff')}
+                    >
+                      <td style={{ padding: '14px 16px' }}>
+                        <div style={{ fontWeight: '700', color: '#0f172a' }}>{c.full_name_mr}</div>
+                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                          EPIC: <span style={{ fontFamily: 'monospace', fontWeight: '600' }}>{c.voter_id_number || 'N/A'}</span> • {c.age} {isMr ? 'वर्षे' : 'yrs'}, {c.gender === 'male' ? (isMr ? 'पुरुष' : 'Male') : (isMr ? 'महिला' : 'Female')}
+                        </div>
+                      </td>
+
+                      <td style={{ padding: '14px 16px' }}>
+                        <div style={{ fontWeight: '600', color: '#1e293b' }}>📞 {c.phone || '-'}</div>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>
+                          {isMr ? `कुटुंब: ${c.family_members_count} सदस्य` : `Family: ${c.family_members_count} members`}
+                        </div>
+                      </td>
+
+                      <td style={{ padding: '14px 16px' }}>
+                        <div style={{ fontWeight: '600', color: '#1e293b' }}>{c.booth_no}</div>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>{c.village_mr}</div>
+                      </td>
+
+                      <td style={{ padding: '14px 16px' }}>
+                        <div style={{ fontWeight: '600', color: '#334155' }}>👤 {c.assigned_worker_name || (isMr ? 'नेमलेला नाही' : 'Unassigned')}</div>
+                        <div style={{ fontSize: '11px', color: '#64748b' }}>{c.assigned_worker_phone || ''}</div>
+                      </td>
+
+                      <td style={{ padding: '14px 16px', textAlign: 'right' }}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            loadCitizenProfile(c.id);
+                          }}
+                          style={{
+                            background: '#eff6ff',
+                            color: '#1d4ed8',
+                            border: '1px solid #bfdbfe',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {isMr ? '३६०° प्रोफाइल' : 'View 360°'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards View (Screens <= 640px) */}
+            <div className="crm-mobile-cards">
+              {citizens.map((c) => (
+                <div
+                  key={c.id}
+                  onClick={() => loadCitizenProfile(c.id)}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '10px',
+                    padding: '12px 14px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                    cursor: 'pointer',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: '750', color: '#0f172a', fontSize: '14px' }}>{c.full_name_mr}</span>
+                      {getSentimentBadge(c.sentiment)}
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        loadCitizenProfile(c.id);
+                      }}
+                      style={{
+                        background: '#eff6ff',
+                        color: '#1d4ed8',
+                        border: '1px solid #bfdbfe',
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        fontSize: '11.5px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {isMr ? '३६०° प्रोफाइल' : '360°'}
+                    </button>
+                  </div>
+
+                  <div style={{ fontSize: '11.5px', color: '#64748b' }}>
+                    EPIC: <span style={{ fontFamily: 'monospace', fontWeight: '600', color: '#1e293b' }}>{c.voter_id_number || 'N/A'}</span> • {c.age} {isMr ? 'वर्षे' : 'yrs'}, {c.gender === 'male' ? (isMr ? 'पुरुष' : 'Male') : (isMr ? 'महिला' : 'Female')}
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', paddingTop: '4px', borderTop: '1px solid #f8fafc' }}>
+                    <a
+                      href={c.phone ? `tel:${c.phone}` : undefined}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ color: '#2563eb', textDecoration: 'none', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      📞 {c.phone || (isMr ? 'फोन नाही' : 'No Phone')}
+                    </a>
+                    <span style={{ color: '#64748b' }}>
+                      📍 {c.booth_no}
+                    </span>
+                  </div>
+
+                  {c.assigned_worker_name && (
+                    <div style={{ fontSize: '11.5px', color: '#475569', paddingTop: '2px' }}>
+                      👤 {isMr ? 'कार्यकर्ता:' : 'Worker:'} <strong>{c.assigned_worker_name}</strong>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
       {/* CITIZEN 360° PROFILE MODAL / DRAWER */}
       {selectedCitizenId && (
         <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(15, 23, 42, 0.65)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1000,
-            padding: '20px',
-            backdropFilter: 'blur(2px)',
-          }}
+          className="crm-modal-overlay"
           onClick={() => setSelectedCitizenId(null)}
         >
           <div
-            style={{
-              background: '#ffffff',
-              borderRadius: '16px',
-              width: '100%',
-              maxWidth: '850px',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
+            className="crm-profile-modal-box"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             {citizenDetail ? (
               <>
-                <div
-                  style={{
-                    padding: '24px',
-                    borderBottom: '1px solid #e2e8f0',
-                    background: '#f8fafc',
-                    borderTopLeftRadius: '16px',
-                    borderTopRightRadius: '16px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    gap: '16px',
-                  }}
-                >
-                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                    <div
-                      style={{
-                        width: '56px',
-                        height: '56px',
-                        borderRadius: '28px',
-                        background: '#dbeafe',
-                        color: '#1d4ed8',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '22px',
-                        fontWeight: '800',
-                        border: '2px solid #bfdbfe',
-                      }}
-                    >
+                <div className="crm-modal-header">
+                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center', minWidth: 0, flex: 1 }}>
+                    <div className="crm-avatar">
                       {citizenDetail.citizen.full_name_mr.charAt(0)}
                     </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#0f172a' }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <h2 className="crm-modal-title" style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#0f172a', wordBreak: 'break-word' }}>
                           {citizenDetail.citizen.full_name_mr}
                         </h2>
                         {getSentimentBadge(citizenDetail.citizen.sentiment)}
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', wordBreak: 'break-word', lineHeight: 1.4 }}>
                         EPIC: <strong style={{ color: '#1e293b' }}>{citizenDetail.citizen.voter_id_number}</strong> •{' '}
                         {citizenDetail.citizen.booth_no} • {citizenDetail.citizen.village_mr}
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
                     {citizenDetail.citizen.phone && (
                       <a
                         href={`tel:${citizenDetail.citizen.phone}`}
@@ -555,14 +789,15 @@ export default function Citizen360CRM({ lang = 'mr' }) {
                           background: '#ecfdf5',
                           color: '#059669',
                           border: '1px solid #a7f3d0',
-                          padding: '7px 14px',
+                          padding: '7px 12px',
                           borderRadius: '8px',
                           fontSize: '12px',
                           fontWeight: '700',
                           textDecoration: 'none',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '6px',
+                          gap: '4px',
+                          whiteSpace: 'nowrap',
                         }}
                       >
                         📞 {isMr ? 'कॉल करा' : 'Call'}
@@ -582,15 +817,17 @@ export default function Citizen360CRM({ lang = 'mr' }) {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        flexShrink: 0,
                       }}
+                      title={isMr ? 'बंद करा' : 'Close'}
                     >
                       ✕
                     </button>
                   </div>
                 </div>
 
-                {/* Profile Tabs */}
-                <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', background: '#ffffff', padding: '0 24px' }}>
+                {/* Profile Tabs (Horizontally Scrollable on Mobile) */}
+                <div className="crm-profile-tabs">
                   {[
                     { key: 'info', label: isMr ? 'मूलभूत माहिती व कुटुंब' : 'Basic Info & Family', icon: '👤' },
                     { key: 'interactions', label: isMr ? `संपर्क व भेटी इतिहास (${citizenDetail.interactions.length})` : `Interactions (${citizenDetail.interactions.length})`, icon: '📋' },
@@ -599,19 +836,13 @@ export default function Citizen360CRM({ lang = 'mr' }) {
                   ].map((tab) => (
                     <button
                       key={tab.key}
+                      type="button"
+                      className="crm-tab-btn"
                       onClick={() => setActiveProfileTab(tab.key)}
                       style={{
-                        padding: '14px 18px',
-                        background: 'none',
-                        border: 'none',
                         borderBottom: activeProfileTab === tab.key ? '2px solid #1d4ed8' : '2px solid transparent',
                         color: activeProfileTab === tab.key ? '#1d4ed8' : '#64748b',
                         fontWeight: activeProfileTab === tab.key ? '700' : '600',
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
                       }}
                     >
                       <span>{tab.icon}</span>
@@ -621,56 +852,56 @@ export default function Citizen360CRM({ lang = 'mr' }) {
                 </div>
 
                 {/* Tab Content */}
-                <div style={{ padding: '24px', flex: 1 }}>
+                <div className="crm-tab-body">
                   {/* TAB 1: BASIC INFO */}
                   {activeProfileTab === 'info' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-                        <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <div className="crm-info-grid">
+                        <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', boxSizing: 'border-box' }}>
                           <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>{isMr ? 'मोबाईल नंबर' : 'Mobile Number'}</span>
-                          <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginTop: '2px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginTop: '2px', wordBreak: 'break-word' }}>
                             {citizenDetail.citizen.phone || (isMr ? 'नोंद नाही' : 'Not Recorded')}
                           </div>
                         </div>
 
-                        <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', boxSizing: 'border-box' }}>
                           <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>{isMr ? 'वय व लिंग' : 'Age & Gender'}</span>
-                          <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginTop: '2px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginTop: '2px', wordBreak: 'break-word' }}>
                             {citizenDetail.citizen.age} {isMr ? 'वर्षे' : 'yrs'} • {citizenDetail.citizen.gender === 'male' ? (isMr ? 'पुरुष' : 'Male') : (isMr ? 'महिला' : 'Female')}
                           </div>
                         </div>
 
-                        <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', boxSizing: 'border-box' }}>
                           <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>{isMr ? 'व्यवसाय / संवर्ग' : 'Occupation / Category'}</span>
-                          <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginTop: '2px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginTop: '2px', wordBreak: 'break-word' }}>
                             {citizenDetail.citizen.occupation_mr || (isMr ? 'नागरिक' : 'Citizen')}
                           </div>
                         </div>
 
-                        <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', boxSizing: 'border-box' }}>
                           <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>{isMr ? 'कुटुंब प्रमुख व सदस्य' : 'Family Head & Members'}</span>
-                          <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginTop: '2px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginTop: '2px', wordBreak: 'break-word' }}>
                             {citizenDetail.citizen.family_head_name} ({citizenDetail.citizen.family_members_count} {isMr ? 'सदस्य' : 'members'})
                           </div>
                         </div>
 
-                        <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', gridColumn: 'span 2' }}>
+                        <div className="crm-info-col-span-2" style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', boxSizing: 'border-box' }}>
                           <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>{isMr ? 'पत्ता व मतदारसंघ' : 'Address & Constituency'}</span>
-                          <div style={{ fontSize: '14px', fontWeight: '600', color: '#0f172a', marginTop: '2px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '600', color: '#0f172a', marginTop: '2px', wordBreak: 'break-word', lineHeight: 1.4 }}>
                             📍 {citizenDetail.citizen.address_mr}, {citizenDetail.citizen.village_mr}, {citizenDetail.citizen.assembly_mr}
                           </div>
                         </div>
 
-                        <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                          <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>{isMr ? 'जबाबदार अधिकारी' : 'Assigned Officer'}</span>
-                          <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginTop: '2px' }}>
+                        <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', boxSizing: 'border-box' }}>
+                          <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>{isMr ? 'जबाबदार कार्यकर्ता' : 'Assigned Worker'}</span>
+                          <div style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', marginTop: '2px', wordBreak: 'break-word' }}>
                             👤 {citizenDetail.citizen.assigned_worker_name || (isMr ? 'नेमलेला नाही' : 'Unassigned')}
                           </div>
                         </div>
 
-                        <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ background: '#f8fafc', padding: '14px', borderRadius: '10px', border: '1px solid #e2e8f0', boxSizing: 'border-box' }}>
                           <span style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>{isMr ? 'पुढील संपर्क तारीख' : 'Next Follow-up Date'}</span>
-                          <div style={{ fontSize: '14px', fontWeight: '700', color: '#1d4ed8', marginTop: '2px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: '700', color: '#1d4ed8', marginTop: '2px', wordBreak: 'break-word' }}>
                             📅 {citizenDetail.citizen.follow_up_date || (isMr ? 'नियोजित नाही' : 'Not Scheduled')}
                           </div>
                         </div>
@@ -899,32 +1130,11 @@ export default function Citizen360CRM({ lang = 'mr' }) {
       {/* MODAL: ADD NEW CITIZEN */}
       {showAddCitizenModal && (
         <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(15, 23, 42, 0.65)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1100,
-            padding: '20px',
-          }}
+          className="crm-modal-overlay"
           onClick={() => setShowAddCitizenModal(false)}
         >
           <div
-            style={{
-              background: '#ffffff',
-              borderRadius: '16px',
-              width: '100%',
-              maxWidth: '620px',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-              padding: '24px',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
-            }}
+            className="crm-form-modal-box"
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
@@ -949,7 +1159,7 @@ export default function Citizen360CRM({ lang = 'mr' }) {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="crm-form-2col">
                 <div>
                   <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'मोबाईल नंबर' : 'Mobile Number'}</label>
                   <input
@@ -972,7 +1182,7 @@ export default function Citizen360CRM({ lang = 'mr' }) {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="crm-form-2col">
                 <div>
                   <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'वय' : 'Age'}</label>
                   <input
@@ -1008,7 +1218,7 @@ export default function Citizen360CRM({ lang = 'mr' }) {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="crm-form-2col">
                 <div>
                   <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'बूथ क्रमांक' : 'Booth Number'}</label>
                   <select
@@ -1037,7 +1247,7 @@ export default function Citizen360CRM({ lang = 'mr' }) {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div className="crm-form-2col">
                 <div>
                   <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'मतदार प्रवर्ग' : 'Voter Category'}</label>
                   <select
@@ -1053,7 +1263,7 @@ export default function Citizen360CRM({ lang = 'mr' }) {
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'जबाबदार अधिकारी' : 'Assigned Officer'}</label>
+                  <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'जबाबदार कार्यकर्ता' : 'Assigned Worker'}</label>
                   <input
                     type="text"
                     value={newCitizen.assigned_worker_name}
@@ -1097,30 +1307,12 @@ export default function Citizen360CRM({ lang = 'mr' }) {
       {/* MODAL: ADD INTERACTION LOG */}
       {showAddInteractionModal && (
         <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(15, 23, 42, 0.65)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1200,
-            padding: '20px',
-          }}
+          className="crm-modal-overlay"
           onClick={() => setShowAddInteractionModal(false)}
         >
           <div
-            style={{
-              background: '#ffffff',
-              borderRadius: '16px',
-              width: '100%',
-              maxWidth: '520px',
-              padding: '22px',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
-            }}
+            className="crm-form-modal-box"
+            style={{ maxWidth: '520px' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
@@ -1133,7 +1325,7 @@ export default function Citizen360CRM({ lang = 'mr' }) {
             </div>
 
             <form onSubmit={handleAddInteraction} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div className="crm-form-2col">
                 <div>
                   <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'संपर्क प्रकार' : 'Interaction Type'}</label>
                   <select
@@ -1170,7 +1362,7 @@ export default function Citizen360CRM({ lang = 'mr' }) {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div className="crm-form-2col">
                 <div>
                   <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'निकाल' : 'Outcome'}</label>
                   <select
@@ -1218,30 +1410,12 @@ export default function Citizen360CRM({ lang = 'mr' }) {
       {/* MODAL: ADD GRIEVANCE / ISSUE */}
       {showAddIssueModal && (
         <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(15, 23, 42, 0.65)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1200,
-            padding: '20px',
-          }}
+          className="crm-modal-overlay"
           onClick={() => setShowAddIssueModal(false)}
         >
           <div
-            style={{
-              background: '#ffffff',
-              borderRadius: '16px',
-              width: '100%',
-              maxWidth: '520px',
-              padding: '22px',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)',
-            }}
+            className="crm-form-modal-box"
+            style={{ maxWidth: '520px' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
@@ -1266,7 +1440,7 @@ export default function Citizen360CRM({ lang = 'mr' }) {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <div className="crm-form-2col">
                 <div>
                   <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'प्रवर्ग (कॅटेगरी)' : 'Category'}</label>
                   <select
@@ -1309,7 +1483,7 @@ export default function Citizen360CRM({ lang = 'mr' }) {
               </div>
 
               <div>
-                <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'जबाबदार अधिकारी' : 'Assigned Officer'}</label>
+                <label style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>{isMr ? 'जबाबदार कार्यकर्ता' : 'Assigned Worker'}</label>
                 <input
                   type="text"
                   value={newIssue.assigned_worker}

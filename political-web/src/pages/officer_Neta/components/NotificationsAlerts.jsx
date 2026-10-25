@@ -100,7 +100,7 @@ export default function NotificationsAlerts({ lang = 'mr' }) {
           if (lastAlertIdRef.current !== null && newest.id > lastAlertIdRef.current) {
             triggerNativeNotification(
               newest.title_mr || 'नवीन निवडणूक सतर्कता सूचना',
-              newest.detail_mr || 'अधिकाऱ्यांसाठी नवीन आदेश जारी करण्यात आला आहे.'
+              newest.detail_mr || 'कार्यकर्त्यांसाठी नवीन आदेश जारी करण्यात आला आहे.'
             );
           }
           lastAlertIdRef.current = newest.id;
@@ -195,7 +195,7 @@ export default function NotificationsAlerts({ lang = 'mr' }) {
     } else {
       triggerNativeNotification(
         isMr ? '🚨 चाचणी: तातडीचा वॉर रूम अलर्ट!' : '🚨 Test: War Room Priority Alert!',
-        isMr ? 'बूथ क्र. १ ते ५ मधील मतदान केंद्रांवर अधिकाऱ्यांची हजेरी तपासणी सुरू आहे.' : 'Field verification in progress across polling stations.'
+        isMr ? 'बूथ क्र. १ ते ५ मधील मतदान केंद्रांवर कार्यकर्त्यांची हजेरी तपासणी सुरू आहे.' : 'Field verification in progress across polling stations.'
       );
     }
   };
@@ -530,8 +530,11 @@ export default function NotificationsAlerts({ lang = 'mr' }) {
             style={{
               background: '#ffffff',
               borderRadius: '16px',
-              maxWidth: '540px',
+              maxWidth: 'min(540px, 96vw)',
               width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxSizing: 'border-box',
               padding: '24px',
               boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)',
             }}
@@ -539,7 +542,7 @@ export default function NotificationsAlerts({ lang = 'mr' }) {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>
-                📢 {isMr ? 'अधिकाऱ्यांना तातडीचा पुश अलर्ट प्रसारित करा' : 'Broadcast Priority Push Alert'}
+                📢 {isMr ? 'कार्यकर्त्यांना तातडीचा पुश अलर्ट प्रसारित करा' : 'Broadcast Priority Push Alert'}
               </h3>
               <button
                 onClick={() => setShowBroadcastModal(false)}
@@ -551,7 +554,7 @@ export default function NotificationsAlerts({ lang = 'mr' }) {
 
             {broadcastSent ? (
               <div style={{ padding: '24px', textAlign: 'center', color: '#16a34a', fontWeight: '800' }}>
-                ✓ {isMr ? 'सर्व अधिकाऱ्यांच्या मोबाईलवर डेटाबेसद्वारे सूचना प्रसारित झाली!' : 'Alert broadcasted successfully!'}
+                ✓ {isMr ? 'सर्व कार्यकर्त्यांच्या मोबाईलवर डेटाबेसद्वारे सूचना प्रसारित झाली!' : 'Alert broadcasted successfully!'}
               </div>
             ) : (
               <form onSubmit={handleSendBroadcast} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -581,10 +584,10 @@ export default function NotificationsAlerts({ lang = 'mr' }) {
                       onChange={(e) => setBroadcastTarget(e.target.value)}
                       style={{ width: '100%', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
                     >
-                      <option value="all_workers">{isMr ? 'सर्व २४५ अधिकारी व बूथ प्रमुख' : 'All 245 Officers & Booth Heads'}</option>
+                      <option value="all_workers">{isMr ? 'सर्व २४५ कार्यकर्ते व बूथ प्रमुख' : 'All 245 Workers & Booth Heads'}</option>
                       <option value="booth_heads">{isMr ? 'केवळ बूथ प्रमुख (३१८ प्रमुख)' : 'Booth Heads Only (318 Heads)'}</option>
                       <option value="ward_coordinators">{isMr ? 'प्रभाग व तालुका समन्वयक' : 'Ward & Taluka Coordinators'}</option>
-                      <option value="sensitive_booths">{isMr ? 'केवळ २८ संवेदनशील बूथ अधिकारी' : '28 Sensitive Booth Officers Only'}</option>
+                      <option value="sensitive_booths">{isMr ? 'केवळ २८ संवेदनशील बूथ कार्यकर्ते' : '28 Sensitive Booth Workers Only'}</option>
                     </select>
                   </div>
                 </div>

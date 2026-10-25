@@ -128,28 +128,16 @@ export default function MeetingsAndTours({ lang = 'mr' }) {
         </div>
 
         <button
+          type="button"
           onClick={() => setShowAddModal(true)}
-          style={{
-            background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
-            color: '#ffffff',
-            border: 'none',
-            padding: '10px 18px',
-            borderRadius: '8px',
-            fontSize: '13px',
-            fontWeight: '700',
-            cursor: 'pointer',
-            boxShadow: '0 4px 10px rgba(37, 99, 235, 0.25)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-          }}
+          className="btn-3d-blue"
         >
-          <span>＋</span> {isMr ? 'नवीन बैठक / दौरा जोडा' : 'Add New Tour / Meeting'}
+          <span style={{ fontSize: '15px', fontWeight: '900' }}>＋</span> {isMr ? 'नवीन बैठक / दौरा जोडा' : 'Add New Tour / Meeting'}
         </button>
       </div>
 
       {/* Filter Tabs */}
-      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      <div className="meetings-filter-pills-row">
         {[
           { key: 'all', label_mr: `सर्व कार्यक्रम (${meetings.length})`, label_en: `All (${meetings.length})` },
           {
@@ -165,17 +153,9 @@ export default function MeetingsAndTours({ lang = 'mr' }) {
         ].map((tab) => (
           <button
             key={tab.key}
+            type="button"
             onClick={() => setActiveTab(tab.key)}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '20px',
-              fontSize: '12px',
-              fontWeight: '700',
-              cursor: 'pointer',
-              border: activeTab === tab.key ? 'none' : '1px solid #cbd5e1',
-              background: activeTab === tab.key ? '#1e3a8a' : '#ffffff',
-              color: activeTab === tab.key ? '#ffffff' : '#475569',
-            }}
+            className={`pill-3d-box ${activeTab === tab.key ? 'active' : 'inactive'}`}
           >
             {isMr ? tab.label_mr : tab.label_en}
           </button>
@@ -188,7 +168,7 @@ export default function MeetingsAndTours({ lang = 'mr' }) {
           ⏳ {isMr ? 'डेटाबेसमधून दौरे व बैठका लोड होत आहेत...' : 'Loading tours from database...'}
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
           {filteredMeetings.length === 0 ? (
             <div style={{ padding: '36px', textAlign: 'center', background: '#ffffff', borderRadius: '12px', color: '#94a3b8', gridColumn: '1 / -1' }}>
               {isMr ? 'कोणतेही कार्यक्रम उपलब्ध नाहीत.' : 'No meetings found.'}
