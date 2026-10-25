@@ -2443,6 +2443,10 @@ function AdminDashboard() {
             color: #1e40af !important;
           }
 
+          .admin-layout-root {
+            overflow: visible !important;
+          }
+
           .admin-sidebar {
             position: fixed !important;
             top: 0 !important;
@@ -2450,14 +2454,23 @@ function AdminDashboard() {
             bottom: 0 !important;
             height: 100vh !important;
             height: 100dvh !important;
-            z-index: 100000 !important;
+            max-height: 100dvh !important;
+            width: 290px !important;
+            max-width: 86vw !important;
+            z-index: 99999 !important;
             transform: translateX(-100%) !important;
             transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
             box-shadow: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
           }
           .admin-sidebar.open {
             transform: translateX(0) !important;
             box-shadow: 6px 0 35px rgba(0, 0, 0, 0.45) !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
           }
 
           .admin-sidebar-backdrop {
@@ -2466,7 +2479,7 @@ function AdminDashboard() {
             inset: 0 !important;
             background: rgba(15, 23, 42, 0.6) !important;
             backdrop-filter: blur(4px) !important;
-            z-index: 99999 !important;
+            z-index: 99998 !important;
             animation: fadeIn 0.2s ease-out;
           }
 
@@ -2474,13 +2487,13 @@ function AdminDashboard() {
             display: inline-flex !important;
             align-items: center;
             justify-content: center;
-            width: 26px;
-            height: 26px;
+            width: 28px;
+            height: 28px;
             border-radius: 6px;
             border: 1px solid rgba(15, 23, 42, 0.2);
             background: #f1f5f9;
             color: #0f172a;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 800;
             cursor: pointer;
             transition: all 0.15s ease;
@@ -2538,13 +2551,6 @@ function AdminDashboard() {
           .admin-main-workspace {
             padding: 14px 10px !important;
           }
-        }
-
-        @media (max-width: 440px) {
-          .admin-time-badge {
-            display: none !important;
-          }
-        }
           .admin-hero-banner {
             padding: 16px 14px !important;
             border-radius: 12px !important;
@@ -2566,24 +2572,17 @@ function AdminDashboard() {
             grid-template-columns: 1fr !important;
             gap: 12px !important;
           }
-        }
-
-        @media (max-width: 480px) {
-          .admin-time-badge-text {
-            display: none !important;
-          }
           .admin-card-responsive {
             padding: 14px 10px !important;
           }
         }
+
+        @media (max-width: 440px) {
+          .admin-time-badge {
+            display: none !important;
+          }
+        }
       `}</style>
-      {/* Mobile Backdrop Overlay */}
-      {mobileMenuOpen && (
-        <div
-          className="admin-sidebar-backdrop"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
       <div
         className="admin-layout-root"
         style={{
@@ -2592,11 +2591,16 @@ function AdminDashboard() {
           maxWidth: '100vw',
           height: '100vh',
           maxHeight: '100vh',
-          overflow: 'hidden',
-          position: 'relative',
           boxSizing: 'border-box',
         }}
       >
+        {/* Mobile Backdrop Overlay */}
+        {mobileMenuOpen && (
+          <div
+            className="admin-sidebar-backdrop"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
         {/* Enterprise Royal Blue Sidebar Matching Reference Image - 100% STATIC */}
         <aside
           className={`admin-sidebar ${mobileMenuOpen ? 'open' : ''}`}
