@@ -2778,28 +2778,34 @@ function AdminDashboard() {
 
         @media (max-width: 768px) {
           .admin-header-responsive {
-            padding: 10px 14px !important;
+            padding: 8px 12px !important;
             flex-direction: row !important;
             align-items: center !important;
             justify-content: space-between !important;
-            gap: 10px !important;
+            gap: 8px !important;
             flex-wrap: nowrap !important;
           }
           .admin-header-controls {
             display: flex !important;
             align-items: center !important;
             justify-content: flex-end !important;
-            gap: 8px !important;
+            gap: 6px !important;
             flex-wrap: nowrap !important;
+            flex-shrink: 0 !important;
           }
           .hdr-btn-3d-neta {
             display: none !important;
           }
+          .admin-time-badge-container {
+            display: none !important;
+          }
           .admin-hamburger-btn {
-            width: 42px !important;
-            height: 42px !important;
-            min-width: 42px !important;
-            min-height: 42px !important;
+            display: inline-flex !important;
+            width: 40px !important;
+            height: 40px !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+            flex-shrink: 0 !important;
           }
           .admin-main-workspace {
             padding: 14px 10px !important;
@@ -2825,12 +2831,12 @@ function AdminDashboard() {
             grid-template-columns: 1fr !important;
             gap: 12px !important;
           }
+          .admin-mobile-fab-sidebar {
+            display: inline-flex !important;
+          }
         }
 
         @media (max-width: 480px) {
-          .admin-time-badge-text {
-            display: none !important;
-          }
           .admin-card-responsive {
             padding: 14px 10px !important;
           }
@@ -3372,16 +3378,32 @@ function AdminDashboard() {
               boxShadow: active === 'evm' ? '0 4px 20px rgba(0, 0, 0, 0.25)' : '0 1px 3px rgba(0,0,0,0.03)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1, flexWrap: 'nowrap' }}>
               {/* Mobile Hamburger Drawer Toggle Button */}
               <button
                 type="button"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                onClick={() => setMobileMenuOpen(true)}
                 className="admin-hamburger-btn"
-                title={isMr ? 'मेनू उघडा' : 'Open Navigation'}
+                title={isMr ? 'नेव्हिगेशन मेनू उघडा' : 'Open Navigation'}
                 aria-label="Toggle menu"
+                style={{
+                  display: 'none',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: '#eff6ff',
+                  border: '1.5px solid #93c5fd',
+                  color: '#1d4ed8',
+                  borderRadius: '10px',
+                  width: '40px',
+                  height: '40px',
+                  minWidth: '40px',
+                  minHeight: '40px',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                  boxShadow: '0 2px 5px rgba(37, 99, 235, 0.15)',
+                }}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="3" y1="12" x2="21" y2="12" />
                   <line x1="3" y1="6" x2="21" y2="6" />
                   <line x1="3" y1="18" x2="21" y2="18" />
@@ -3389,7 +3411,7 @@ function AdminDashboard() {
               </button>
 
               {active === 'evm' ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
                   <div style={{
                     width: '36px',
                     height: '36px',
@@ -3407,30 +3429,31 @@ function AdminDashboard() {
                       <path d="m9 12 2 2 4-4" />
                     </svg>
                   </div>
-                  <div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
-                      {isMr ? 'प्रशासन विभाग, महाराष्ट्र शासन' : 'Dept of Administration, Govt of Maharashtra'}
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {isMr ? 'प्रशासन विभाग' : 'Dept of Administration'}
                     </div>
-                    <h2 style={{ margin: 0, fontSize: '17px', fontWeight: '900', color: '#ffffff', letterSpacing: '0.3px' }}>
-                      {isMr ? 'डिजिटल EVM व निवडणूक नियंत्रण' : 'Digital EVM & Election Command'}
+                    <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '900', color: '#ffffff', letterSpacing: '0.3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {isMr ? 'डिजिटल EVM नियंत्रण' : 'Digital EVM Command'}
                     </h2>
                   </div>
                 </div>
               ) : (
-                <div>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    {isMr ? 'प्रशासन नियंत्रण केंद्र' : 'Administration Command Desk'}
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {isMr ? 'प्रशासन नियंत्रण केंद्र' : 'Administration Command'}
                   </div>
-                  <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>
+                  <h2 style={{ margin: 0, fontSize: '17px', fontWeight: '800', color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {isMr ? currentNav.label_mr : currentNav.label_en}
                   </h2>
                 </div>
               )}
             </div>
 
-            <div className="admin-header-controls" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {/* IST Time Badge */}
+            <div className="admin-header-controls" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+              {/* IST Time Badge (Hidden on mobile phones) */}
               <div
+                className="admin-time-badge-container"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -3468,7 +3491,7 @@ function AdminDashboard() {
               </button>
 
               {/* 3-Dot Sidebar & Quick Action Menu */}
-              <div ref={threeDotRef} style={{ position: 'relative' }}>
+              <div ref={threeDotRef} style={{ position: 'relative', flexShrink: 0 }}>
                 <button
                   type="button"
                   onClick={() => setThreeDotOpen(!threeDotOpen)}
@@ -3490,6 +3513,7 @@ function AdminDashboard() {
                     lineHeight: 1,
                     boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
                     transition: 'all 0.15s ease',
+                    flexShrink: 0,
                   }}
                   onMouseOver={(e) => {
                     e.currentTarget.style.background = active === 'evm' ? 'rgba(255, 255, 255, 0.2)' : '#f1f5f9';
@@ -3520,6 +3544,35 @@ function AdminDashboard() {
                       boxSizing: 'border-box',
                     }}
                   >
+                    {/* Option to Open Navigation Sidebar from 3-dot Menu */}
+                    <div style={{ marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setThreeDotOpen(false);
+                          setMobileMenuOpen(true);
+                        }}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '9px 12px',
+                          borderRadius: '8px',
+                          border: '1.5px solid #bfdbfe',
+                          background: '#eff6ff',
+                          color: '#1d4ed8',
+                          fontSize: '13px',
+                          fontWeight: '800',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                        }}
+                      >
+                        <span style={{ fontSize: '16px' }}>☰</span>
+                        <span>{isMr ? 'नेव्हिगेशन मेनू (Sidebar) उघडा' : 'Open Navigation Sidebar'}</span>
+                      </button>
+                    </div>
+
                     {/* Language Switcher Section */}
                     <div style={{ marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
                       <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
