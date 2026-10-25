@@ -23,6 +23,7 @@ export default function OfficerDashboard() {
   const [lang, setLang] = useState('mr'); // 'mr' (default) or 'en'
   const [overviewData, setOverviewData] = useState(null);
   const [unreadAlerts, setUnreadAlerts] = useState(0);
+  const unreadNotificationsCount = unreadAlerts;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Scroll Tracking & Animations
@@ -1640,7 +1641,7 @@ export default function OfficerDashboard() {
               }}
             >
               <span>🔔</span>
-              {unreadNotificationsCount > 0 && (
+              {unreadAlerts > 0 && (
                 <span
                   style={{
                     background: '#ef4444',
@@ -1651,7 +1652,7 @@ export default function OfficerDashboard() {
                     borderRadius: '999px',
                   }}
                 >
-                  {unreadNotificationsCount}
+                  {unreadAlerts}
                 </span>
               )}
             </button>
