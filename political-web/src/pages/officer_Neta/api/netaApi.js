@@ -22,6 +22,11 @@ export const netaApi = {
     return res.data;
   },
 
+  setActiveBooth: async (boothId) => {
+    const res = await apiClient.post('/neta/set-active-booth', { booth_id: boothId });
+    return res.data;
+  },
+
   // 3. कार्यकर्त्यांचे काम व Performance Dashboard
   getKaryakartas: async (params = {}) => {
     const res = await apiClient.get('/neta/karyakartas', { params });

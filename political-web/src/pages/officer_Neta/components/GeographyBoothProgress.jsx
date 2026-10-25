@@ -14,15 +14,20 @@ const formatBoothNo = (boothNo, isMr) => {
 export default function GeographyBoothProgress({ lang = 'mr' }) {
   const isMr = lang === 'mr';
 
-  // Filters state (all values fetched from MySQL tables)
+  // 5-Level Cascading Hierarchy Filters
   const [selectedDistrict, setSelectedDistrict] = useState('all');
-  const [selectedAssembly, setSelectedAssembly] = useState('all');
   const [selectedTaluka, setSelectedTaluka] = useState('all');
   const [selectedVillage, setSelectedVillage] = useState('all');
-  const [selectedIncharge, setSelectedIncharge] = useState('all');
-  const [coverageFilter, setCoverageFilter] = useState('all'); // all, high, medium, low, sensitive
+  const [selectedWard, setSelectedWard] = useState('all');
+  const [selectedBooth, setSelectedBooth] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  
+
+  // Active / Selected Booth state (stored in localStorage)
+  const [activeBoothId, setActiveBoothId] = useState(() => {
+    return localStorage.getItem('neta_active_booth_id') || null;
+  });
+  const [toastMessage, setToastMessage] = useState('');
+
   // Database data states
   const [booths, setBooths] = useState([]);
   const [geoData, setGeoData] = useState(null);
@@ -30,14 +35,15 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
   const [loadingFilters, setLoadingFilters] = useState(true);
   const [selectedBoothModal, setSelectedBoothModal] = useState(null);
 
-  // 1. Fetch dynamic dropdown filter options from DB
-  const loadGeographyFilters = async (district = null, assembly = null, taluka = null) => {
+  // 1. Fetch cascading geography options from DB based on active hierarchy
+  const loadGeographyFilters = async (district = null, taluka = null, village = null, ward = null) => {
     try {
       setLoadingFilters(true);
       const params = {};
       if (district && district !== 'all') params.district = district;
-      if (assembly && assembly !== 'all') params.assembly = assembly;
       if (taluka && taluka !== 'all') params.taluka = taluka;
+      if (village && village !== 'all') params.village = village;
+      if (ward && ward !== 'all') params.ward = ward;
       const res = await netaApi.getGeographyFilters(params);
       if (res.success) {
         setGeoData(res.data);
@@ -55,11 +61,10 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
     try {
       const params = {};
       if (selectedDistrict !== 'all') params.district = selectedDistrict;
-      if (selectedAssembly !== 'all') params.assembly = selectedAssembly;
       if (selectedTaluka !== 'all') params.taluka = selectedTaluka;
       if (selectedVillage !== 'all') params.village = selectedVillage;
-      if (selectedIncharge !== 'all') params.incharge = selectedIncharge;
-      if (coverageFilter !== 'all') params.coverage_filter = coverageFilter;
+      if (selectedWard !== 'all') params.ward = selectedWard;
+      if (selectedBooth !== 'all') params.booth_no = selectedBooth;
       if (searchQuery.trim()) params.search = searchQuery.trim();
 
       const res = await netaApi.getBooths(params);
@@ -73,12 +78,12 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
     }
   };
 
-  // Load geography dropdown options when district, assembly or taluka changes
+  // Trigger geography filters reload when higher levels change
   useEffect(() => {
-    loadGeographyFilters(selectedDistrict, selectedAssembly, selectedTaluka);
-  }, [selectedDistrict, selectedAssembly, selectedTaluka]);
+    loadGeographyFilters(selectedDistrict, selectedTaluka, selectedVillage, selectedWard);
+  }, [selectedDistrict, selectedTaluka, selectedVillage, selectedWard]);
 
-  // Load filtered booths whenever any dropdown or search changes
+  // Trigger booth list fetch whenever filters change
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchBooths();
@@ -86,21 +91,39 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
     return () => clearTimeout(timer);
   }, [
     selectedDistrict,
-    selectedAssembly,
     selectedTaluka,
     selectedVillage,
-    selectedIncharge,
-    coverageFilter,
+    selectedWard,
+    selectedBooth,
     searchQuery,
   ]);
 
+  // Set selected booth as active
+  const handleSetActiveBooth = async (booth) => {
+    try {
+      const res = await netaApi.setActiveBooth(booth.id);
+      if (res.success) {
+        setActiveBoothId(String(booth.id));
+        localStorage.setItem('neta_active_booth_id', String(booth.id));
+        localStorage.setItem('neta_active_booth_no', String(booth.booth_no));
+        setToastMessage(
+          isMr
+            ? `✅ ${formatBoothNo(booth.booth_no, true)} हे सक्रिय (Active) बूथ म्हणून यशस्वीरीत्या सेट केले!`
+            : `✅ ${formatBoothNo(booth.booth_no, false)} set as Active Booth successfully!`
+        );
+        setTimeout(() => setToastMessage(''), 4000);
+      }
+    } catch (err) {
+      console.error('Failed to set active booth:', err);
+    }
+  };
+
   const handleResetFilters = () => {
     setSelectedDistrict('all');
-    setSelectedAssembly('all');
     setSelectedTaluka('all');
     setSelectedVillage('all');
-    setSelectedIncharge('all');
-    setCoverageFilter('all');
+    setSelectedWard('all');
+    setSelectedBooth('all');
     setSearchQuery('');
   };
 
@@ -114,30 +137,6 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
       districtList.push({ value: val, label_mr: d.district_mr || val, label_en: d.district_en || val });
     }
   });
-  (geoData?.master_districts || []).forEach((d) => {
-    const val = d.name_mr || d.name_en;
-    if (val && !seenDistricts.has(val)) {
-      seenDistricts.add(val);
-      districtList.push({ value: val, label_mr: d.name_mr || val, label_en: d.name_en || val });
-    }
-  });
-
-  const assemblyList = [];
-  const seenAssemblies = new Set();
-  (geoData?.booth_assemblies || []).forEach((a) => {
-    const val = a.assembly_mr || a.assembly_en;
-    if (val && !seenAssemblies.has(val)) {
-      seenAssemblies.add(val);
-      assemblyList.push({ value: val, label_mr: a.assembly_mr || val, label_en: a.assembly_en || val });
-    }
-  });
-  (geoData?.master_assemblies || []).forEach((a) => {
-    const val = a.name_mr || a.name_en || (a.no ? `${a.no} - ${a.name_en}` : null);
-    if (val && !seenAssemblies.has(val)) {
-      seenAssemblies.add(val);
-      assemblyList.push({ value: val, label_mr: a.name_mr || val, label_en: a.name_en || val });
-    }
-  });
 
   const talukaList = [];
   const seenTalukas = new Set();
@@ -146,13 +145,6 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
     if (val && !seenTalukas.has(val)) {
       seenTalukas.add(val);
       talukaList.push({ value: val, label_mr: t.taluka_mr || val, label_en: t.taluka_en || val });
-    }
-  });
-  (geoData?.master_talukas || []).forEach((t) => {
-    const val = t.name_mr || t.name_en || t.taluka_name;
-    if (val && !seenTalukas.has(val)) {
-      seenTalukas.add(val);
-      talukaList.push({ value: val, label_mr: t.name_mr || val, label_en: t.name_en || val });
     }
   });
 
@@ -166,52 +158,71 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
     }
   });
 
-  const inchargeList = (geoData?.incharges || []).filter(
-    (item, index, self) =>
-      Boolean(item.incharge_name) &&
-      index === self.findIndex((t) => t.incharge_name === item.incharge_name)
-  );
+  const wardList = [];
+  const seenWards = new Set();
+  (geoData?.booth_wards || []).forEach((w) => {
+    const val = w.ward_mr || w.ward_en;
+    if (val && !seenWards.has(val)) {
+      seenWards.add(val);
+      wardList.push({ value: val, label_mr: w.ward_mr || val, label_en: w.ward_en || val });
+    }
+  });
 
-  // Prepared option arrays for touch-friendly ResponsiveSelect
+  // Level 1: District Options
   const districtOptions = [
-    { value: 'all', label: isMr ? 'सर्व जिल्हे' : 'All Districts' },
+    { value: 'all', label: isMr ? 'सर्व जिल्हे (All Districts)' : 'All Districts' },
     ...districtList.map((d) => ({
       value: d.value,
       label: isMr ? (d.label_mr || d.value) : (d.label_en || d.value),
     })),
   ];
 
-  const assemblyOptions = [
-    { value: 'all', label: isMr ? 'सर्व विधानसभा' : 'All Assemblies' },
-    ...assemblyList.map((a) => ({
-      value: a.value,
-      label: isMr ? (a.label_mr || a.value) : (a.label_en || a.value),
-    })),
-  ];
-
+  // Level 2: Taluka Options
   const talukaOptions = [
-    { value: 'all', label: isMr ? 'सर्व तालुके व प्रभाग' : 'All Talukas & Wards' },
+    { value: 'all', label: isMr ? 'सर्व तालुके (All Talukas)' : 'All Talukas' },
     ...talukaList.map((t) => ({
       value: t.value,
       label: isMr ? (t.label_mr || t.value) : (t.label_en || t.value),
     })),
   ];
 
+  // Level 3: Village Options
   const villageOptions = [
-    { value: 'all', label: isMr ? 'सर्व गावे व प्रभाग' : 'All Villages & Wards' },
+    { value: 'all', label: isMr ? 'सर्व गावे (All Villages)' : 'All Villages' },
     ...villageList.map((v) => ({
       value: v.value,
       label: isMr ? (v.label_mr || v.value) : (v.label_en || v.value),
     })),
   ];
 
-  const inchargeOptions = [
-    { value: 'all', label: isMr ? 'सर्व बूथ प्रमुख' : 'All Incharges' },
-    ...inchargeList.map((inc) => ({
-      value: inc.incharge_name,
-      label: `${isMr ? inc.incharge_name : (inc.incharge_name_en || inc.incharge_name)} (${formatBoothNo(inc.booth_no, isMr)})`,
+  // Level 4: Ward Options
+  const wardOptions = [
+    { value: 'all', label: isMr ? 'सर्व प्रभाग / वॉर्ड (All Wards)' : 'All Wards' },
+    ...wardList.map((w) => ({
+      value: w.value,
+      label: isMr ? (w.label_mr || w.value) : (w.label_en || w.value),
     })),
   ];
+
+  // Level 5: Booth Options
+  const boothOptions = [
+    { value: 'all', label: isMr ? 'सर्व बूथ (All Booths)' : 'All Booths' },
+    ...booths.map((b) => ({
+      value: b.booth_no,
+      label: `${formatBoothNo(b.booth_no, isMr)} - ${isMr ? (b.booth_name_mr || b.booth_name_en) : (b.booth_name_en || b.booth_name_mr)}`,
+    })),
+  ];
+
+  // Summary counts from DB
+  const stats = geoData?.summary_stats || {
+    total_districts: districtList.length,
+    total_talukas: talukaList.length,
+    total_villages: villageList.length,
+    total_wards: wardList.length,
+    total_booths: booths.length,
+    total_voters: booths.reduce((acc, curr) => acc + (Number(curr.total_voters) || 0), 0),
+    total_population: booths.reduce((acc, curr) => acc + (Number(curr.total_population) || 0), 0),
+  };
 
   return (
     <div className="geo-progress-container" style={{ display: 'flex', flexDirection: 'column', gap: '16px', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
@@ -221,17 +232,33 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
           border-radius: 14px;
           padding: 20px 24px;
           border: 1px solid #e2e8f0;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+          box-shadow: 0 2px 6px rgba(0,0,0,0.04);
           box-sizing: border-box;
           width: 100%;
-          max-width: 100%;
+        }
+        .geo-flow-header {
+          display: flex;
+          align-items: center;
+          justifyContent: space-between;
+          margin-bottom: 16px;
+          flex-wrap: wrap;
+          gap: 10px;
+          border-bottom: 1px solid #f1f5f9;
+          padding-bottom: 12px;
         }
         .geo-filter-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-          gap: 14px;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 12px;
           box-sizing: border-box;
           width: 100%;
+        }
+        .geo-stats-grid {
+          display: grid;
+          grid-template-columns: repeat(6, 1fr);
+          gap: 12px;
+          width: 100%;
+          box-sizing: border-box;
         }
         .geo-desktop-table {
           display: block;
@@ -240,6 +267,26 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
           display: none;
         }
 
+        /* Tablet View (iPad / Tablets 641px - 1024px) */
+        @media (min-width: 641px) and (max-width: 1024px) {
+          .geo-filter-card {
+            padding: 16px 18px !important;
+          }
+          .geo-filter-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 12px !important;
+          }
+          .geo-stats-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 10px !important;
+          }
+          .geo-desktop-table {
+            display: block !important;
+            overflow-x: auto !important;
+          }
+        }
+
+        /* Mobile View (Screens <= 640px) */
         @media (max-width: 640px) {
           .geo-filter-card {
             padding: 14px 12px !important;
@@ -248,6 +295,10 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
           .geo-filter-grid {
             grid-template-columns: 1fr !important;
             gap: 12px !important;
+          }
+          .geo-stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
           }
           .geo-desktop-table {
             display: none !important;
@@ -265,40 +316,81 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
         }
       `}</style>
 
-      {/* Title & Database Connected Status */}
+      {/* Floating Toast Notification on Set Booth */}
+      {toastMessage && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            zIndex: 10000,
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            color: '#ffffff',
+            padding: '12px 20px',
+            borderRadius: '10px',
+            fontWeight: '700',
+            fontSize: '13.5px',
+            boxShadow: '0 8px 24px rgba(5, 150, 105, 0.35)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            animation: 'fadeIn 0.2s ease',
+          }}
+        >
+          {toastMessage}
+        </div>
+      )}
+
+      {/* 5-Level Cascading Hierarchy Filter Card */}
       <div className="geo-filter-card">
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '16px', gap: '10px', flexWrap: 'wrap' }}>
-          <button
-            type="button"
-            onClick={handleResetFilters}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '5px',
-              padding: '6px 12px',
-              borderRadius: '8px',
-              background: '#f1f5f9',
-              border: '1px solid #cbd5e1',
-              color: '#475569',
-              fontSize: '12px',
-              fontWeight: '700',
-              cursor: 'pointer',
-            }}
-            title={isMr ? 'सर्व फिल्टर्स पूर्ववत करा' : 'Reset all filters'}
-          >
-            🔄 {isMr ? 'रीसेट' : 'Reset'}
-          </button>
-          <span style={{ fontSize: '13px', fontWeight: '600', color: '#475569' }}>
-            {isMr ? 'उपलब्ध बूथ:' : 'Booths:'} <strong style={{ color: '#2563eb' }}>{booths.length}</strong>
-          </span>
+        {/* Header with Title and Reset */}
+        <div className="geo-flow-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '20px' }}>🗺️</span>
+            <div>
+              <h2 style={{ margin: 0, fontSize: '15px', fontWeight: '800', color: '#0f172a' }}>
+                {isMr ? '१. जिल्हा ➔ २. तालुका ➔ ३. गाव ➔ ४. प्रभाग ➔ ५. बूथ' : '1. District ➔ 2. Taluka ➔ 3. Village ➔ 4. Ward ➔ 5. Booth'}
+              </h2>
+              <span style={{ fontSize: '11.5px', color: '#64748b' }}>
+                {isMr ? 'जिल्हा किंवा तालुका निवडल्यास त्याखालील सर्व घटक व संख्या त्वरित फिल्टर होतात' : 'Cascading real-time geographic hierarchy'}
+              </span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '6px 12px',
+                borderRadius: '8px',
+                background: '#f1f5f9',
+                border: '1px solid #cbd5e1',
+                color: '#475569',
+                fontSize: '12px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              title={isMr ? 'सर्व फिल्टर्स पूर्ववत करा' : 'Reset all filters'}
+            >
+              🔄 {isMr ? 'सर्व रीसेट' : 'Reset All'}
+            </button>
+            <span style={{ fontSize: '12.5px', fontWeight: '700', color: '#1e3a8a', background: '#eff6ff', padding: '4px 10px', borderRadius: '6px', border: '1px solid #bfdbfe' }}>
+              {isMr ? 'बूथ संख्या:' : 'Booths:'} {booths.length}
+            </span>
+          </div>
         </div>
 
-        {/* Database-Driven Dynamic Dropdowns Grid */}
+        {/* 5-Level Cascade Controls Grid */}
         <div className="geo-filter-grid">
-          {/* Level 1: District Dropdown from DB (Touch-Friendly ResponsiveSelect) */}
+          {/* 1. जिल्हा (District) */}
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: '750', color: '#334155', marginBottom: '5px' }}>
-              {isMr ? '१. जिल्हा' : '1. District'}
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#1e293b', marginBottom: '5px' }}>
+              {isMr ? '१. जिल्हा (District)' : '1. District'}
             </label>
             <ResponsiveSelect
               value={selectedDistrict}
@@ -306,34 +398,18 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
               isMr={isMr}
               onChange={(e) => {
                 setSelectedDistrict(e.target.value);
-                setSelectedAssembly('all');
                 setSelectedTaluka('all');
                 setSelectedVillage('all');
+                setSelectedWard('all');
+                setSelectedBooth('all');
               }}
             />
           </div>
 
-          {/* Level 2: Assembly Dropdown from DB */}
+          {/* 2. तालुका (Taluka) */}
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: '750', color: '#334155', marginBottom: '5px' }}>
-              {isMr ? '२. विधानसभा' : '2. Vidhan Sabha'}
-            </label>
-            <ResponsiveSelect
-              value={selectedAssembly}
-              options={assemblyOptions}
-              isMr={isMr}
-              onChange={(e) => {
-                setSelectedAssembly(e.target.value);
-                setSelectedTaluka('all');
-                setSelectedVillage('all');
-              }}
-            />
-          </div>
-
-          {/* Level 3: Taluka / Sub-region Dropdown from DB */}
-          <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: '750', color: '#334155', marginBottom: '5px' }}>
-              {isMr ? '३. तालुका / प्रभाग' : '3. Taluka / Sub-region'}
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#1e293b', marginBottom: '5px' }}>
+              {isMr ? '२. तालुका (Taluka)' : '2. Taluka'}
             </label>
             <ResponsiveSelect
               value={selectedTaluka}
@@ -342,80 +418,176 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
               onChange={(e) => {
                 setSelectedTaluka(e.target.value);
                 setSelectedVillage('all');
+                setSelectedWard('all');
+                setSelectedBooth('all');
               }}
             />
           </div>
 
-          {/* Level 4: Village / Ward Dropdown from DB */}
+          {/* 3. गाव (Village) */}
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: '750', color: '#334155', marginBottom: '5px' }}>
-              {isMr ? '४. गाव / वॉर्ड' : '4. Village / Ward'}
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#1e293b', marginBottom: '5px' }}>
+              {isMr ? '३. गाव (Village)' : '3. Village'}
             </label>
             <ResponsiveSelect
               value={selectedVillage}
               options={villageOptions}
               isMr={isMr}
-              onChange={(e) => setSelectedVillage(e.target.value)}
+              onChange={(e) => {
+                setSelectedVillage(e.target.value);
+                setSelectedWard('all');
+                setSelectedBooth('all');
+              }}
             />
           </div>
 
-          {/* Level 5: Incharge / Booth Select Dropdown from DB */}
+          {/* 4. प्रभाग / वॉर्ड (Ward) */}
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: '750', color: '#334155', marginBottom: '5px' }}>
-              {isMr ? '५. बूथ प्रमुख' : '5. Booth In-charge'}
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#1e293b', marginBottom: '5px' }}>
+              {isMr ? '४. प्रभाग / वॉर्ड (Ward)' : '4. Ward'}
             </label>
             <ResponsiveSelect
-              value={selectedIncharge}
-              options={inchargeOptions}
+              value={selectedWard}
+              options={wardOptions}
               isMr={isMr}
-              onChange={(e) => setSelectedIncharge(e.target.value)}
+              onChange={(e) => {
+                setSelectedWard(e.target.value);
+                setSelectedBooth('all');
+              }}
             />
           </div>
 
-          {/* Level 6: Live Search Input */}
+          {/* 5. बूथ (Booth / Set Booth) */}
           <div>
-            <label style={{ display: 'block', fontSize: '12px', fontWeight: '750', color: '#334155', marginBottom: '5px' }}>
-              {isMr ? '६. थेट शोध' : '6. Search Booth / Incharge'}
+            <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#1e293b', marginBottom: '5px' }}>
+              {isMr ? '५. बूथ (Booth Select)' : '5. Booth'}
             </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type="text"
-                placeholder={isMr ? 'उदा. क्र. १, सचिन, माधवनगर...' : 'e.g. No. 1, Sachin...'}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  padding: '9px 32px 9px 12px',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  background: '#f8fafc',
-                  minHeight: '40px',
-                  outline: 'none',
-                }}
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  style={{
-                    position: 'absolute',
-                    right: '8px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    color: '#94a3b8',
-                    cursor: 'pointer',
-                    fontSize: '15px',
-                    padding: 0,
-                  }}
-                >
-                  ×
-                </button>
-              )}
+            <ResponsiveSelect
+              value={selectedBooth}
+              options={boothOptions}
+              isMr={isMr}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedBooth(val);
+                if (val !== 'all') {
+                  const targetBooth = booths.find((b) => b.booth_no === val || String(b.id) === val);
+                  if (targetBooth) {
+                    handleSetActiveBooth(targetBooth);
+                  }
+                }
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Live Search Input Bar */}
+        <div style={{ marginTop: '14px', position: 'relative' }}>
+          <input
+            type="text"
+            placeholder={isMr ? '🔍 थेट शोध: बूथ क्रमांक, नाव, गाव, प्रभाग, प्रमुख...' : '🔍 Search booth, village, ward, incharge...'}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              padding: '9px 34px 9px 12px',
+              borderRadius: '8px',
+              border: '1px solid #cbd5e1',
+              fontSize: '13px',
+              fontWeight: '500',
+              background: '#f8fafc',
+              minHeight: '40px',
+              outline: 'none',
+            }}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              style={{
+                position: 'absolute',
+                right: '10px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                color: '#94a3b8',
+                cursor: 'pointer',
+                fontSize: '16px',
+                padding: 0,
+              }}
+            >
+              ×
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Cascading Hierarchy Summary Stat Cards (Live Count Cards) */}
+      <div
+        style={{
+          background: '#ffffff',
+          borderRadius: '14px',
+          padding: '16px 20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ fontSize: '13px', fontWeight: '800', color: '#1e3a8a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>📊</span>
+            <span>
+              {selectedDistrict !== 'all' ? `📍 ${selectedDistrict} जिल्हा अंतर्गत तपशील` : (isMr ? 'सर्व भूगोल सारांश' : 'Geography Overview')}
+              {selectedTaluka !== 'all' ? ` ➔ ${selectedTaluka}` : ''}
+              {selectedVillage !== 'all' ? ` ➔ ${selectedVillage}` : ''}
+              {selectedWard !== 'all' ? ` ➔ ${selectedWard}` : ''}
+            </span>
+          </div>
+          {activeBoothId && (
+            <span style={{ fontSize: '11.5px', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '3px 10px', borderRadius: '12px', fontWeight: '750' }}>
+              🎯 {isMr ? 'सध्याचे ॲक्टिव्ह बूथ:' : 'Active Booth:'} {localStorage.getItem('neta_active_booth_no') || `#${activeBoothId}`}
+            </span>
+          )}
+        </div>
+
+        <div className="geo-stats-grid">
+          {/* Card 1: Talukas */}
+          <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+            <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '700' }}>{isMr ? 'तालुके' : 'Talukas'}</div>
+            <div style={{ fontSize: '19px', fontWeight: '800', color: '#1e3a8a', marginTop: '2px' }}>{stats.total_talukas}</div>
+          </div>
+
+          {/* Card 2: Villages */}
+          <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+            <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '700' }}>{isMr ? 'गावे' : 'Villages'}</div>
+            <div style={{ fontSize: '19px', fontWeight: '800', color: '#0f766e', marginTop: '2px' }}>{stats.total_villages}</div>
+          </div>
+
+          {/* Card 3: Wards */}
+          <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+            <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '700' }}>{isMr ? 'प्रभाग / वॉर्ड' : 'Wards'}</div>
+            <div style={{ fontSize: '19px', fontWeight: '800', color: '#7c3aed', marginTop: '2px' }}>{stats.total_wards}</div>
+          </div>
+
+          {/* Card 4: Booths */}
+          <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+            <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '700' }}>{isMr ? 'एकूण बूथ' : 'Booths'}</div>
+            <div style={{ fontSize: '19px', fontWeight: '800', color: '#2563eb', marginTop: '2px' }}>{stats.total_booths}</div>
+          </div>
+
+          {/* Card 5: Voters */}
+          <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+            <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '700' }}>{isMr ? 'एकूण मतदार' : 'Voters'}</div>
+            <div style={{ fontSize: '19px', fontWeight: '800', color: '#059669', marginTop: '2px' }}>
+              {Number(stats.total_voters || 0).toLocaleString('en-IN')}
+            </div>
+          </div>
+
+          {/* Card 6: Population */}
+          <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+            <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '700' }}>{isMr ? 'अंदाजे लोकसंख्या' : 'Population'}</div>
+            <div style={{ fontSize: '19px', fontWeight: '800', color: '#d97706', marginTop: '2px' }}>
+              {Number(stats.total_population || 0).toLocaleString('en-IN')}
             </div>
           </div>
         </div>
@@ -440,117 +612,172 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
           </div>
         ) : (
           <>
-            {/* Desktop View Table (Screens > 640px) */}
+            {/* Desktop Table View (Screens > 640px and Tablets) */}
             <div className="geo-desktop-table" style={{ overflowX: 'auto', width: '100%' }}>
-              <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+              <table style={{ width: '100%', minWidth: '760px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                 <thead>
                   <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', color: '#475569', fontWeight: '700' }}>
                     <th style={{ padding: '12px 16px' }}>{isMr ? 'बूथ क्रमांक व नाव' : 'Booth No & Center Name'}</th>
-                    <th style={{ padding: '12px 14px' }}>{isMr ? 'तालुका / गाव' : 'Taluka / Village'}</th>
+                    <th style={{ padding: '12px 14px' }}>{isMr ? 'तालुका, गाव व प्रभाग' : 'Taluka, Village & Ward'}</th>
                     <th style={{ padding: '12px 14px' }}>{isMr ? 'पूर्ण मोजणी' : 'Completed Count'}</th>
                     <th style={{ padding: '12px 14px' }}>{isMr ? 'बूथ प्रमुख व संपर्क' : 'Booth In-charge'}</th>
-                    <th style={{ padding: '12px 16px', textAlign: 'center' }}>{isMr ? 'कृती' : 'Action'}</th>
+                    <th style={{ padding: '12px 16px', textAlign: 'center' }}>{isMr ? 'कृती / बूथ सेट' : 'Action / Set Booth'}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {booths.length === 0 ? (
                     <tr>
-                      <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>
-                        {isMr ? 'कोणतेही बूथ सापडले नाही. कृपया फिल्टर बदला.' : 'No booths found matching your filter.'}
+                      <td colSpan={5} style={{ padding: '36px', textAlign: 'center', color: '#94a3b8' }}>
+                        {isMr ? 'कोणतेही बूथ सापडले नाही. कृपया फिल्टर तपासा.' : 'No booths found matching your filter.'}
                       </td>
                     </tr>
                   ) : (
-                    booths.map((b) => (
-                      <tr
-                        key={b.id}
-                        style={{
-                          borderBottom: '1px solid #f1f5f9',
-                          background: b.is_sensitive ? '#fffbf5' : '#ffffff',
-                        }}
-                      >
-                        {/* Booth Name & Tag */}
-                        <td style={{ padding: '14px 16px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ fontWeight: '800', color: '#1e3a8a', fontSize: '13px' }}>{formatBoothNo(b.booth_no, isMr)}</span>
-                            {b.is_sensitive ? (
-                              <span
+                    booths.map((b) => {
+                      const isActive = activeBoothId && String(activeBoothId) === String(b.id);
+
+                      return (
+                        <tr
+                          key={b.id}
+                          style={{
+                            borderBottom: '1px solid #f1f5f9',
+                            background: isActive ? '#f0fdf4' : (b.is_sensitive ? '#fffbf5' : '#ffffff'),
+                          }}
+                        >
+                          {/* Booth Name & Tag */}
+                          <td style={{ padding: '14px 16px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                              <span style={{ fontWeight: '800', color: '#1e3a8a', fontSize: '13px' }}>
+                                {formatBoothNo(b.booth_no, isMr)}
+                              </span>
+                              {isActive && (
+                                <span
+                                  style={{
+                                    background: '#dcfce7',
+                                    color: '#15803d',
+                                    fontSize: '10.5px',
+                                    padding: '2px 8px',
+                                    borderRadius: '10px',
+                                    fontWeight: '800',
+                                    border: '1px solid #86efac',
+                                  }}
+                                >
+                                  ✓ {isMr ? 'सक्रिय बूथ' : 'Active'}
+                                </span>
+                              )}
+                              {b.is_sensitive ? (
+                                <span
+                                  style={{
+                                    background: '#fee2e2',
+                                    color: '#991b1b',
+                                    fontSize: '10px',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                    fontWeight: '700',
+                                  }}
+                                >
+                                  {isMr ? 'संवेदनशील' : 'Sensitive'}
+                                </span>
+                              ) : null}
+                            </div>
+                            <div style={{ fontSize: '12px', color: '#334155', marginTop: '3px' }}>
+                              {isMr ? b.booth_name_mr : (b.booth_name_en || b.booth_name_mr)}
+                            </div>
+                          </td>
+
+                          {/* Geography */}
+                          <td style={{ padding: '14px 14px', color: '#475569' }}>
+                            <div style={{ fontWeight: '700', color: '#0f172a' }}>
+                              {isMr ? b.village_mr : (b.village_en || b.village_mr)}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                              <span>{isMr ? b.taluka_mr : (b.taluka_en || b.taluka_mr)}</span>
+                              {b.ward_mr && (
+                                <>
+                                  <span style={{ margin: '0 4px', color: '#cbd5e1' }}>•</span>
+                                  <span style={{ color: '#7c3aed', fontWeight: '600' }}>{isMr ? b.ward_mr : (b.ward_en || b.ward_mr)}</span>
+                                </>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Completed Count */}
+                          <td style={{ padding: '14px 14px' }}>
+                            <span
+                              style={{
+                                background: '#ecfdf5',
+                                color: '#059669',
+                                border: '1px solid #a7f3d0',
+                                fontWeight: '800',
+                                fontSize: '13px',
+                                padding: '4px 12px',
+                                borderRadius: '6px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                              }}
+                            >
+                              ✓ {b.surveyed_voters}
+                            </span>
+                          </td>
+
+                          {/* In-charge */}
+                          <td style={{ padding: '14px 14px' }}>
+                            <div style={{ fontWeight: '600', color: '#0f172a' }}>
+                              {isMr ? b.incharge_name : (b.incharge_name_en || b.incharge_name)}
+                            </div>
+                            {b.incharge_phone && (
+                              <a
+                                href={`tel:${b.incharge_phone}`}
+                                style={{ fontSize: '12px', color: '#2563eb', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}
+                              >
+                                📞 {b.incharge_phone}
+                              </a>
+                            )}
+                          </td>
+
+                          {/* Action Buttons: Set Booth & Details */}
+                          <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                            <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleSetActiveBooth(b)}
                                 style={{
-                                  background: '#fee2e2',
-                                  color: '#991b1b',
-                                  fontSize: '10px',
-                                  padding: '2px 6px',
-                                  borderRadius: '4px',
+                                  background: isActive ? '#10b981' : '#2563eb',
+                                  color: '#ffffff',
+                                  border: 'none',
+                                  padding: '6px 12px',
+                                  borderRadius: '6px',
+                                  fontSize: '11.5px',
                                   fontWeight: '700',
+                                  cursor: 'pointer',
+                                  boxShadow: isActive ? '0 2px 6px rgba(16, 185, 129, 0.3)' : '0 2px 6px rgba(37, 99, 235, 0.3)',
+                                  transition: 'all 0.15s ease',
+                                }}
+                                title={isMr ? 'हे बूथ ॲक्टिव्ह म्हणून सेट करा' : 'Set as Active Booth'}
+                              >
+                                {isActive ? (isMr ? '✓ सेट आहे' : 'Active') : (isMr ? '🎯 सेट बूथ' : 'Set Booth')}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedBoothModal(b)}
+                                style={{
+                                  background: '#f1f5f9',
+                                  border: '1px solid #cbd5e1',
+                                  color: '#1e293b',
+                                  padding: '6px 10px',
+                                  borderRadius: '6px',
+                                  fontSize: '11.5px',
+                                  fontWeight: '600',
+                                  cursor: 'pointer',
                                 }}
                               >
-                                {isMr ? 'संवेदनशील' : 'Sensitive'}
-                              </span>
-                            ) : null}
-                          </div>
-                          <div style={{ fontSize: '12px', color: '#334155', marginTop: '3px' }}>
-                            {isMr ? b.booth_name_mr : (b.booth_name_en || b.booth_name_mr)}
-                          </div>
-                        </td>
-
-                        {/* Geography */}
-                        <td style={{ padding: '14px 14px', color: '#475569' }}>
-                          <div style={{ fontWeight: '600' }}>{isMr ? b.village_mr : (b.village_en || b.village_mr)}</div>
-                          <div style={{ fontSize: '11px', color: '#94a3b8' }}>{isMr ? b.taluka_mr : (b.taluka_en || b.taluka_mr)}</div>
-                        </td>
-
-                        {/* Completed Count */}
-                        <td style={{ padding: '14px 14px' }}>
-                          <span
-                            style={{
-                              background: '#ecfdf5',
-                              color: '#059669',
-                              border: '1px solid #a7f3d0',
-                              fontWeight: '800',
-                              fontSize: '13px',
-                              padding: '4px 12px',
-                              borderRadius: '6px',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                            }}
-                          >
-                            ✓ {b.surveyed_voters}
-                          </span>
-                        </td>
-
-                        {/* In-charge */}
-                        <td style={{ padding: '14px 14px' }}>
-                          <div style={{ fontWeight: '600', color: '#0f172a' }}>
-                            {isMr ? b.incharge_name : (b.incharge_name_en || b.incharge_name)}
-                          </div>
-                          <a
-                            href={`tel:${b.incharge_phone}`}
-                            style={{ fontSize: '12px', color: '#2563eb', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}
-                          >
-                            📞 {b.incharge_phone}
-                          </a>
-                        </td>
-
-                        {/* Action Button */}
-                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                          <button
-                            onClick={() => setSelectedBoothModal(b)}
-                            style={{
-                              background: '#f1f5f9',
-                              border: '1px solid #cbd5e1',
-                              color: '#1e293b',
-                              padding: '6px 12px',
-                              borderRadius: '6px',
-                              fontSize: '12px',
-                              fontWeight: '600',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            {isMr ? 'तपशील' : 'Details'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))
+                                {isMr ? 'तपशील' : 'Details'}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -563,110 +790,132 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
                   {isMr ? 'कोणतेही बूथ सापडले नाही. कृपया फिल्टर बदला.' : 'No booths found matching your filter.'}
                 </div>
               ) : (
-                booths.map((b) => (
-                  <div
-                    key={b.id}
-                    style={{
-                      background: b.is_sensitive ? '#fffbf5' : '#ffffff',
-                      border: b.is_sensitive ? '1px solid #fecaca' : '1px solid #e2e8f0',
-                      borderRadius: '10px',
-                      padding: '12px 14px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '8px',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ fontWeight: '800', color: '#1e3a8a', fontSize: '13px' }}>
-                          {formatBoothNo(b.booth_no, isMr)}
-                        </span>
-                        {b.is_sensitive && (
-                          <span
-                            style={{
-                              background: '#fee2e2',
-                              color: '#991b1b',
-                              fontSize: '10px',
-                              padding: '2px 6px',
-                              borderRadius: '4px',
-                              fontWeight: '700',
-                            }}
-                          >
-                            {isMr ? 'संवेदनशील' : 'Sensitive'}
+                booths.map((b) => {
+                  const isActive = activeBoothId && String(activeBoothId) === String(b.id);
+
+                  return (
+                    <div
+                      key={b.id}
+                      style={{
+                        background: isActive ? '#f0fdf4' : (b.is_sensitive ? '#fffbf5' : '#ffffff'),
+                        border: isActive ? '2px solid #86efac' : (b.is_sensitive ? '1px solid #fecaca' : '1px solid #e2e8f0'),
+                        borderRadius: '10px',
+                        padding: '12px 14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontWeight: '800', color: '#1e3a8a', fontSize: '13px' }}>
+                            {formatBoothNo(b.booth_no, isMr)}
                           </span>
-                        )}
+                          {isActive && (
+                            <span
+                              style={{
+                                background: '#dcfce7',
+                                color: '#15803d',
+                                fontSize: '10px',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontWeight: '800',
+                              }}
+                            >
+                              ✓ {isMr ? 'सक्रिय' : 'Active'}
+                            </span>
+                          )}
+                          {b.is_sensitive && (
+                            <span
+                              style={{
+                                background: '#fee2e2',
+                                color: '#991b1b',
+                                fontSize: '10px',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontWeight: '700',
+                              }}
+                            >
+                              {isMr ? 'संवेदनशील' : 'Sensitive'}
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedBoothModal(b)}
+                          style={{
+                            background: '#eff6ff',
+                            border: '1px solid #bfdbfe',
+                            color: '#1d4ed8',
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: '750',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {isMr ? 'तपशील' : 'Details'}
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedBoothModal(b)}
-                        style={{
-                          background: '#eff6ff',
-                          border: '1px solid #bfdbfe',
-                          color: '#1d4ed8',
-                          padding: '4px 10px',
-                          borderRadius: '6px',
-                          fontSize: '12px',
-                          fontWeight: '750',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        {isMr ? 'तपशील' : 'Details'}
-                      </button>
-                    </div>
 
-                    <div style={{ fontSize: '13px', fontWeight: '650', color: '#1e293b', lineHeight: 1.35 }}>
-                      {isMr ? b.booth_name_mr : (b.booth_name_en || b.booth_name_mr)}
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: '#64748b', paddingTop: '4px', borderTop: '1px solid #f1f5f9' }}>
-                      <div>
-                        <span>📍 {isMr ? b.village_mr : (b.village_en || b.village_mr)}</span>
-                        <span style={{ margin: '0 4px', color: '#cbd5e1' }}>•</span>
-                        <span style={{ color: '#94a3b8' }}>{isMr ? b.taluka_mr : (b.taluka_en || b.taluka_mr)}</span>
+                      <div style={{ fontSize: '13px', fontWeight: '650', color: '#1e293b', lineHeight: 1.35 }}>
+                        {isMr ? b.booth_name_mr : (b.booth_name_en || b.booth_name_mr)}
                       </div>
-                      <span
-                        style={{
-                          background: '#ecfdf5',
-                          color: '#059669',
-                          border: '1px solid #a7f3d0',
-                          fontWeight: '800',
-                          fontSize: '12px',
-                          padding: '2px 8px',
-                          borderRadius: '6px',
-                        }}
-                      >
-                        ✓ {b.surveyed_voters}
-                      </span>
-                    </div>
 
-                    {b.incharge_name && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', paddingTop: '4px' }}>
-                        <span style={{ color: '#475569', fontWeight: '600' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: '#64748b', paddingTop: '4px', borderTop: '1px solid #f1f5f9' }}>
+                        <div>
+                          <span>📍 {isMr ? b.village_mr : (b.village_en || b.village_mr)}</span>
+                          <span style={{ margin: '0 4px', color: '#cbd5e1' }}>•</span>
+                          <span style={{ color: '#94a3b8' }}>{isMr ? b.taluka_mr : (b.taluka_en || b.taluka_mr)}</span>
+                          {b.ward_mr && (
+                            <>
+                              <span style={{ margin: '0 4px', color: '#cbd5e1' }}>•</span>
+                              <span style={{ color: '#7c3aed', fontWeight: '600' }}>{isMr ? b.ward_mr : (b.ward_en || b.ward_mr)}</span>
+                            </>
+                          )}
+                        </div>
+                        <span
+                          style={{
+                            background: '#ecfdf5',
+                            color: '#059669',
+                            border: '1px solid #a7f3d0',
+                            fontWeight: '800',
+                            fontSize: '12px',
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                          }}
+                        >
+                          ✓ {b.surveyed_voters}
+                        </span>
+                      </div>
+
+                      {/* Incharge & Set Booth Button Row */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', paddingTop: '4px', gap: '8px' }}>
+                        <span style={{ color: '#475569', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           👤 {isMr ? b.incharge_name : (b.incharge_name_en || b.incharge_name)}
                         </span>
-                        {b.incharge_phone && (
-                          <a
-                            href={`tel:${b.incharge_phone}`}
-                            style={{
-                              color: '#2563eb',
-                              textDecoration: 'none',
-                              fontWeight: '700',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              background: '#f1f5f9',
-                              padding: '3px 8px',
-                              borderRadius: '6px',
-                            }}
-                          >
-                            📞 {b.incharge_phone}
-                          </a>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleSetActiveBooth(b)}
+                          style={{
+                            background: isActive ? '#10b981' : '#2563eb',
+                            color: '#ffffff',
+                            border: 'none',
+                            padding: '5px 12px',
+                            borderRadius: '6px',
+                            fontSize: '11.5px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {isActive ? (isMr ? '✓ सेट आहे' : 'Active') : (isMr ? '🎯 सेट बूथ' : 'Set Booth')}
+                        </button>
                       </div>
-                    )}
-                  </div>
-                ))
+                    </div>
+                  );
+                })
               )}
             </div>
           </>
@@ -737,7 +986,7 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', color: '#334155' }}>
               <div>
-                <strong>📍 {isMr ? 'गाव / प्रभाग:' : 'Village / Ward:'}</strong> {isMr ? selectedBoothModal.village_mr : (selectedBoothModal.village_en || selectedBoothModal.village_mr)}
+                <strong>📍 {isMr ? 'गाव व प्रभाग:' : 'Village & Ward:'}</strong> {isMr ? selectedBoothModal.village_mr : (selectedBoothModal.village_en || selectedBoothModal.village_mr)} ({selectedBoothModal.ward_mr || 'वॉर्ड'})
               </div>
               <div>
                 <strong>👤 {isMr ? 'बूथ प्रमुख:' : 'In-charge:'}</strong> {isMr ? selectedBoothModal.incharge_name : (selectedBoothModal.incharge_name_en || selectedBoothModal.incharge_name)}
@@ -759,7 +1008,34 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', marginTop: '24px' }}>
+            {/* Set Active Booth in Modal */}
+            <div style={{ marginTop: '20px', paddingTop: '14px', borderTop: '1px solid #f1f5f9' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  handleSetActiveBooth(selectedBoothModal);
+                  setSelectedBoothModal(null);
+                }}
+                style={{
+                  width: '100%',
+                  background: activeBoothId && String(activeBoothId) === String(selectedBoothModal.id) ? '#10b981' : '#2563eb',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '10px',
+                  borderRadius: '8px',
+                  fontWeight: '750',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  marginBottom: '10px',
+                }}
+              >
+                {activeBoothId && String(activeBoothId) === String(selectedBoothModal.id)
+                  ? (isMr ? '✓ हे बूथ आधीच सक्रिय (Active) सेट आहे' : '✓ Already Active Booth')
+                  : (isMr ? '🎯 हे बूथ ॲक्टिव्ह सेट करा (Set as Active Booth)' : 'Set as Active Booth')}
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
               <a
                 href={`https://wa.me/91${selectedBoothModal.incharge_phone}`}
                 target="_blank"
@@ -776,14 +1052,14 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
                   fontSize: '13px',
                 }}
               >
-                💬 {isMr ? 'व्हॉट्सॲपवर संपर्क' : 'WhatsApp'}
+                💬 {isMr ? 'व्हॉट्सॲप' : 'WhatsApp'}
               </a>
               <a
                 href={`tel:${selectedBoothModal.incharge_phone}`}
                 style={{
                   flex: 1,
                   textAlign: 'center',
-                  background: '#2563eb',
+                  background: '#1e293b',
                   color: '#ffffff',
                   padding: '10px',
                   borderRadius: '8px',
@@ -792,7 +1068,7 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
                   fontSize: '13px',
                 }}
               >
-                📞 {isMr ? 'थेट कॉल करा' : 'Call Now'}
+                📞 {isMr ? 'कॉल करा' : 'Call'}
               </a>
             </div>
           </div>
@@ -801,4 +1077,3 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
     </div>
   );
 }
-

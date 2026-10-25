@@ -254,6 +254,7 @@ Route::prefix('neta')
         Route::get('/overview', [NetaDashboardController::class, 'overview']);
         Route::get('/booths', [NetaDashboardController::class, 'booths']);
         Route::get('/geography-filters', [NetaDashboardController::class, 'geographyFilters']);
+        Route::post('/set-active-booth', [NetaDashboardController::class, 'setActiveBooth']);
         Route::get('/karyakartas', [NetaDashboardController::class, 'karyakartas']);
         Route::post('/karyakartas', [NetaDashboardController::class, 'storeKaryakarta']);
         Route::put('/karyakartas/{id}', [NetaDashboardController::class, 'updateKaryakarta'])->whereNumber('id');

@@ -102,28 +102,10 @@ class NetaDashboardController extends Controller
         $boothDistricts = DB::table('neta_booth_progress')
             ->select('district_mr', 'district_en')
             ->distinct()
+            ->orderBy('district_mr')
             ->get();
 
-        // 2. Assemblies (Vidhan Sabha) from DB
-        $boothAssemblies = DB::table('neta_booth_progress')
-            ->when($request->filled('district') && $request->district !== 'all', function ($q) use ($request) {
-                $d = $request->district;
-                $q->where(function ($sq) use ($d) {
-                    $sq->where('district_mr', 'like', "%{$d}%")
-                      ->orWhere('district_en', 'like', "%{$d}%");
-                });
-            })
-            ->select('district_mr', 'district_en', 'assembly_mr', 'assembly_en')
-            ->distinct()
-            ->get();
-
-        // 3. Talukas from DB
-        $talukaQuery = DB::table('talukas')->select('id', 'district_code', 'taluka_code', 'taluka_name as name_en');
-        if ($request->filled('district_code')) {
-            $talukaQuery->where('district_code', $request->district_code);
-        }
-        $masterTalukas = $talukaQuery->orderBy('taluka_name')->take(50)->get();
-
+        // 2. Talukas from DB (filtered by district if selected)
         $boothTalukas = DB::table('neta_booth_progress')
             ->when($request->filled('district') && $request->district !== 'all', function ($q) use ($request) {
                 $d = $request->district;
@@ -132,19 +114,20 @@ class NetaDashboardController extends Controller
                       ->orWhere('district_en', 'like', "%{$d}%");
                 });
             })
-            ->when($request->filled('assembly') && $request->assembly !== 'all', function ($q) use ($request) {
-                $a = $request->assembly;
-                $q->where(function ($sq) use ($a) {
-                    $sq->where('assembly_mr', 'like', "%{$a}%")
-                      ->orWhere('assembly_en', 'like', "%{$a}%");
-                });
-            })
-            ->select('taluka_mr', 'taluka_en')
+            ->select('district_mr', 'district_en', 'taluka_mr', 'taluka_en')
             ->distinct()
+            ->orderBy('taluka_mr')
             ->get();
 
-        // 4. Villages from DB
+        // 3. Villages from DB (filtered by taluka and district)
         $boothVillages = DB::table('neta_booth_progress')
+            ->when($request->filled('district') && $request->district !== 'all', function ($q) use ($request) {
+                $d = $request->district;
+                $q->where(function ($sq) use ($d) {
+                    $sq->where('district_mr', 'like', "%{$d}%")
+                      ->orWhere('district_en', 'like', "%{$d}%");
+                });
+            })
             ->when($request->filled('taluka') && $request->taluka !== 'all', function ($q) use ($request) {
                 $t = $request->taluka;
                 $q->where(function ($sq) use ($t) {
@@ -152,8 +135,37 @@ class NetaDashboardController extends Controller
                       ->orWhere('taluka_en', 'like', "%{$t}%");
                 });
             })
-            ->select('village_mr', 'village_en')
+            ->select('taluka_mr', 'village_mr', 'village_en')
             ->distinct()
+            ->orderBy('village_mr')
+            ->get();
+
+        // 4. Wards from DB (filtered by village, taluka, district)
+        $boothWards = DB::table('neta_booth_progress')
+            ->when($request->filled('district') && $request->district !== 'all', function ($q) use ($request) {
+                $d = $request->district;
+                $q->where(function ($sq) use ($d) {
+                    $sq->where('district_mr', 'like', "%{$d}%")
+                      ->orWhere('district_en', 'like', "%{$d}%");
+                });
+            })
+            ->when($request->filled('taluka') && $request->taluka !== 'all', function ($q) use ($request) {
+                $t = $request->taluka;
+                $q->where(function ($sq) use ($t) {
+                    $sq->where('taluka_mr', 'like', "%{$t}%")
+                      ->orWhere('taluka_en', 'like', "%{$t}%");
+                });
+            })
+            ->when($request->filled('village') && $request->village !== 'all', function ($q) use ($request) {
+                $v = $request->village;
+                $q->where(function ($sq) use ($v) {
+                    $sq->where('village_mr', 'like', "%{$v}%")
+                      ->orWhere('village_en', 'like', "%{$v}%");
+                });
+            })
+            ->select('village_mr', 'ward_mr', 'ward_en')
+            ->distinct()
+            ->orderBy('ward_mr')
             ->get();
 
         // 5. Incharges & Booths from DB
@@ -163,16 +175,57 @@ class NetaDashboardController extends Controller
             ->orderBy('booth_no')
             ->get();
 
+        // Hierarchy summary counts
+        $countsQuery = DB::table('neta_booth_progress');
+        if ($request->filled('district') && $request->district !== 'all') {
+            $d = $request->district;
+            $countsQuery->where(function ($sq) use ($d) {
+                $sq->where('district_mr', 'like', "%{$d}%")
+                  ->orWhere('district_en', 'like', "%{$d}%");
+            });
+        }
+        if ($request->filled('taluka') && $request->taluka !== 'all') {
+            $t = $request->taluka;
+            $countsQuery->where(function ($sq) use ($t) {
+                $sq->where('taluka_mr', 'like', "%{$t}%")
+                  ->orWhere('taluka_en', 'like', "%{$t}%");
+            });
+        }
+        if ($request->filled('village') && $request->village !== 'all') {
+            $v = $request->village;
+            $countsQuery->where(function ($sq) use ($v) {
+                $sq->where('village_mr', 'like', "%{$v}%")
+                  ->orWhere('village_en', 'like', "%{$v}%");
+            });
+        }
+        if ($request->filled('ward') && $request->ward !== 'all') {
+            $w = $request->ward;
+            $countsQuery->where(function ($sq) use ($w) {
+                $sq->where('ward_mr', 'like', "%{$w}%")
+                  ->orWhere('ward_en', 'like', "%{$w}%");
+            });
+        }
+
+        $summaryStats = [
+            'total_districts' => (clone $countsQuery)->distinct()->count('district_mr'),
+            'total_talukas' => (clone $countsQuery)->distinct()->count('taluka_mr'),
+            'total_villages' => (clone $countsQuery)->distinct()->count('village_mr'),
+            'total_wards' => (clone $countsQuery)->distinct()->count('ward_mr'),
+            'total_booths' => (clone $countsQuery)->count('id'),
+            'total_voters' => (clone $countsQuery)->sum('total_voters'),
+            'total_population' => (clone $countsQuery)->sum('total_population'),
+        ];
+
         return response()->json([
             'success' => true,
             'data' => [
                 'master_districts' => $masterDistricts,
                 'booth_districts' => $boothDistricts,
-                'booth_assemblies' => $boothAssemblies,
-                'master_talukas' => $masterTalukas,
                 'booth_talukas' => $boothTalukas,
                 'booth_villages' => $boothVillages,
+                'booth_wards' => $boothWards,
                 'incharges' => $boothIncharges,
+                'summary_stats' => $summaryStats,
             ],
         ]);
     }
@@ -217,6 +270,14 @@ class NetaDashboardController extends Controller
             });
         }
 
+        if ($request->filled('ward') && $request->ward !== 'all') {
+            $w = $request->ward;
+            $query->where(function ($q) use ($w) {
+                $q->where('ward_mr', 'like', "%{$w}%")
+                  ->orWhere('ward_en', 'like', "%{$w}%");
+            });
+        }
+
         if ($request->filled('incharge') && $request->incharge !== 'all') {
             $i = $request->incharge;
             $query->where('incharge_name', 'like', "%{$i}%");
@@ -248,10 +309,10 @@ class NetaDashboardController extends Controller
                   ->orWhere('booth_name_en', 'like', "%{$s}%")
                   ->orWhere('incharge_name', 'like', "%{$s}%")
                   ->orWhere('incharge_phone', 'like', "%{$s}%")
+                  ->orWhere('ward_mr', 'like', "%{$s}%")
                   ->orWhere('village_mr', 'like', "%{$s}%")
                   ->orWhere('village_en', 'like', "%{$s}%")
                   ->orWhere('taluka_mr', 'like', "%{$s}%")
-                  ->orWhere('assembly_mr', 'like', "%{$s}%")
                   ->orWhere('district_mr', 'like', "%{$s}%");
             });
         }
@@ -262,6 +323,26 @@ class NetaDashboardController extends Controller
             'success' => true,
             'data' => $booths,
             'count' => $booths->count(),
+        ]);
+    }
+
+    /**
+     * POST /api/neta/set-active-booth
+     * Mark or set selected booth as active target
+     */
+    public function setActiveBooth(Request $request)
+    {
+        $request->validate([
+            'booth_id' => 'required',
+        ]);
+        $booth = DB::table('neta_booth_progress')->where('id', $request->booth_id)->first();
+        if (!$booth) {
+            return response()->json(['success' => false, 'message' => 'बूथ सापडले नाही.'], 404);
+        }
+        return response()->json([
+            'success' => true,
+            'message' => 'बूथ ' . ($booth->booth_no ?? '') . ' यशस्वीरीत्या सेट केले आहे.',
+            'data' => $booth,
         ]);
     }
 
