@@ -1,6 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { netaApi } from '../api/netaApi';
 import ResponsiveSelect from '../../../components/ResponsiveSelect';
+
+const cleanLabel = (text, isMr) => {
+  if (!text) return '';
+  const str = String(text);
+  if (isMr) {
+    // In Marathi mode: strip English words in brackets like (District), (All Talukas), etc.
+    return str.replace(/\s*\([A-Za-z0-9\s\/\-_.]+\)/g, '').trim();
+  } else {
+    // In English mode: if text contains (English), extract English; else remove Devanagari
+    const match = str.match(/\(([A-Za-z0-9\s\/\-_.]+)\)/);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
+    const englishOnly = str.replace(/[^\x00-\x7F]+/g, '').replace(/^[-\s/]+|[-\s/]+$/g, '').trim();
+    return englishOnly || str;
+  }
+};
 
 const formatBoothNo = (boothNo, isMr) => {
   if (!boothNo) return '';
@@ -170,52 +187,86 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
 
   // Level 1: District Options
   const districtOptions = [
-    { value: 'all', label: isMr ? 'सर्व जिल्हे (All Districts)' : 'All Districts' },
+    { value: 'all', label: isMr ? 'सर्व जिल्हे' : 'All Districts' },
     ...districtList.map((d) => ({
       value: d.value,
-      label: isMr ? (d.label_mr || d.value) : (d.label_en || d.value),
+      label: isMr ? cleanLabel(d.label_mr || d.value, true) : cleanLabel(d.label_en || d.value, false),
     })),
   ];
 
   // Level 2: Taluka Options
   const talukaOptions = [
-    { value: 'all', label: isMr ? 'सर्व तालुके (All Talukas)' : 'All Talukas' },
+    { value: 'all', label: isMr ? 'सर्व तालुके' : 'All Talukas' },
     ...talukaList.map((t) => ({
       value: t.value,
-      label: isMr ? (t.label_mr || t.value) : (t.label_en || t.value),
+      label: isMr ? cleanLabel(t.label_mr || t.value, true) : cleanLabel(t.label_en || t.value, false),
     })),
   ];
 
   // Level 3: Village Options
   const villageOptions = [
-    { value: 'all', label: isMr ? 'सर्व गावे (All Villages)' : 'All Villages' },
+    { value: 'all', label: isMr ? 'सर्व गावे' : 'All Villages' },
     ...villageList.map((v) => ({
       value: v.value,
-      label: isMr ? (v.label_mr || v.value) : (v.label_en || v.value),
+      label: isMr ? cleanLabel(v.label_mr || v.value, true) : cleanLabel(v.label_en || v.value, false),
     })),
   ];
 
   // Level 4: Ward Options
   const wardOptions = [
-    { value: 'all', label: isMr ? 'सर्व प्रभाग / वॉर्ड (All Wards)' : 'All Wards' },
+    { value: 'all', label: isMr ? 'सर्व प्रभाग' : 'All Wards' },
     ...wardList.map((w) => ({
       value: w.value,
-      label: isMr ? (w.label_mr || w.value) : (w.label_en || w.value),
+      label: isMr ? cleanLabel(w.label_mr || w.value, true) : cleanLabel(w.label_en || w.value, false),
     })),
   ];
 
   // Level 5: Booth Options
   const boothOptions = [
-    { value: 'all', label: isMr ? 'सर्व बूथ (All Booths)' : 'All Booths' },
+    { value: 'all', label: isMr ? 'सर्व बूथ' : 'All Booths' },
     ...booths.map((b) => ({
       value: b.booth_no,
-      label: `${formatBoothNo(b.booth_no, isMr)} - ${isMr ? (b.booth_name_mr || b.booth_name_en) : (b.booth_name_en || b.booth_name_mr)}`,
+      label: `${formatBoothNo(b.booth_no, isMr)} - ${isMr ? cleanLabel(b.booth_name_mr || b.booth_name_en, true) : cleanLabel(b.booth_name_en || b.booth_name_mr, false)}`,
     })),
   ];
 
+  // Regional Hierarchy Breakdown for "सर्व माहिती" View
+  const districtBreakdown = useMemo(() => {
+    return districtList.map((dist) => {
+      const distTalukas = (geoData?.booth_talukas || []).filter(
+        (t) => t.district_mr === dist.value || t.district_en === dist.value
+      );
+      const distBooths = booths.filter(
+        (b) => b.district_mr === dist.value || b.district_en === dist.value
+      );
+      const distVoters = distBooths.reduce((acc, curr) => acc + (Number(curr.total_voters) || 0), 0);
+      return {
+        ...dist,
+        talukas_count: distTalukas.length,
+        booths_count: distBooths.length,
+        voters_count: distVoters,
+      };
+    });
+  }, [districtList, geoData, booths]);
+
+  const talukaBreakdown = useMemo(() => {
+    if (selectedDistrict === 'all') return [];
+    return talukaList.map((tal) => {
+      const talBooths = booths.filter(
+        (b) => b.taluka_mr === tal.value || b.taluka_en === tal.value
+      );
+      const talVoters = talBooths.reduce((acc, curr) => acc + (Number(curr.total_voters) || 0), 0);
+      return {
+        ...tal,
+        booths_count: talBooths.length,
+        voters_count: talVoters,
+      };
+    });
+  }, [talukaList, selectedDistrict, booths]);
+
   // Summary counts from DB
   const stats = geoData?.summary_stats || {
-    total_districts: districtList.length,
+    total_districts: districtList.length || 3,
     total_talukas: talukaList.length,
     total_villages: villageList.length,
     total_wards: wardList.length,
@@ -255,7 +306,7 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
         }
         .geo-stats-grid {
           display: grid;
-          grid-template-columns: repeat(6, 1fr);
+          grid-template-columns: repeat(7, 1fr);
           gap: 12px;
           width: 100%;
           box-sizing: border-box;
@@ -277,7 +328,7 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
             gap: 12px !important;
           }
           .geo-stats-grid {
-            grid-template-columns: repeat(3, 1fr) !important;
+            grid-template-columns: repeat(4, 1fr) !important;
             gap: 10px !important;
           }
           .geo-desktop-table {
@@ -387,15 +438,16 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
 
         {/* 5-Level Cascade Controls Grid */}
         <div className="geo-filter-grid">
-          {/* 1. जिल्हा (District) */}
+          {/* 1. जिल्हा */}
           <div>
             <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#1e293b', marginBottom: '5px' }}>
-              {isMr ? '१. जिल्हा (District)' : '1. District'}
+              {isMr ? '१. जिल्हा' : '1. District'}
             </label>
             <ResponsiveSelect
               value={selectedDistrict}
               options={districtOptions}
               isMr={isMr}
+              menuMaxHeight="65vh"
               onChange={(e) => {
                 setSelectedDistrict(e.target.value);
                 setSelectedTaluka('all');
@@ -406,15 +458,16 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
             />
           </div>
 
-          {/* 2. तालुका (Taluka) */}
+          {/* 2. तालुका */}
           <div>
             <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#1e293b', marginBottom: '5px' }}>
-              {isMr ? '२. तालुका (Taluka)' : '2. Taluka'}
+              {isMr ? '२. तालुका' : '2. Taluka'}
             </label>
             <ResponsiveSelect
               value={selectedTaluka}
               options={talukaOptions}
               isMr={isMr}
+              menuMaxHeight="65vh"
               onChange={(e) => {
                 setSelectedTaluka(e.target.value);
                 setSelectedVillage('all');
@@ -424,15 +477,16 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
             />
           </div>
 
-          {/* 3. गाव (Village) */}
+          {/* 3. गाव */}
           <div>
             <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#1e293b', marginBottom: '5px' }}>
-              {isMr ? '३. गाव (Village)' : '3. Village'}
+              {isMr ? '३. गाव' : '3. Village'}
             </label>
             <ResponsiveSelect
               value={selectedVillage}
               options={villageOptions}
               isMr={isMr}
+              menuMaxHeight="65vh"
               onChange={(e) => {
                 setSelectedVillage(e.target.value);
                 setSelectedWard('all');
@@ -441,15 +495,16 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
             />
           </div>
 
-          {/* 4. प्रभाग / वॉर्ड (Ward) */}
+          {/* 4. प्रभाग */}
           <div>
             <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#1e293b', marginBottom: '5px' }}>
-              {isMr ? '४. प्रभाग / वॉर्ड (Ward)' : '4. Ward'}
+              {isMr ? '४. प्रभाग' : '4. Ward'}
             </label>
             <ResponsiveSelect
               value={selectedWard}
               options={wardOptions}
               isMr={isMr}
+              menuMaxHeight="65vh"
               onChange={(e) => {
                 setSelectedWard(e.target.value);
                 setSelectedBooth('all');
@@ -457,15 +512,16 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
             />
           </div>
 
-          {/* 5. बूथ (Booth / Set Booth) */}
+          {/* 5. बूथ */}
           <div>
             <label style={{ display: 'block', fontSize: '12px', fontWeight: '800', color: '#1e293b', marginBottom: '5px' }}>
-              {isMr ? '५. बूथ (Booth Select)' : '5. Booth'}
+              {isMr ? '५. बूथ' : '5. Booth'}
             </label>
             <ResponsiveSelect
               value={selectedBooth}
               options={boothOptions}
               isMr={isMr}
+              menuMaxHeight="65vh"
               onChange={(e) => {
                 const val = e.target.value;
                 setSelectedBooth(val);
@@ -551,10 +607,16 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
         </div>
 
         <div className="geo-stats-grid">
+          {/* Card 0: Districts */}
+          <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+            <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '700' }}>{isMr ? 'एकूण जिल्हे' : 'Districts'}</div>
+            <div style={{ fontSize: '19px', fontWeight: '800', color: '#1e3a8a', marginTop: '2px' }}>{stats.total_districts}</div>
+          </div>
+
           {/* Card 1: Talukas */}
           <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
             <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '700' }}>{isMr ? 'तालुके' : 'Talukas'}</div>
-            <div style={{ fontSize: '19px', fontWeight: '800', color: '#1e3a8a', marginTop: '2px' }}>{stats.total_talukas}</div>
+            <div style={{ fontSize: '19px', fontWeight: '800', color: '#0284c7', marginTop: '2px' }}>{stats.total_talukas}</div>
           </div>
 
           {/* Card 2: Villages */}
@@ -565,7 +627,7 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
 
           {/* Card 3: Wards */}
           <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '10px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
-            <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '700' }}>{isMr ? 'प्रभाग / वॉर्ड' : 'Wards'}</div>
+            <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '700' }}>{isMr ? 'प्रभाग' : 'Wards'}</div>
             <div style={{ fontSize: '19px', fontWeight: '800', color: '#7c3aed', marginTop: '2px' }}>{stats.total_wards}</div>
           </div>
 
@@ -590,6 +652,170 @@ export default function GeographyBoothProgress({ lang = 'mr' }) {
               {Number(stats.total_population || 0).toLocaleString('en-IN')}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Regional Hierarchy Breakdown Section (Displays all info clearly before any filter is chosen, and dynamically adapts) */}
+      <div
+        style={{
+          background: '#ffffff',
+          borderRadius: '14px',
+          padding: '16px 20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span>🏛️</span>
+              <span>
+                {selectedDistrict === 'all'
+                  ? (isMr ? 'सर्व जिल्ह्यांची संपूर्ण रचना व माहिती' : 'All Districts Hierarchy & Summary')
+                  : (isMr ? `${cleanLabel(selectedDistrict, true)} जिल्हा अंतर्गत सर्व तालुके` : `All Talukas in ${cleanLabel(selectedDistrict, false)}`)}
+              </span>
+            </div>
+            <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
+              {selectedDistrict === 'all'
+                ? (isMr ? 'कोणताही पर्याय न निवडता सर्व जिल्ह्यांचा थेट तपशील खाली दिलेला आहे. एका क्लिकवर निवडून फिल्टर करू शकता.' : 'Complete regional overview. Click any district to filter instantly.')
+                : (isMr ? 'या जिल्ह्याखालील तालुक्यांचा तपशील व बूथ संख्या खालीलप्रमाणे आहे.' : 'Detailed taluka breakdown and booth counts under this district.')}
+            </div>
+          </div>
+          {selectedDistrict !== 'all' && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedDistrict('all');
+                setSelectedTaluka('all');
+                setSelectedVillage('all');
+                setSelectedWard('all');
+                setSelectedBooth('all');
+              }}
+              style={{
+                fontSize: '11.5px',
+                background: '#eff6ff',
+                color: '#1d4ed8',
+                border: '1px solid #bfdbfe',
+                padding: '5px 12px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: '700',
+              }}
+            >
+              ← {isMr ? 'सर्व जिल्हे दाखवा' : 'Show All Districts'}
+            </button>
+          )}
+        </div>
+
+        {/* Regional Cards Grid */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: '12px',
+          }}
+        >
+          {selectedDistrict === 'all'
+            ? districtBreakdown.map((dist) => {
+                const isDistActive = selectedDistrict === dist.value;
+                return (
+                  <div
+                    key={dist.value}
+                    onClick={() => {
+                      setSelectedDistrict(dist.value);
+                      setSelectedTaluka('all');
+                      setSelectedVillage('all');
+                      setSelectedWard('all');
+                      setSelectedBooth('all');
+                    }}
+                    style={{
+                      background: isDistActive ? '#eff6ff' : '#f8fafc',
+                      border: isDistActive ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      padding: '14px 16px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isDistActive) e.currentTarget.style.borderColor = '#93c5fd';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isDistActive) e.currentTarget.style.borderColor = '#e2e8f0';
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '15px', fontWeight: '800', color: '#1e3a8a' }}>
+                        📍 {isMr ? cleanLabel(dist.label_mr, true) : cleanLabel(dist.label_en, false)}
+                      </span>
+                      <span style={{ fontSize: '11px', color: '#2563eb', fontWeight: '800', background: '#dbeafe', padding: '2px 8px', borderRadius: '4px' }}>
+                        {isMr ? 'तपशील' : 'Details'} ➔
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '11.5px', marginTop: '2px' }}>
+                      <span style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '3px 8px', borderRadius: '6px', color: '#0284c7', fontWeight: '700' }}>
+                        🏛️ {dist.talukas_count} {isMr ? 'तालुके' : 'Talukas'}
+                      </span>
+                      <span style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '3px 8px', borderRadius: '6px', color: '#2563eb', fontWeight: '700' }}>
+                        🎯 {dist.booths_count} {isMr ? 'बूथ' : 'Booths'}
+                      </span>
+                      <span style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '3px 8px', borderRadius: '6px', color: '#059669', fontWeight: '700' }}>
+                        👥 {Number(dist.voters_count).toLocaleString('en-IN')} {isMr ? 'मतदार' : 'Voters'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            : talukaBreakdown.map((tal) => {
+                const isTalActive = selectedTaluka === tal.value;
+                return (
+                  <div
+                    key={tal.value}
+                    onClick={() => {
+                      setSelectedTaluka(tal.value);
+                      setSelectedVillage('all');
+                      setSelectedWard('all');
+                      setSelectedBooth('all');
+                    }}
+                    style={{
+                      background: isTalActive ? '#eff6ff' : '#f8fafc',
+                      border: isTalActive ? '2px solid #2563eb' : '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      padding: '14px 16px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isTalActive) e.currentTarget.style.borderColor = '#93c5fd';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isTalActive) e.currentTarget.style.borderColor = '#e2e8f0';
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '14px', fontWeight: '800', color: '#0f766e' }}>
+                        🏛️ {isMr ? cleanLabel(tal.label_mr, true) : cleanLabel(tal.label_en, false)}
+                      </span>
+                      <span style={{ fontSize: '11px', color: '#0f766e', fontWeight: '800', background: '#ccfbf1', padding: '2px 8px', borderRadius: '4px' }}>
+                        {isMr ? 'निवडा' : 'Select'} ➔
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', fontSize: '11.5px', marginTop: '2px' }}>
+                      <span style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '3px 8px', borderRadius: '6px', color: '#2563eb', fontWeight: '700' }}>
+                        🎯 {tal.booths_count} {isMr ? 'बूथ' : 'Booths'}
+                      </span>
+                      <span style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '3px 8px', borderRadius: '6px', color: '#059669', fontWeight: '700' }}>
+                        👥 {Number(tal.voters_count).toLocaleString('en-IN')} {isMr ? 'मतदार' : 'Voters'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
         </div>
       </div>
 

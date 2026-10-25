@@ -21,6 +21,7 @@ export default function ResponsiveSelect({
   className = '',
   style = {},
   selectStyle = {},
+  menuMaxHeight = '65vh',
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
@@ -149,10 +150,10 @@ export default function ResponsiveSelect({
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: '8px',
-          padding: '9px 12px',
+          padding: '10px 14px',
           borderRadius: '8px',
           border: isOpen ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
-          fontSize: '13px',
+          fontSize: '13.5px',
           fontWeight: '600',
           background: isOpen ? '#ffffff' : '#f8fafc',
           cursor: disabled ? 'not-allowed' : 'pointer',
@@ -161,7 +162,7 @@ export default function ResponsiveSelect({
           outline: 'none',
           boxShadow: isOpen ? '0 0 0 3px rgba(37, 99, 235, 0.15)' : 'none',
           transition: 'all 0.15s ease',
-          minHeight: '40px',
+          minHeight: '42px',
           ...selectStyle,
         }}
       >
@@ -214,7 +215,7 @@ export default function ResponsiveSelect({
             borderRadius: '8px',
             boxShadow: '0 12px 28px -4px rgba(15, 23, 42, 0.2), 0 4px 10px -2px rgba(15, 23, 42, 0.08)',
             zIndex: 1050,
-            maxHeight: '45vh', // Exact requirement 3: 40vh to 50vh scrollable
+            maxHeight: menuMaxHeight || '65vh',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
@@ -284,7 +285,7 @@ export default function ResponsiveSelect({
               overflowY: 'auto',
               overflowX: 'hidden',
               flex: 1,
-              maxHeight: options.length > 7 ? 'calc(45vh - 46px)' : '45vh',
+              maxHeight: options.length > 7 ? `calc(${menuMaxHeight || '65vh'} - 48px)` : (menuMaxHeight || '65vh'),
               WebkitOverflowScrolling: 'touch',
             }}
           >
@@ -309,8 +310,8 @@ export default function ResponsiveSelect({
                     aria-selected={isSelected}
                     onClick={() => handleSelectOption(opt.value)}
                     style={{
-                      padding: '10px 12px',
-                      fontSize: '13px',
+                      padding: '11px 14px',
+                      fontSize: '13.5px',
                       fontWeight: isSelected ? '700' : '500',
                       color: isSelected ? '#1d4ed8' : '#334155',
                       background: isSelected ? '#eff6ff' : 'transparent',
@@ -321,8 +322,8 @@ export default function ResponsiveSelect({
                       borderBottom: '1px solid #f8fafc',
                       wordBreak: 'break-word',
                       whiteSpace: 'normal',
-                      lineHeight: 1.35,
-                      minHeight: '40px',
+                      lineHeight: 1.4,
+                      minHeight: '42px',
                       boxSizing: 'border-box',
                       transition: 'background 0.1s ease',
                     }}
