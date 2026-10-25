@@ -1269,7 +1269,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                     <th style={{ padding: '0 16px 8px' }}>{isMr ? 'व्याप्ती (Scope)' : 'Scope'}</th>
                     <th style={{ padding: '0 16px 8px' }}>{isMr ? 'ॲक्सेस असलेले कार्यकर्ते' : 'Assigned Users (Workers)'}</th>
                     <th style={{ padding: '0 16px 8px' }}>{isMr ? 'स्थिती (Status)' : 'Status'}</th>
-                    <th style={{ padding: '0 16px 8px', textAlign: 'right' }}>{isMr ? 'कृती / ॲक्सेस' : 'Actions'}</th>
+                    <th style={{ padding: '0 16px 8px', textAlign: 'right', minWidth: '310px' }}>{isMr ? 'कृती / ॲक्सेस' : 'Actions'}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1426,38 +1426,43 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                           </div>
                         </td>
 
-                        {/* 6. Action: Manage User Access & Demo */}
-                        <td style={{ padding: '16px', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', borderRadius: '0 12px 12px 0', textAlign: 'right' }}>
-                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
-                            {/* PROMINENT 3D BUTTON: GIVE / MANAGE USER ACCESS */}
+                        {/* 6. Action: Manage User Access, Edit, Demo, Delete */}
+                        <td style={{ padding: '14px 16px', borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', borderRadius: '0 12px 12px 0', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px', whiteSpace: 'nowrap' }}>
+                            {/* PROMINENT COMPACT BUTTON: GIVE / MANAGE USER ACCESS */}
                             <button
                               type="button"
                               onClick={() => handleOpenUserAccessModal(pForm)}
                               className="fb-btn-3d-primary"
                               style={{
-                                padding: '7.5px 14px',
-                                fontSize: '12.5px',
-                                display: 'flex',
+                                padding: '6.5px 12px',
+                                fontSize: '12px',
+                                fontWeight: '750',
+                                display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '5px',
+                                whiteSpace: 'nowrap',
                               }}
+                              title={isMr ? 'कार्यकर्त्यांना ॲक्सेस द्या किंवा व्यवस्थापित करा' : 'Manage Workers Access'}
                             >
                               <span>👥</span>
-                              <span>{isMr ? 'ॲक्सेस द्या / बदला' : 'Manage Access'}</span>
+                              <span>{isMr ? 'ॲक्सेस' : 'Access'}</span>
                             </button>
 
-                            {/* EDIT 3D BUTTON: LOAD FORM IN BUILDER */}
+                            {/* EDIT BUTTON: LOAD FORM IN BUILDER */}
                             <button
                               type="button"
                               onClick={() => handleEditPublishedForm(pForm)}
                               className="fb-btn-3d-secondary"
                               style={{
-                                padding: '7.5px 12px',
-                                fontSize: '12.5px',
-                                display: 'flex',
+                                padding: '6.5px 10px',
+                                fontSize: '12px',
+                                fontWeight: '750',
+                                display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '4px',
                                 color: '#1d4ed8',
+                                whiteSpace: 'nowrap',
                               }}
                               title={isMr ? 'हा फॉर्म फॉर्म बिल्डरमध्ये एडिट करा' : 'Edit this form in Form Builder'}
                             >
@@ -1465,7 +1470,7 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                               <span>{isMr ? 'एडिट' : 'Edit'}</span>
                             </button>
 
-                            {/* LIVE DEMO 3D BUTTON */}
+                            {/* LIVE DEMO BUTTON */}
                             <button
                               type="button"
                               onClick={() => {
@@ -1474,30 +1479,40 @@ function HouseholdSurveyForm({ user, language: appLang = 'en' }) {
                               }}
                               className="fb-btn-3d-secondary"
                               style={{
-                                padding: '7.5px 12px',
-                                fontSize: '12.5px',
+                                padding: '6.5px 10px',
+                                fontSize: '12px',
+                                fontWeight: '750',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                color: '#059669',
+                                whiteSpace: 'nowrap',
                               }}
+                              title={isMr ? 'मोबाईल लाइव्ह प्रिव्ह्यू / डेमो' : 'Mobile Live Preview / Demo'}
                             >
-                              📱 {isMr ? 'डेमो' : 'Demo'}
+                              <span>📱</span>
+                              <span>{isMr ? 'डेमो' : 'Demo'}</span>
                             </button>
 
-                            {/* DELETE 3D BUTTON: REMOVE FROM published_forms */}
+                            {/* DELETE BUTTON: REMOVE FROM published_forms */}
                             <button
                               type="button"
                               disabled={deletingFormId === pForm.id}
                               onClick={() => handleDeletePublishedForm(pForm)}
                               className="fb-btn-3d-danger"
                               style={{
-                                padding: '7.5px 12px',
-                                fontSize: '12.5px',
-                                display: 'flex',
+                                padding: '6.5px 10px',
+                                fontSize: '12px',
+                                fontWeight: '750',
+                                display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '4px',
+                                whiteSpace: 'nowrap',
                               }}
-                              title={isMr ? 'हा फॉर्म published_forms टेबलमधून कायमचा डिलीट करा' : 'Delete this form from published_forms table'}
+                              title={isMr ? 'हा फॉर्म कायमचा हटवा' : 'Delete this form'}
                             >
                               <span>🗑️</span>
-                              <span>{deletingFormId === pForm.id ? (isMr ? 'हटवत आहे...' : 'Deleting...') : (isMr ? 'हटवा' : 'Delete')}</span>
+                              <span>{deletingFormId === pForm.id ? (isMr ? '...' : '...') : (isMr ? 'हटवा' : 'Delete')}</span>
                             </button>
                           </div>
                         </td>

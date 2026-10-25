@@ -25,6 +25,8 @@ const I18N = {
     colDistrict: 'District',
     colTaluka: 'Taluka',
     colType: 'Type',
+    colPopulation: 'Total Population',
+    colVoters: 'Total Voters',
     colAction: 'Quick Action',
     viewVillagesBtn: 'View Villages →',
     viewLocalBodiesBtn: 'View Local Bodies →',
@@ -53,6 +55,8 @@ const I18N = {
     colDistrict: 'जिल्हा',
     colTaluka: 'तालुका',
     colType: 'प्रकार',
+    colPopulation: 'एकूण लोकसंख्या',
+    colVoters: 'एकूण मतदार',
     colAction: 'कृती',
     viewVillagesBtn: 'गावे पहा →',
     viewLocalBodiesBtn: 'स्थानिक संस्था पहा →',
@@ -387,6 +391,8 @@ function LocationMasterExplorer({ language = 'en' }) {
 
   // Loaded data for table
   const [tableData, setTableData] = useState([]);
+  const [selectedVillageDetail, setSelectedVillageDetail] = useState(null);
+  const [selectedVillageCode, setSelectedVillageCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -516,16 +522,33 @@ function LocationMasterExplorer({ language = 'en' }) {
     fetchData();
   }, [activeCategory, selectedDistrictCode, selectedTalukaCode]);
 
-  // Filtered Data based on Search Term
+  useEffect(() => {
+    if (activeCategory === 'villages' && tableData.length > 0) {
+      if (!selectedVillageDetail || !tableData.some((v) => String(v.village_code) === String(selectedVillageDetail.village_code))) {
+        setSelectedVillageDetail(tableData[0]);
+        setSelectedVillageCode(String(tableData[0].village_code));
+      }
+    } else if (activeCategory !== 'villages') {
+      setSelectedVillageDetail(null);
+      setSelectedVillageCode('');
+    }
+  }, [activeCategory, tableData]);
+
+  // Filtered Data based on Search Term & Selected Village
   const filteredData = useMemo(() => {
-    if (!searchTerm.trim()) return tableData;
+    let data = tableData;
+    if (activeCategory === 'villages' && selectedVillageCode) {
+      const match = data.filter((item) => String(item.village_code) === String(selectedVillageCode));
+      if (match.length > 0) data = match;
+    }
+    if (!searchTerm.trim()) return data;
     const term = searchTerm.toLowerCase().trim();
-    return tableData.filter((item) => {
+    return data.filter((item) => {
       const name = (item.village_name || item.taluka_name || item.local_body_name || item.district_name || item.name_en || '').toLowerCase();
       const code = String(item.village_code || item.taluka_code || item.local_body_code || item.district_code || item.code || '').toLowerCase();
       return name.includes(term) || code.includes(term);
     });
-  }, [tableData, searchTerm]);
+  }, [tableData, searchTerm, activeCategory, selectedVillageCode]);
 
   // Paginated Rows
   const paginatedRows = useMemo(() => {
@@ -597,6 +620,20 @@ function LocationMasterExplorer({ language = 'en' }) {
 
     return list;
   }, [talukas, selectedDistrictCode, t]);
+
+  const villageOptions = useMemo(() => {
+    const defaultPlaceholder = language === 'mr' ? '-- सर्व गावे (किंवा विशिष्ट गाव निवडा) --' : '-- All Villages (or Select Village) --';
+    const list = [{ value: '', label: defaultPlaceholder }];
+    if (activeCategory === 'villages' && tableData.length > 0) {
+      tableData.forEach((vg) => {
+        list.push({
+          value: String(vg.village_code),
+          label: `${vg.village_name || vg.name} (${vg.village_code})`,
+        });
+      });
+    }
+    return list;
+  }, [activeCategory, tableData, language]);
 
   // Quick Action Handler to Drill Down
   const handleDrillDownToVillages = (talukaCode) => {
@@ -913,13 +950,36 @@ function LocationMasterExplorer({ language = 'en' }) {
         <SearchableSelect
           label={t.talukaLabel}
           value={selectedTalukaCode}
-          onChange={(val) => setSelectedTalukaCode(val)}
+          onChange={(val) => {
+            setSelectedTalukaCode(val);
+            setSelectedVillageCode('');
+            setSelectedVillageDetail(null);
+          }}
           options={talukaOptions}
           language={language}
           placeholder={selectedDistrictCode ? t.allTalukas : t.selectDistrictFirst}
           disabled={!selectedDistrictCode}
           emptyText={language === 'mr' ? 'तालुका आढळला नाही' : 'No taluka found'}
         />
+
+        {/* 4. VILLAGE SELECTOR (Direct DB Population & Voter selection) */}
+        {activeCategory === 'villages' && (
+          <SearchableSelect
+            label={language === 'mr' ? 'गाव निवडा (लोकसंख्या व मतदार)' : 'Select Village (Pop & Voters)'}
+            value={selectedVillageCode}
+            onChange={(val) => {
+              setSelectedVillageCode(val);
+              const found = tableData.find((v) => String(v.village_code) === String(val));
+              if (found) setSelectedVillageDetail(found);
+              setPage(1);
+            }}
+            options={villageOptions}
+            language={language}
+            placeholder={language === 'mr' ? '-- गाव निवडा --' : '-- Select Village --'}
+            disabled={tableData.length === 0}
+            emptyText={language === 'mr' ? 'गाव आढळले नाही' : 'No village found'}
+          />
+        )}
       </div>
 
       {/* CATEGORY SWITCHER TABS & SEARCH */}
@@ -1025,6 +1085,81 @@ function LocationMasterExplorer({ language = 'en' }) {
         </div>
       )}
 
+      {/* SELECTED VILLAGE LIVE DB DEMOGRAPHIC CARD */}
+      {activeCategory === 'villages' && selectedVillageDetail && (
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%)',
+            border: '2px solid #93c5fd',
+            borderRadius: 14,
+            padding: '16px 20px',
+            marginBottom: 16,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 16,
+            boxShadow: '0 4px 15px rgba(37, 99, 235, 0.08)',
+          }}
+        >
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 20 }}>🌾</span>
+              <span style={{ fontSize: 12, color: '#1e40af', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                {language === 'mr' ? 'थेट डेटाबेस माहिती (Live DB Record)' : 'Live Database Demographics'}
+              </span>
+            </div>
+            <div style={{ fontSize: 20, fontWeight: 900, color: '#0f172a', marginTop: 4 }}>
+              {selectedVillageDetail.village_name || selectedVillageDetail.name}
+              <span style={{ fontSize: 13, color: '#64748b', fontWeight: 600, marginLeft: 10 }}>
+                {language === 'mr' ? 'गाव कोड:' : 'Code:'} <code style={{ background: '#e2e8f0', padding: '2px 6px', borderRadius: 4 }}>{selectedVillageDetail.village_code}</code>
+              </span>
+            </div>
+            <div style={{ fontSize: 12.5, color: '#475569', marginTop: 3 }}>
+              📍 {selectedDistrictName} {language === 'mr' ? 'जिल्हा' : 'District'} {selectedTalukaName ? `• ${selectedTalukaName} ${language === 'mr' ? 'तालुका' : 'Taluka'}` : ''}
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ background: '#ffffff', padding: '10px 18px', borderRadius: 10, border: '1.5px solid #a7f3d0', minWidth: 140, boxShadow: '0 2px 6px rgba(16, 185, 129, 0.08)' }}>
+              <div style={{ fontSize: 11.5, color: '#065f46', fontWeight: 750 }}>
+                👥 {language === 'mr' ? 'एकूण लोकसंख्या' : 'Total Population'}
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: '#047857', marginTop: 2 }}>
+                {Number(selectedVillageDetail.population || 0).toLocaleString()}
+              </div>
+              <div style={{ fontSize: 10.5, color: '#6b7280', marginTop: 2 }}>
+                {language === 'mr' ? 'थेट DB नोंद' : 'From Database'}
+              </div>
+            </div>
+
+            <div style={{ background: '#ffffff', padding: '10px 18px', borderRadius: 10, border: '1.5px solid #bfdbfe', minWidth: 140, boxShadow: '0 2px 6px rgba(37, 99, 235, 0.08)' }}>
+              <div style={{ fontSize: 11.5, color: '#1e40af', fontWeight: 750 }}>
+                🗳️ {language === 'mr' ? 'एकूण मतदार' : 'Total Voters'}
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: '#1d4ed8', marginTop: 2 }}>
+                {Number(selectedVillageDetail.total_voters || 0).toLocaleString()}
+              </div>
+              <div style={{ fontSize: 10.5, color: '#6b7280', marginTop: 2 }}>
+                {language === 'mr' ? 'थेट DB नोंद' : 'From Database'}
+              </div>
+            </div>
+
+            <div style={{ background: '#ffffff', padding: '10px 18px', borderRadius: 10, border: '1.5px solid #fde68a', minWidth: 130, boxShadow: '0 2px 6px rgba(245, 158, 11, 0.08)' }}>
+              <div style={{ fontSize: 11.5, color: '#92400e', fontWeight: 750 }}>
+                📊 {language === 'mr' ? 'मतदार प्रमाण' : 'Voter Ratio'}
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 900, color: '#b45309', marginTop: 2 }}>
+                {selectedVillageDetail.population ? Math.round((Number(selectedVillageDetail.total_voters || 0) / Number(selectedVillageDetail.population)) * 100) : 0}%
+              </div>
+              <div style={{ fontSize: 10.5, color: '#6b7280', marginTop: 2 }}>
+                {language === 'mr' ? 'लोकसंख्येच्या तुलनेत' : 'Voter vs Pop'}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* DATA TABLE */}
       {loading ? (
         <div style={{ padding: '40px 20px', textAlign: 'center', color: '#64748b', fontSize: 14 }}>
@@ -1052,6 +1187,13 @@ function LocationMasterExplorer({ language = 'en' }) {
                 {(activeCategory === 'villages' || activeCategory === 'local_bodies') && (
                   <th style={styles.th}>{t.colTaluka}</th>
                 )}
+                {activeCategory === 'villages' && (
+                  <>
+                    <th style={{ ...styles.th, textAlign: 'right' }}>👥 {t.colPopulation}</th>
+                    <th style={{ ...styles.th, textAlign: 'right' }}>🗳️ {t.colVoters}</th>
+                    <th style={{ ...styles.th, textAlign: 'center' }}>{language === 'mr' ? 'निवडा' : 'Action'}</th>
+                  </>
+                )}
                 {activeCategory === 'local_bodies' && <th style={styles.th}>{t.colType}</th>}
                 {activeCategory === 'talukas' && <th style={styles.th}>{t.colAction}</th>}
               </tr>
@@ -1059,8 +1201,22 @@ function LocationMasterExplorer({ language = 'en' }) {
             <tbody>
               {paginatedRows.map((row, idx) => {
                 const rowNum = (page - 1) * pageSize + idx + 1;
+                const isSelectedVillage = selectedVillageDetail?.village_code === row.village_code;
                 return (
-                  <tr key={row.id || row.code || row.village_code || row.taluka_code || row.district_code || idx} style={{ background: idx % 2 === 0 ? '#fff' : '#fafafa' }}>
+                  <tr
+                    key={row.id || row.code || row.village_code || row.taluka_code || row.district_code || idx}
+                    onClick={() => {
+                      if (activeCategory === 'villages') {
+                        setSelectedVillageDetail(row);
+                        setSelectedVillageCode(String(row.village_code));
+                      }
+                    }}
+                    style={{
+                      background: isSelectedVillage ? '#eff6ff' : idx % 2 === 0 ? '#fff' : '#fafafa',
+                      cursor: activeCategory === 'villages' ? 'pointer' : 'default',
+                      transition: 'background 0.12s ease',
+                    }}
+                  >
                     <td style={{ ...styles.td, color: '#94a3b8', fontSize: 12 }}>{rowNum}</td>
 
                     {/* CODE */}
@@ -1092,6 +1248,43 @@ function LocationMasterExplorer({ language = 'en' }) {
                           return tObj ? `${tObj.taluka_name} (${tCode})` : (tCode || '—');
                         })()}
                       </td>
+                    )}
+
+                    {/* VILLAGE POPULATION & VOTERS FROM DB */}
+                    {activeCategory === 'villages' && (
+                      <>
+                        <td style={{ ...styles.td, textAlign: 'right', fontWeight: 800, color: '#047857' }}>
+                          👥 {Number(row.population || 0).toLocaleString()}
+                        </td>
+                        <td style={{ ...styles.td, textAlign: 'right', fontWeight: 800, color: '#1d4ed8' }}>
+                          🗳️ {Number(row.total_voters || 0).toLocaleString()}
+                        </td>
+                        <td style={{ ...styles.td, textAlign: 'center' }}>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedVillageDetail(row);
+                              setSelectedVillageCode(String(row.village_code));
+                            }}
+                            style={{
+                              padding: '5px 12px',
+                              fontSize: 12,
+                              fontWeight: 750,
+                              borderRadius: 6,
+                              cursor: 'pointer',
+                              background: isSelectedVillage ? '#2563eb' : '#eff6ff',
+                              color: isSelectedVillage ? '#ffffff' : '#1d4ed8',
+                              border: isSelectedVillage ? '1.5px solid #1d4ed8' : '1px solid #bfdbfe',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            {isSelectedVillage
+                              ? (language === 'mr' ? '✓ निवडले' : '✓ Selected')
+                              : (language === 'mr' ? 'निवडा' : 'Select')}
+                          </button>
+                        </td>
+                      </>
                     )}
 
                     {/* LOCAL BODY TYPE */}

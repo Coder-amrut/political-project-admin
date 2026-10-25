@@ -14,6 +14,7 @@ import DocumentMediaManager from './DocumentMediaManager';
 import UserAttendanceManager from './UserAttendanceManager';
 import AdminChatbotDesk from './AdminChatbotDesk';
 import KarkartaEvmVotingSystem from './AdminEvmVotingSystem';
+import AdminProfileModal from './AdminProfileModal';
 import { translateTree } from '../../i18n/adminTranslations';
 import adminBannerBg from '../../assets/admin_banner_bg.png';
 
@@ -369,7 +370,7 @@ function Field({ label, value, onChange, required = false, type = 'text', placeh
 }
 
 function AdminDashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const navigate = useNavigate();
 
   const [active, setActive] = useState('overview');
@@ -377,6 +378,7 @@ function AdminDashboard() {
   const [language, setLanguage] = useState(() => (localStorage.getItem('admin-language') === 'mr' ? 'mr' : 'en'));
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [threeDotOpen, setThreeDotOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const threeDotRef = useRef(null);
 
   const isMr = language === 'mr';
@@ -2894,7 +2896,22 @@ function AdminDashboard() {
               boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-start' }}>
+            <div
+              onClick={() => setProfileModalOpen(true)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                justifyContent: 'flex-start',
+                cursor: 'pointer',
+                padding: '4px',
+                borderRadius: '8px',
+                transition: 'background 0.15s ease',
+              }}
+              onMouseOver={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.12)')}
+              onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+              title={isMr ? 'प्रशासक प्रोफाईल व पासवर्ड बदला' : 'Edit Admin Profile & Password'}
+            >
               <div
                 style={{
                   width: '34px',
@@ -2912,17 +2929,19 @@ function AdminDashboard() {
                   flexShrink: 0,
                   boxShadow: '0 2px 5px rgba(0,0,0,0.15)',
                 }}
-                title={user?.full_name || 'Admin'}
               >
                 {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'A'}
                 <span style={{ position: 'absolute', bottom: '-1px', right: '-1px', width: '8px', height: '8px', borderRadius: '4px', background: '#10b981', border: '1.5px solid #ffffff' }} />
               </div>
               <div style={{ minWidth: 0, flex: 1 }}>
-                <div style={{ fontSize: '12px', fontWeight: '750', color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {user?.full_name || (isMr ? 'सिस्टिम प्रशासक' : 'Administrator')}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '750', color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {user?.full_name || (isMr ? 'सिस्टिम प्रशासक' : 'Administrator')}
+                  </span>
+                  <span style={{ fontSize: '11px', opacity: 0.8 }} title="Edit Profile">✏️</span>
                 </div>
                 <div style={{ fontSize: '10.5px', color: 'rgba(255, 255, 255, 0.8)', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  {user?.roles?.join(', ') || 'ADMINISTRATOR'}
+                  {user?.roles?.join(', ') || 'ADMINISTRATOR'} • {isMr ? 'प्रोफाईल बदला' : 'Edit'}
                 </div>
               </div>
             </div>
@@ -3315,17 +3334,37 @@ function AdminDashboard() {
                       </button>
                     </div>
 
-                    {/* User Profile summary */}
-                    <div style={{ marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {/* User Profile summary (Click to Open Profile Modal) */}
+                    <div
+                      onClick={() => {
+                        setThreeDotOpen(false);
+                        setProfileModalOpen(true);
+                      }}
+                      style={{
+                        marginBottom: '10px',
+                        paddingBottom: '10px',
+                        borderBottom: '1px solid #f1f5f9',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        cursor: 'pointer',
+                        padding: '6px',
+                        borderRadius: '8px',
+                        transition: 'background 0.15s ease',
+                      }}
+                      onMouseOver={(e) => (e.currentTarget.style.background = '#f8fafc')}
+                      onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
+                      title={isMr ? 'प्रोफाईल व पासवर्ड बदला' : 'Edit Profile & Password'}
+                    >
                       <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#1e60d5', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '800' }}>
                         {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'A'}
                       </div>
                       <div style={{ minWidth: 0, flex: 1 }}>
                         <div style={{ fontSize: '11.5px', fontWeight: '750', color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {user?.full_name || 'Admin'}
+                          {user?.full_name || 'Admin'} ✏️
                         </div>
                         <div style={{ fontSize: '10px', color: '#64748b' }}>
-                          {user?.roles?.join(', ') || 'ADMINISTRATOR'}
+                          {user?.roles?.join(', ') || 'ADMINISTRATOR'} • {isMr ? 'बदला' : 'Edit'}
                         </div>
                       </div>
                     </div>
@@ -3472,6 +3511,14 @@ function AdminDashboard() {
           <span style={{ background: '#10b981', color: '#ffffff', fontSize: '10px', padding: '2px 6px', borderRadius: '10px', fontWeight: '900' }}>LIVE</span>
         </button>
       )}
+      {/* Admin Profile & Password Change / OTP Verification Modal */}
+      <AdminProfileModal
+        isOpen={profileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+        user={user}
+        onProfileUpdated={refreshUser}
+        language={language}
+      />
     </div>,
     language
   );

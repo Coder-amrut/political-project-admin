@@ -618,229 +618,6 @@ export default function UserAttendanceManager({ language = 'mr' }) {
         </div>
       </div>
 
-      {/* --- Live KPI Summary Cards (All 6 in 1 Single Line) --- */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(6, minmax(0, 1fr))',
-          gap: '12px',
-          marginBottom: '24px',
-          width: '100%',
-        }}
-      >
-        {/* Total Staff */}
-        <div
-          style={{
-            ...cardStyle,
-            padding: '14px 14px',
-            borderTop: '3.5px solid #64748b',
-            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            minWidth: 0,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 8px 18px rgba(0, 0, 0, 0.08)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'none';
-            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.03)';
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '4px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 750, color: '#64748b', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {isMr ? 'एकूण नोंदणीकृत' : 'Total Staff'}
-            </span>
-            <div style={{ padding: '5px', borderRadius: '7px', background: '#f1f5f9', color: '#334155', flexShrink: 0 }}>
-              <Users size={15} />
-            </div>
-          </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', lineHeight: 1.1 }}>{stats.total_users || 0}</div>
-          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {isMr ? 'डेटाबेसमधील कर्मचारी' : 'Active database users'}
-          </div>
-        </div>
-
-        {/* Present Today */}
-        <div
-          style={{
-            ...cardStyle,
-            padding: '14px 14px',
-            borderTop: '3.5px solid #059669',
-            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            minWidth: 0,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 8px 18px rgba(5, 150, 105, 0.12)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'none';
-            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.03)';
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '4px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 750, color: '#059669', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {isMr ? 'आज उपस्थित (हजर)' : 'Present Today'}
-            </span>
-            <div style={{ padding: '5px', borderRadius: '7px', background: '#ecfdf5', color: '#059669', flexShrink: 0 }}>
-              <UserCheck size={15} />
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-            <div style={{ fontSize: '24px', fontWeight: 800, color: '#059669', lineHeight: 1.1 }}>{stats.present_today || 0}</div>
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#10b981' }}>
-              ({stats.attendance_percentage || 0}%)
-            </span>
-          </div>
-          <div style={{ height: '5px', background: '#e2e8f0', borderRadius: '4px', marginTop: '8px', overflow: 'hidden' }}>
-            <div
-              style={{
-                width: `${Math.min(100, stats.attendance_percentage || 0)}%`,
-                height: '100%',
-                background: '#10b981',
-                borderRadius: '4px',
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Currently Active in Field (Punched In) */}
-        <div
-          style={{
-            ...cardStyle,
-            padding: '14px 14px',
-            borderTop: '3.5px solid #d97706',
-            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            minWidth: 0,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 8px 18px rgba(217, 119, 6, 0.12)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'none';
-            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.03)';
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '4px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 750, color: '#d97706', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {isMr ? 'सध्या ऑन-फील्ड' : 'Currently In-Field'}
-            </span>
-            <div style={{ padding: '5px', borderRadius: '7px', background: '#fffbeb', color: '#d97706', flexShrink: 0 }}>
-              <Clock size={15} />
-            </div>
-          </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#d97706', lineHeight: 1.1 }}>{stats.punched_in_now || 0}</div>
-          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {isMr ? 'Punch In (काम चालू)' : 'Punched in ongoing'}
-          </div>
-        </div>
-
-        {/* Completed Shift */}
-        <div
-          style={{
-            ...cardStyle,
-            padding: '14px 14px',
-            borderTop: '3.5px solid #2563eb',
-            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            minWidth: 0,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 8px 18px rgba(37, 99, 235, 0.12)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'none';
-            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.03)';
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '4px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 750, color: '#2563eb', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {isMr ? 'काम पूर्ण (OUT)' : 'Completed Shift'}
-            </span>
-            <div style={{ padding: '5px', borderRadius: '7px', background: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
-              <CheckCircle2 size={15} />
-            </div>
-          </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#2563eb', lineHeight: 1.1 }}>{stats.completed_today || 0}</div>
-          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {isMr ? 'दिवसाचे काम पूर्ण' : 'Punched out after duty'}
-          </div>
-        </div>
-
-        {/* Absent */}
-        <div
-          style={{
-            ...cardStyle,
-            padding: '14px 14px',
-            borderTop: '3.5px solid #ef4444',
-            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            minWidth: 0,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 8px 18px rgba(239, 68, 68, 0.12)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'none';
-            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.03)';
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '4px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 750, color: '#ef4444', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {isMr ? 'हजेरी बाकी / गैरहजर' : 'Pending / Absent'}
-            </span>
-            <div style={{ padding: '5px', borderRadius: '7px', background: '#fef2f2', color: '#ef4444', flexShrink: 0 }}>
-              <UserX size={15} />
-            </div>
-          </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#ef4444', lineHeight: 1.1 }}>{stats.absent_today || 0}</div>
-          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {isMr ? 'आज हजेरी बाकी' : 'Not punched today'}
-          </div>
-        </div>
-
-        {/* Location Compliance Ratio */}
-        <div
-          style={{
-            ...cardStyle,
-            padding: '14px 14px',
-            borderTop: '3.5px solid #7c3aed',
-            transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            minWidth: 0,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = '0 8px 18px rgba(124, 58, 237, 0.12)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'none';
-            e.currentTarget.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.03)';
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', gap: '4px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 750, color: '#7c3aed', textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {isMr ? 'स्थान पडताळणी' : 'Geofence Compliance'}
-            </span>
-            <div style={{ padding: '5px', borderRadius: '7px', background: '#f5f3ff', color: '#7c3aed', flexShrink: 0 }}>
-              <ShieldCheck size={15} />
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-            <div style={{ fontSize: '22px', fontWeight: 800, color: '#7c3aed', lineHeight: 1.1 }}>
-              {stats.at_designated_location || 0}
-            </div>
-            <span style={{ fontSize: '11px', color: '#64748b', whiteSpace: 'nowrap' }}>
-              {isMr ? 'ठिकाणी' : 'HQ'} / {stats.remote_anywhere || 0} {isMr ? 'मुक्त' : 'Free'}
-            </span>
-          </div>
-          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {policy.is_location_required
-              ? isMr ? 'सर्व ठरवलेल्या ठिकाणी' : 'Mandatory place'
-              : isMr ? 'कुठूनही हजेरीस मुभा' : 'Flexible location'}
-          </div>
-        </div>
-      </div>
 
       {/* --- Filters & Search Toolbar with 3D Tactile Styling & Royal Blue Palette --- */}
       <div
@@ -1049,6 +826,140 @@ export default function UserAttendanceManager({ language = 'mr' }) {
           </div>
         </div>
 
+        {/* Compact Daily Attendance Summary Badges Strip */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '8px',
+            alignItems: 'center',
+            padding: '8px 12px',
+            background: '#f8fafc',
+            borderRadius: '10px',
+            border: '1px solid #e2e8f0',
+          }}
+        >
+          <div style={{ fontSize: '11.5px', fontWeight: '800', color: '#475569', display: 'flex', alignItems: 'center', gap: '5px', marginRight: '4px' }}>
+            📊 {isMr ? 'दैनंदिन सारांश:' : 'Daily Summary:'}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setStatusFilter('all')}
+            style={{
+              background: statusFilter === 'all' ? '#1e293b' : '#ffffff',
+              color: statusFilter === 'all' ? '#ffffff' : '#334155',
+              border: '1px solid #cbd5e1',
+              padding: '3px 9px',
+              borderRadius: '6px',
+              fontSize: '11.5px',
+              fontWeight: '750',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            👥 {isMr ? 'एकूण:' : 'Staff:'} <b>{stats.total_users || 0}</b>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setStatusFilter(statusFilter === 'Present' ? 'all' : 'Present')}
+            style={{
+              background: statusFilter === 'Present' ? '#059669' : '#ecfdf5',
+              color: statusFilter === 'Present' ? '#ffffff' : '#059669',
+              border: '1px solid #a7f3d0',
+              padding: '3px 9px',
+              borderRadius: '6px',
+              fontSize: '11.5px',
+              fontWeight: '750',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            🟢 {isMr ? 'उपस्थित:' : 'Present:'} <b>{stats.present_today || 0}</b>
+            <span style={{ fontSize: '10px', opacity: 0.85 }}>({stats.attendance_percentage || 0}%)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setStatusFilter(statusFilter === 'Punched In' ? 'all' : 'Punched In')}
+            style={{
+              background: statusFilter === 'Punched In' ? '#d97706' : '#fffbeb',
+              color: statusFilter === 'Punched In' ? '#ffffff' : '#d97706',
+              border: '1px solid #fde68a',
+              padding: '3px 9px',
+              borderRadius: '6px',
+              fontSize: '11.5px',
+              fontWeight: '750',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            🟡 {isMr ? 'ड्युटी चालू:' : 'Active:'} <b>{stats.punched_in_now || 0}</b>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setStatusFilter(statusFilter === 'Completed' ? 'all' : 'Completed')}
+            style={{
+              background: statusFilter === 'Completed' ? '#2563eb' : '#eff6ff',
+              color: statusFilter === 'Completed' ? '#ffffff' : '#2563eb',
+              border: '1px solid #bfdbfe',
+              padding: '3px 9px',
+              borderRadius: '6px',
+              fontSize: '11.5px',
+              fontWeight: '750',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            🔵 {isMr ? 'पूर्ण:' : 'Completed:'} <b>{stats.completed_today || 0}</b>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setStatusFilter(statusFilter === 'Absent' ? 'all' : 'Absent')}
+            style={{
+              background: statusFilter === 'Absent' ? '#dc2626' : '#fef2f2',
+              color: statusFilter === 'Absent' ? '#ffffff' : '#dc2626',
+              border: '1px solid #fecaca',
+              padding: '3px 9px',
+              borderRadius: '6px',
+              fontSize: '11.5px',
+              fontWeight: '750',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            🔴 {isMr ? 'हजेरी बाकी:' : 'Pending:'} <b>{stats.absent_today || 0}</b>
+          </button>
+
+          <span
+            style={{
+              marginLeft: 'auto',
+              background: '#f5f3ff',
+              color: '#7c3aed',
+              border: '1px solid #ddd6fe',
+              padding: '3px 8px',
+              borderRadius: '6px',
+              fontSize: '11px',
+              fontWeight: '700',
+            }}
+          >
+            🛡️ {isMr ? 'HQ ठिकाणी:' : 'At HQ:'} {stats.at_designated_location || 0} / {isMr ? 'मुक्त:' : 'Free:'} {stats.remote_anywhere || 0}
+          </span>
+        </div>
+
         {/* Bottom Filter Badges Row: Role and Location Compliance Aligned Together */}
         <div
           style={{
@@ -1064,6 +975,33 @@ export default function UserAttendanceManager({ language = 'mr' }) {
             <Filter size={14} style={{ color: '#2563eb' }} />
             {isMr ? 'फिल्टर्स:' : 'Filters:'}
           </span>
+
+          {/* Status Filter Dropdown */}
+          <div style={{ position: 'relative' }}>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              style={{
+                padding: '7px 14px',
+                borderRadius: '9px',
+                border: '1px solid #cbd5e1',
+                borderBottom: '2.5px solid #94a3b8',
+                fontSize: '12.5px',
+                fontWeight: 650,
+                background: '#ffffff',
+                color: statusFilter !== 'all' ? '#1d4ed8' : '#334155',
+                cursor: 'pointer',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
+                outline: 'none',
+              }}
+            >
+              <option value="all">{isMr ? `सर्व हजेरी स्थिती (All: ${stats.total_users || 0})` : `All Statuses (${stats.total_users || 0})`}</option>
+              <option value="Present">{isMr ? `🟢 उपस्थित (${stats.present_today || 0})` : `🟢 Present (${stats.present_today || 0})`}</option>
+              <option value="Punched In">{isMr ? `🟡 चालू शिफ्ट (${stats.punched_in_now || 0})` : `🟡 Active / Punched In (${stats.punched_in_now || 0})`}</option>
+              <option value="Completed">{isMr ? `🔵 काम पूर्ण (${stats.completed_today || 0})` : `🔵 Completed Shift (${stats.completed_today || 0})`}</option>
+              <option value="Absent">{isMr ? `🔴 हजेरी बाकी / गैरहजर (${stats.absent_today || 0})` : `🔴 Pending / Absent (${stats.absent_today || 0})`}</option>
+            </select>
+          </div>
 
           {/* Role Filter */}
           <div style={{ position: 'relative' }}>
@@ -1118,10 +1056,11 @@ export default function UserAttendanceManager({ language = 'mr' }) {
           </div>
 
           {/* Active Filter Clear indicator if applied */}
-          {(roleFilter !== 'all' || complianceFilter !== 'all' || searchQuery.trim() !== '' || selectedDateFilter !== 'all') && (
+          {(statusFilter !== 'all' || roleFilter !== 'all' || complianceFilter !== 'all' || searchQuery.trim() !== '' || selectedDateFilter !== 'all') && (
             <button
               type="button"
               onClick={() => {
+                setStatusFilter('all');
                 setRoleFilter('all');
                 setComplianceFilter('all');
                 setSearchQuery('');
