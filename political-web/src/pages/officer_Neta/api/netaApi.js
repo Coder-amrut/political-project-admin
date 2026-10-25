@@ -159,4 +159,20 @@ export const netaApi = {
     const res = await apiClient.patch(`/neta/crm/issues/${issueId}/status`, payload);
     return res.data;
   },
+
+  // 11. Profile & Password Management
+  changePassword: async (payload) => {
+    const res = await apiClient.post('/neta/change-password', payload);
+    return res.data;
+  },
+
+  requestForgotOtp: async (email) => {
+    const res = await apiClient.post('/neta/forgot-password/request-otp', { email });
+    return res.data;
+  },
+
+  verifyForgotOtp: async (payload) => {
+    const res = await apiClient.post('/neta/forgot-password/verify-otp', payload);
+    return res.data;
+  },
 };

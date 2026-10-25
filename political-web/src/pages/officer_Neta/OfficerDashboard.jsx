@@ -31,6 +31,139 @@ export default function OfficerDashboard() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(false);
 
+  // Officer Profile & Password Management State
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileTab, setProfileTab] = useState('details'); // 'details', 'change_pwd', 'forgot_pwd'
+
+  // Change password fields
+  const [pwdForm, setPwdForm] = useState({
+    old_password: '',
+    new_password: '',
+    confirm_password: '',
+  });
+  const [pwdSubmitting, setPwdSubmitting] = useState(false);
+  const [pwdSuccessMsg, setPwdSuccessMsg] = useState('');
+  const [pwdErrorMsg, setPwdErrorMsg] = useState('');
+
+  // Forgot password OTP flow
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotOtp, setForgotOtp] = useState('');
+  const [forgotNewPwd, setForgotNewPwd] = useState('');
+  const [forgotConfirmPwd, setForgotConfirmPwd] = useState('');
+  const [forgotStep, setForgotStep] = useState(1);
+  const [forgotSubmitting, setForgotSubmitting] = useState(false);
+  const [forgotSuccessMsg, setForgotSuccessMsg] = useState('');
+  const [forgotErrorMsg, setForgotErrorMsg] = useState('');
+  const [forgotMaskedPhone, setForgotMaskedPhone] = useState('');
+  const [forgotUserId, setForgotUserId] = useState(null);
+  const [forgotDevOtp, setForgotDevOtp] = useState('');
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPwdSuccessMsg('');
+    setPwdErrorMsg('');
+    if (!pwdForm.old_password) {
+      setPwdErrorMsg(isMr ? 'कृपया जुना पासवर्ड प्रविष्ट करा.' : 'Please enter old password.');
+      return;
+    }
+    if (!pwdForm.new_password || pwdForm.new_password.length < 6) {
+      setPwdErrorMsg(isMr ? 'नवीन पासवर्ड किमान ६ अक्षरांचा असावा.' : 'New password must be at least 6 characters.');
+      return;
+    }
+    if (pwdForm.new_password !== pwdForm.confirm_password) {
+      setPwdErrorMsg(isMr ? 'नवीन पासवर्ड आणि पुष्टी पासवर्ड जुळत नाहीत.' : 'New password and confirm password do not match.');
+      return;
+    }
+
+    setPwdSubmitting(true);
+    try {
+      const res = await netaApi.changePassword({
+        user_id: user?.id,
+        old_password: pwdForm.old_password,
+        new_password: pwdForm.new_password,
+      });
+      if (res.success) {
+        setPwdSuccessMsg(res.message || (isMr ? '✓ पासवर्ड यशस्वीरीत्या बदलण्यात आला आहे!' : '✓ Password changed successfully!'));
+        setPwdForm({ old_password: '', new_password: '', confirm_password: '' });
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || (isMr ? 'पासवर्ड बदलताना त्रुटी आली.' : 'Failed to change password.');
+      setPwdErrorMsg(msg);
+    } finally {
+      setPwdSubmitting(false);
+    }
+  };
+
+  const handleForgotRequestOtp = async (e) => {
+    e.preventDefault();
+    setForgotSuccessMsg('');
+    setForgotErrorMsg('');
+    if (!forgotEmail.trim()) {
+      setForgotErrorMsg(isMr ? 'कृपया नोंदणीकृत ईमेल आयडी किंवा मोबाईल नंबर प्रविष्ट करा.' : 'Please enter registered email or phone.');
+      return;
+    }
+
+    setForgotSubmitting(true);
+    try {
+      const res = await netaApi.requestForgotOtp(forgotEmail.trim());
+      if (res.success) {
+        setForgotMaskedPhone(res.masked_phone || '');
+        setForgotUserId(res.user_id);
+        setForgotDevOtp(res.dev_otp || '');
+        setForgotStep(2);
+        setForgotSuccessMsg(res.message);
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || (isMr ? 'OTP पाठवताना त्रुटी आली.' : 'Failed to send OTP.');
+      setForgotErrorMsg(msg);
+    } finally {
+      setForgotSubmitting(false);
+    }
+  };
+
+  const handleForgotVerifyOtp = async (e) => {
+    e.preventDefault();
+    setForgotSuccessMsg('');
+    setForgotErrorMsg('');
+    if (!forgotOtp.trim()) {
+      setForgotErrorMsg(isMr ? 'कृपया ६-अंकी OTP प्रविष्ट करा.' : 'Please enter 6-digit OTP.');
+      return;
+    }
+    if (!forgotNewPwd || forgotNewPwd.length < 6) {
+      setForgotErrorMsg(isMr ? 'नवीन पासवर्ड किमान ६ अक्षरांचा असावा.' : 'New password must be at least 6 characters.');
+      return;
+    }
+    if (forgotNewPwd !== forgotConfirmPwd) {
+      setForgotErrorMsg(isMr ? 'नवीन पासवर्ड आणि पुष्टी पासवर्ड जुळत नाहीत.' : 'Passwords do not match.');
+      return;
+    }
+
+    setForgotSubmitting(true);
+    try {
+      const res = await netaApi.verifyForgotOtp({
+        user_id: forgotUserId,
+        otp: forgotOtp.trim(),
+        new_password: forgotNewPwd,
+      });
+      if (res.success) {
+        setForgotSuccessMsg(res.message || (isMr ? '✓ पासवर्ड यशस्वीरीत्या सेट केला गेला आहे!' : '✓ Password reset successfully!'));
+        setTimeout(() => {
+          setForgotStep(1);
+          setForgotEmail('');
+          setForgotOtp('');
+          setForgotNewPwd('');
+          setForgotConfirmPwd('');
+          setProfileTab('details');
+        }, 2000);
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || (isMr ? 'OTP पडताळणी अयशस्वी झाली.' : 'OTP verification failed.');
+      setForgotErrorMsg(msg);
+    } finally {
+      setForgotSubmitting(false);
+    }
+  };
+
   const handleMainScroll = () => {
     if (!mainRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = mainRef.current;
@@ -1051,13 +1184,38 @@ export default function OfficerDashboard() {
             gap: '8px',
           }}
         >
-          {/* User Profile Info */}
+          {/* User Profile Info - Clickable for Full Profile & Password Management Modal */}
           <div
+            onClick={() => {
+              setShowProfileModal(true);
+              setProfileTab('details');
+              setPwdSuccessMsg('');
+              setPwdErrorMsg('');
+              setForgotSuccessMsg('');
+              setForgotErrorMsg('');
+            }}
+            role="button"
+            tabIndex={0}
+            title={isMr ? 'प्रोफाइल व पासवर्ड व्यवस्थापनासाठी क्लिक करा' : 'Click to view profile & password settings'}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
               justifyContent: isCollapsed ? 'center' : 'flex-start',
+              cursor: 'pointer',
+              padding: '6px',
+              borderRadius: '8px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.18)',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)';
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.35)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.18)';
             }}
           >
             <div
@@ -1076,9 +1234,9 @@ export default function OfficerDashboard() {
                 position: 'relative',
                 flexShrink: 0,
               }}
-              title={user?.full_name || 'मा. जनसेवक / अधिकारी'}
+              title={user?.full_name || 'मा. मकरंद सर (Makrand Sir)'}
             >
-              {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'N'}
+              {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'M'}
               <span
                 style={{
                   position: 'absolute',
@@ -1103,9 +1261,13 @@ export default function OfficerDashboard() {
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                   }}
                 >
-                  {user?.full_name || (isMr ? 'मा. जनसेवक / अधिकारी' : 'Hon. Leader / Officer')}
+                  <span>{user?.full_name || (isMr ? 'मकरंद सर (Makrand Sir)' : 'Makrand Sir (Officer)')}</span>
+                  <span style={{ fontSize: '10px', opacity: 0.85 }}>⚙️</span>
                 </div>
                 <div
                   style={{
@@ -1816,6 +1978,454 @@ export default function OfficerDashboard() {
               }
             `}</style>
           </>
+        )}
+        {/* Makrand Sir / Officer Profile & Password Management Modal */}
+        {showProfileModal && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(15, 23, 42, 0.65)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 10000,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px',
+            }}
+            onClick={() => setShowProfileModal(false)}
+          >
+            <div
+              style={{
+                background: '#ffffff',
+                borderRadius: '18px',
+                maxWidth: 'min(520px, 96vw)',
+                width: '100%',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                boxSizing: 'border-box',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.3)',
+                position: 'relative',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Top Banner with Officer Branding */}
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
+                  padding: '22px 24px',
+                  color: '#ffffff',
+                  borderTopLeftRadius: '18px',
+                  borderTopRightRadius: '18px',
+                  position: 'relative',
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowProfileModal(false)}
+                  style={{
+                    position: 'absolute',
+                    top: '16px',
+                    right: '16px',
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    border: 'none',
+                    color: '#ffffff',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    fontSize: '16px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  ✕
+                </button>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div
+                    style={{
+                      width: '54px',
+                      height: '54px',
+                      borderRadius: '14px',
+                      background: '#ffffff',
+                      color: '#1e3a8a',
+                      fontSize: '24px',
+                      fontWeight: '800',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
+                      border: '2px solid rgba(255, 255, 255, 0.8)',
+                    }}
+                  >
+                    👔
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>
+                      {user?.full_name || 'मा. मकरंद सर (Makrand Sir)'}
+                    </h3>
+                    <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>🏛️ {isMr ? 'पक्ष निरीक्षक व निवडणूक समन्वयक' : 'Party Officer & Coordinator'}</span>
+                      <span style={{ background: '#10b981', color: '#ffffff', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: '800' }}>
+                        🟢 ACTIVE
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation Tabs inside Profile Modal */}
+              <div
+                style={{
+                  display: 'flex',
+                  borderBottom: '1px solid #e2e8f0',
+                  background: '#f8fafc',
+                  padding: '0 12px',
+                }}
+              >
+                {[
+                  { key: 'details', label_mr: '👤 प्रोफाइल माहिती', label_en: '👤 Profile Details' },
+                  { key: 'change_pwd', label_mr: '🔑 पासवर्ड बदला', label_en: '🔑 Change Password' },
+                  { key: 'forgot_pwd', label_mr: '❓ पासवर्ड विसरलात?', label_en: '❓ Forgot Password' },
+                ].map((t) => (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => {
+                      setProfileTab(t.key);
+                      setPwdSuccessMsg('');
+                      setPwdErrorMsg('');
+                      setForgotSuccessMsg('');
+                      setForgotErrorMsg('');
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '12px 6px',
+                      border: 'none',
+                      background: 'transparent',
+                      borderBottom: profileTab === t.key ? '2.5px solid #2563eb' : '2.5px solid transparent',
+                      color: profileTab === t.key ? '#1e3a8a' : '#64748b',
+                      fontWeight: profileTab === t.key ? '800' : '600',
+                      fontSize: '12.5px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {isMr ? t.label_mr : t.label_en}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ padding: '22px 24px' }}>
+                {/* TAB 1: Profile Details */}
+                {profileTab === 'details' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                      <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>
+                          {isMr ? 'पूर्ण नाव' : 'Full Name'}
+                        </div>
+                        <div style={{ fontSize: '14px', color: '#0f172a', fontWeight: '750', marginTop: '3px' }}>
+                          {user?.full_name || 'मकरंद सर (Makrand Sir)'}
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>
+                          {isMr ? 'मोबाईल नंबर' : 'Phone Number'}
+                        </div>
+                        <div style={{ fontSize: '14px', color: '#0f172a', fontWeight: '750', marginTop: '3px' }}>
+                          {user?.phone || '९८२२० ११२२१'}
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>
+                          {isMr ? 'ईमेल आयडी' : 'Email Address'}
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#0f172a', fontWeight: '750', marginTop: '3px' }}>
+                          {user?.email || 'makrand.officer@sangli.in'}
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>
+                          {isMr ? 'भूमिका व अधिकार' : 'Roles & Permissions'}
+                        </div>
+                        <div style={{ fontSize: '13px', color: '#1e3a8a', fontWeight: '800', marginTop: '3px' }}>
+                          {user?.roles?.join(', ') || 'OFFICER · NETA · ADMIN'}
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '10px', border: '1px solid #e2e8f0', gridColumn: '1 / -1' }}>
+                        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600' }}>
+                          {isMr ? 'नेमलेले कार्यक्षेत्र' : 'Assigned Constituency'}
+                        </div>
+                        <div style={{ fontSize: '13.5px', color: '#0f172a', fontWeight: '750', marginTop: '3px' }}>
+                          📍 सांगली विधानसभा मतदारसंघ (२८२) • संपूर्ण सांगली जिल्हा
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: '8px', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                      <button
+                        type="button"
+                        onClick={() => setProfileTab('change_pwd')}
+                        style={{
+                          background: '#2563eb',
+                          color: '#ffffff',
+                          border: 'none',
+                          padding: '9px 18px',
+                          borderRadius: '8px',
+                          fontSize: '13px',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        🔑 {isMr ? 'पासवर्ड बदला' : 'Change Password'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 2: Change Password */}
+                {profileTab === 'change_pwd' && (
+                  <form onSubmit={handleChangePassword} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {pwdSuccessMsg && (
+                      <div style={{ padding: '10px 14px', background: '#dcfce7', color: '#16a34a', borderRadius: '8px', fontSize: '13px', fontWeight: '700' }}>
+                        {pwdSuccessMsg}
+                      </div>
+                    )}
+                    {pwdErrorMsg && (
+                      <div style={{ padding: '10px 14px', background: '#fee2e2', color: '#dc2626', borderRadius: '8px', fontSize: '13px', fontWeight: '700' }}>
+                        ⚠️ {pwdErrorMsg}
+                      </div>
+                    )}
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                        {isMr ? 'सध्याचा जुना पासवर्ड *' : 'Current Old Password *'}
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        value={pwdForm.old_password}
+                        onChange={(e) => setPwdForm({ ...pwdForm, old_password: e.target.value })}
+                        placeholder={isMr ? 'आपला जुना पासवर्ड प्रविष्ट करा' : 'Enter old password'}
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                        {isMr ? 'नवीन पासवर्ड *' : 'New Password *'}
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        minLength={6}
+                        value={pwdForm.new_password}
+                        onChange={(e) => setPwdForm({ ...pwdForm, new_password: e.target.value })}
+                        placeholder={isMr ? 'किमान ६ अक्षरी नवीन पासवर्ड' : 'Min 6 characters'}
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                        {isMr ? 'नवीन पासवर्ड पुष्टी *' : 'Confirm New Password *'}
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        minLength={6}
+                        value={pwdForm.confirm_password}
+                        onChange={(e) => setPwdForm({ ...pwdForm, confirm_password: e.target.value })}
+                        placeholder={isMr ? 'नवीन पासवर्ड पुन्हा प्रविष्ट करा' : 'Re-enter new password'}
+                        style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setProfileTab('forgot_pwd')}
+                        style={{ background: 'none', border: 'none', color: '#2563eb', fontSize: '12px', fontWeight: '700', cursor: 'pointer', textDecoration: 'underline' }}
+                      >
+                        {isMr ? 'जुना पासवर्ड आठवत नाही? (Forgot Password)' : 'Forgot Password?'}
+                      </button>
+
+                      <button
+                        type="submit"
+                        disabled={pwdSubmitting}
+                        style={{
+                          background: '#1e3a8a',
+                          color: '#ffffff',
+                          border: 'none',
+                          padding: '9px 20px',
+                          borderRadius: '8px',
+                          fontSize: '13px',
+                          fontWeight: '700',
+                          cursor: pwdSubmitting ? 'wait' : 'pointer',
+                        }}
+                      >
+                        {pwdSubmitting ? (isMr ? 'अद्ययावत करत आहे...' : 'Updating...') : (isMr ? '💾 पासवर्ड अद्ययावत करा' : 'Update Password')}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* TAB 3: Forgot Password with OTP Flow */}
+                {profileTab === 'forgot_pwd' && (
+                  <div>
+                    {forgotSuccessMsg && (
+                      <div style={{ padding: '10px 14px', background: '#dcfce7', color: '#16a34a', borderRadius: '8px', fontSize: '13px', fontWeight: '700', marginBottom: '14px' }}>
+                        {forgotSuccessMsg}
+                      </div>
+                    )}
+                    {forgotErrorMsg && (
+                      <div style={{ padding: '10px 14px', background: '#fee2e2', color: '#dc2626', borderRadius: '8px', fontSize: '13px', fontWeight: '700', marginBottom: '14px' }}>
+                        ⚠️ {forgotErrorMsg}
+                      </div>
+                    )}
+
+                    {forgotStep === 1 ? (
+                      <form onSubmit={handleForgotRequestOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div style={{ background: '#eff6ff', padding: '12px 14px', borderRadius: '10px', fontSize: '12px', color: '#1e40af', lineHeight: 1.5 }}>
+                          ℹ️ {isMr
+                            ? 'आपल्या खात्याचा पासवर्ड रीसेट करण्यासाठी नोंदणीकृत ईमेल आयडी किंवा फोन नंबर प्रविष्ट करा. त्यावर पडताळणी OTP पाठवला जाईल.'
+                            : 'Enter registered email ID or phone to receive a verification OTP on your mobile.'}
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                            {isMr ? 'नोंदणीकृत ईमेल आयडी किंवा मोबाईल *' : 'Registered Email or Mobile *'}
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={forgotEmail}
+                            onChange={(e) => setForgotEmail(e.target.value)}
+                            placeholder={user?.email || 'उदा. makrand.officer@sangli.in'}
+                            style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
+                          <button
+                            type="submit"
+                            disabled={forgotSubmitting}
+                            style={{
+                              background: '#2563eb',
+                              color: '#ffffff',
+                              border: 'none',
+                              padding: '10px 22px',
+                              borderRadius: '8px',
+                              fontSize: '13px',
+                              fontWeight: '700',
+                              cursor: forgotSubmitting ? 'wait' : 'pointer',
+                            }}
+                          >
+                            {forgotSubmitting ? (isMr ? 'OTP पाठवत आहे...' : 'Sending OTP...') : (isMr ? '📲 मोबाईलवर OTP पाठवा' : 'Send OTP')}
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <form onSubmit={handleForgotVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        <div style={{ background: '#ecfdf5', padding: '12px 14px', borderRadius: '10px', fontSize: '12px', color: '#065f46', lineHeight: 1.5 }}>
+                          📱 {isMr
+                            ? `आपल्या नोंदणीकृत मोबाईल ${forgotMaskedPhone || ''} वर ६-अंकी OTP पाठवण्यात आला आहे.`
+                            : `6-digit OTP sent to registered mobile ${forgotMaskedPhone || ''}.`}
+                          {forgotDevOtp && (
+                            <span style={{ display: 'block', marginTop: '4px', fontWeight: '800', color: '#166534' }}>
+                              (पडताळणी चाचणी OTP: {forgotDevOtp})
+                            </span>
+                          )}
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                            {isMr ? '६-अंकी OTP प्रविष्ट करा *' : 'Enter 6-Digit OTP *'}
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            maxLength={6}
+                            value={forgotOtp}
+                            onChange={(e) => setForgotOtp(e.target.value)}
+                            placeholder="123456"
+                            style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', letterSpacing: '2px', fontWeight: '800' }}
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                            {isMr ? 'नवीन पासवर्ड *' : 'New Password *'}
+                          </label>
+                          <input
+                            type="password"
+                            required
+                            minLength={6}
+                            value={forgotNewPwd}
+                            onChange={(e) => setForgotNewPwd(e.target.value)}
+                            placeholder={isMr ? 'किमान ६ अक्षरी नवीन पासवर्ड' : 'Min 6 characters'}
+                            style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                            {isMr ? 'नवीन पासवर्ड पुष्टी *' : 'Confirm New Password *'}
+                          </label>
+                          <input
+                            type="password"
+                            required
+                            minLength={6}
+                            value={forgotConfirmPwd}
+                            onChange={(e) => setForgotConfirmPwd(e.target.value)}
+                            placeholder={isMr ? 'नवीन पासवर्ड पुन्हा प्रविष्ट करा' : 'Re-enter new password'}
+                            style={{ width: '100%', boxSizing: 'border-box', padding: '9px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                          />
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setForgotStep(1)}
+                            style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '12px', cursor: 'pointer' }}
+                          >
+                            ← {isMr ? 'ईमेल बदला' : 'Change Email'}
+                          </button>
+
+                          <button
+                            type="submit"
+                            disabled={forgotSubmitting}
+                            style={{
+                              background: '#16a34a',
+                              color: '#ffffff',
+                              border: 'none',
+                              padding: '10px 22px',
+                              borderRadius: '8px',
+                              fontSize: '13px',
+                              fontWeight: '700',
+                              cursor: forgotSubmitting ? 'wait' : 'pointer',
+                            }}
+                          >
+                            {forgotSubmitting ? (isMr ? 'पासवर्ड सेट करत आहे...' : 'Resetting...') : (isMr ? '✓ नवीन पासवर्ड सेट करा' : 'Set New Password')}
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

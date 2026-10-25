@@ -282,6 +282,11 @@ Route::prefix('neta')
         Route::post('/crm/citizens/{id}/interactions', [NetaDashboardController::class, 'storeCrmInteraction'])->whereNumber('id');
         Route::post('/crm/citizens/{id}/issues', [NetaDashboardController::class, 'storeCrmIssue'])->whereNumber('id');
         Route::patch('/crm/issues/{issueId}/status', [NetaDashboardController::class, 'updateCrmIssueStatus'])->whereNumber('issueId');
+
+        // Profile & Password Management
+        Route::post('/change-password', [NetaDashboardController::class, 'changePassword']);
+        Route::post('/forgot-password/request-otp', [NetaDashboardController::class, 'forgotPasswordRequestOtp']);
+        Route::post('/forgot-password/verify-otp', [NetaDashboardController::class, 'forgotPasswordVerifyOtp']);
     });
 
 // ---------------------------------------------------------------------------
