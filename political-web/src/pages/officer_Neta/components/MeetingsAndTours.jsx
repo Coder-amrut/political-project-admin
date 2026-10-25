@@ -136,30 +136,114 @@ export default function MeetingsAndTours({ lang = 'mr' }) {
         </button>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="meetings-filter-pills-row">
+      {/* Filter Tabs - 3 Buttons: 'सर्व कार्यकर्ते', 'आगामी व नियोजित', 'पूर्ण झालेल्या' */}
+      <div
+        className="meetings-filter-container"
+        style={{
+          display: 'flex',
+          gap: '10px',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          width: '100%',
+        }}
+      >
+        <style>{`
+          .meeting-filter-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+            flex: 1 1 auto;
+            min-width: 140px;
+          }
+          .meeting-filter-btn.active {
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            color: #ffffff;
+            border: 1px solid #1d4ed8;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.28);
+            transform: translateY(-1px);
+          }
+          .meeting-filter-btn.inactive {
+            background: #ffffff;
+            color: #475569;
+            border: 1.5px solid #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+          }
+          .meeting-filter-btn.inactive:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+            color: #1e293b;
+          }
+          .meeting-filter-badge {
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: 800;
+          }
+          .meeting-filter-btn.active .meeting-filter-badge {
+            background: rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+          }
+          .meeting-filter-btn.inactive .meeting-filter-badge {
+            background: #f1f5f9;
+            color: #64748b;
+          }
+          @media (max-width: 640px) {
+            .meeting-filter-btn {
+              flex: 1 1 100%;
+              padding: 11px 16px;
+              font-size: 13px;
+              justify-content: space-between;
+            }
+          }
+        `}</style>
+
         {[
-          { key: 'all', label_mr: `सर्व कार्यक्रम (${meetings.length})`, label_en: `All (${meetings.length})` },
+          {
+            key: 'all',
+            icon: '👥',
+            label_mr: 'सर्व कार्यकर्ते',
+            label_en: 'All Workers',
+            count: meetings.length,
+          },
           {
             key: 'scheduled',
-            label_mr: `आगामी व नियोजित (${meetings.filter((m) => m.status === 'scheduled').length})`,
-            label_en: `Upcoming (${meetings.filter((m) => m.status === 'scheduled').length})`,
+            icon: '⏳',
+            label_mr: 'आगामी व नियोजित',
+            label_en: 'Upcoming',
+            count: meetings.filter((m) => m.status === 'scheduled').length,
           },
           {
             key: 'completed',
-            label_mr: `संपन्न झालेले (${meetings.filter((m) => m.status === 'completed').length})`,
-            label_en: `Completed (${meetings.filter((m) => m.status === 'completed').length})`,
+            icon: '✅',
+            label_mr: 'पूर्ण झालेल्या',
+            label_en: 'Completed',
+            count: meetings.filter((m) => m.status === 'completed').length,
           },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => setActiveTab(tab.key)}
-            className={`pill-3d-box ${activeTab === tab.key ? 'active' : 'inactive'}`}
-          >
-            {isMr ? tab.label_mr : tab.label_en}
-          </button>
-        ))}
+        ].map((tab) => {
+          const isActive = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={`meeting-filter-btn ${isActive ? 'active' : 'inactive'}`}
+            >
+              <span style={{ fontSize: '15px' }}>{tab.icon}</span>
+              <span>{isMr ? tab.label_mr : tab.label_en}</span>
+              <span className="meeting-filter-badge">
+                {tab.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Meetings List Cards */}
