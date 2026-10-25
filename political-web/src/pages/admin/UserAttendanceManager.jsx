@@ -30,8 +30,8 @@ import {
   CalendarDays,
   Printer,
   Sparkles,
-  ArrowRight,
-  RotateCcw
+  RotateCcw,
+  ChevronDown
 } from 'lucide-react';
 
 export default function UserAttendanceManager({ language = 'mr' }) {
@@ -68,13 +68,56 @@ export default function UserAttendanceManager({ language = 'mr' }) {
     enforce_strict_geofence: true,
   });
 
-  // Filters
-  const [selectedDateFilter, setSelectedDateFilter] = useState('today'); // 'today', 'yesterday', 'all', 'custom'
-  const [customDate, setCustomDate] = useState(() => new Date().toISOString().split('T')[0]);
+  // Calendar Date & Filters State
+  const [attendanceDate, setAttendanceDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [openFilterMenu, setOpenFilterMenu] = useState(null); // 'status' | 'role' | 'compliance' | null
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [complianceFilter, setComplianceFilter] = useState('all');
+
+  const handlePrevDay = () => {
+    const d = new Date(attendanceDate);
+    d.setDate(d.getDate() - 1);
+    setAttendanceDate(d.toISOString().split('T')[0]);
+  };
+
+  const handleNextDay = () => {
+    const d = new Date(attendanceDate);
+    d.setDate(d.getDate() + 1);
+    setAttendanceDate(d.toISOString().split('T')[0]);
+  };
+
+  const handleToday = () => {
+    setAttendanceDate(new Date().toISOString().split('T')[0]);
+  };
+
+  const formatDisplayDate = (dateStr) => {
+    if (!dateStr) return '';
+    try {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const dateObj = new Date(y, m - 1, d);
+      return dateObj.toLocaleDateString(isMr ? 'mr-IN' : 'en-US', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  // Close filter dropdown popup on outside click
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (!e.target.closest('.attendance-filter-dropdown-container')) {
+        setOpenFilterMenu(null);
+      }
+    };
+    document.addEventListener('click', handleOutsideClick);
+    return () => document.removeEventListener('click', handleOutsideClick);
+  }, []);
 
   // Modals & Drawers
   const [showLocationSettings, setShowLocationSettings] = useState(false);
@@ -126,17 +169,8 @@ export default function UserAttendanceManager({ language = 'mr' }) {
     }, 4500);
   };
 
-  // Determine current effective date
-  const effectiveDate = useMemo(() => {
-    if (selectedDateFilter === 'today') return 'today';
-    if (selectedDateFilter === 'yesterday') {
-      const d = new Date();
-      d.setDate(d.getDate() - 1);
-      return d.toISOString().split('T')[0];
-    }
-    if (selectedDateFilter === 'custom') return customDate;
-    return 'all';
-  }, [selectedDateFilter, customDate]);
+  // Current effective date from Calendar
+  const effectiveDate = attendanceDate;
 
   // Load Attendance Data from Backend
   const fetchAttendanceData = useCallback(async (isSilent = false) => {
@@ -634,333 +668,186 @@ export default function UserAttendanceManager({ language = 'mr' }) {
           gap: '14px',
         }}
       >
-        {/* Top Row: Date Selector Tabs (Left) + Search Bar & Manual Entry Button (Right) */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between' }}>
-          {/* Left Side: Date Selector Pills with 3D tactile buttons */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+        {/* Top Row: Interactive Calendar Date Selector (Left) + Search Input (Right) */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* Calendar Date Picker Group */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
             <div
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: '#f1f5f9',
-                padding: '6px 8px',
-                borderRadius: '14px',
-                border: '1px solid #e2e8f0',
-                boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.06)',
+                background: '#f8fafc',
+                padding: '6px 10px',
+                borderRadius: '12px',
+                border: '1.5px solid #cbd5e1',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
               }}
             >
+              {/* Prev Day Button */}
               <button
                 type="button"
-                onClick={() => setSelectedDateFilter('today')}
-                className={selectedDateFilter === 'today' ? 'tab-btn-3d-blue' : 'tab-btn-3d-inactive'}
+                onClick={handlePrevDay}
+                title={isMr ? 'मागचा दिवस' : 'Previous Day'}
                 style={{
-                  width: '135px',
-                  height: '42px',
-                  fontSize: '14.5px',
-                  fontWeight: 800,
-                  borderRadius: '10px',
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  width: '34px',
+                  height: '34px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  textAlign: 'center',
-                  padding: '0 10px',
+                  cursor: 'pointer',
+                  color: '#334155',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                {isMr ? 'आज' : 'Today'}
+                ◀
               </button>
+
+              {/* Calendar Icon + Native Date Input */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
+                <Calendar size={18} style={{ color: '#2563eb', flexShrink: 0 }} />
+                <input
+                  type="date"
+                  value={attendanceDate}
+                  onChange={(e) => setAttendanceDate(e.target.value)}
+                  style={{
+                    border: '1.5px solid #93c5fd',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontSize: '14px',
+                    fontWeight: 750,
+                    color: '#1e3a8a',
+                    background: '#ffffff',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.04)',
+                  }}
+                />
+              </div>
+
+              {/* Next Day Button */}
               <button
                 type="button"
-                onClick={() => setSelectedDateFilter('yesterday')}
-                className={selectedDateFilter === 'yesterday' ? 'tab-btn-3d-blue' : 'tab-btn-3d-inactive'}
+                onClick={handleNextDay}
+                title={isMr ? 'पुढचा दिवस' : 'Next Day'}
                 style={{
-                  width: '135px',
-                  height: '42px',
-                  fontSize: '14.5px',
-                  fontWeight: 800,
-                  borderRadius: '10px',
+                  background: '#ffffff',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '8px',
+                  width: '34px',
+                  height: '34px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  textAlign: 'center',
-                  padding: '0 10px',
+                  cursor: 'pointer',
+                  color: '#334155',
+                  fontWeight: 700,
+                  fontSize: '14px',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                {isMr ? 'काल' : 'Yesterday'}
+                ▶
               </button>
+
+              {/* Today Quick Jump Button */}
               <button
                 type="button"
-                onClick={() => setSelectedDateFilter('all')}
-                className={selectedDateFilter === 'all' ? 'tab-btn-3d-blue' : 'tab-btn-3d-inactive'}
+                onClick={handleToday}
+                className={attendanceDate === new Date().toISOString().split('T')[0] ? 'tab-btn-3d-blue' : 'tab-btn-3d-inactive'}
                 style={{
-                  width: '135px',
-                  height: '42px',
-                  fontSize: '14.5px',
+                  padding: '6px 14px',
+                  fontSize: '13px',
                   fontWeight: 800,
-                  borderRadius: '10px',
+                  borderRadius: '8px',
+                  height: '34px',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  textAlign: 'center',
-                  padding: '0 10px',
                 }}
               >
-                {isMr ? 'सर्व दिवस' : 'All Time'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedDateFilter('custom')}
-                className={selectedDateFilter === 'custom' ? 'tab-btn-3d-blue' : 'tab-btn-3d-inactive'}
-                style={{
-                  width: '135px',
-                  height: '42px',
-                  fontSize: '14.5px',
-                  fontWeight: 800,
-                  borderRadius: '10px',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                  padding: '0 10px',
-                }}
-              >
-                <Calendar size={15} style={{ marginRight: '5px', flexShrink: 0 }} />
-                {isMr ? 'तारीख निवडा' : 'Custom'}
+                {isMr ? 'आज (Today)' : 'Today'}
               </button>
             </div>
 
-            {selectedDateFilter === 'custom' && (
-              <input
-                type="date"
-                value={customDate}
-                onChange={(e) => setCustomDate(e.target.value)}
-                style={{
-                  padding: '10px 14px',
-                  borderRadius: '10px',
-                  border: '1.5px solid #2563eb',
-                  fontSize: '14px',
-                  color: '#0f172a',
-                  fontWeight: 650,
-                  background: '#ffffff',
-                  boxShadow: '0 2px 6px rgba(37, 99, 235, 0.12)',
-                }}
-              />
-            )}
+            {/* Display formatted day pill */}
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: '#eff6ff',
+                color: '#1d4ed8',
+                border: '1px solid #bfdbfe',
+                padding: '6px 14px',
+                borderRadius: '10px',
+                fontSize: '13px',
+                fontWeight: 750,
+              }}
+            >
+              <span>📅</span>
+              <span>{formatDisplayDate(attendanceDate)}</span>
+            </div>
           </div>
 
-          {/* Right Side: Manual Entry 3D Button + Search Input (Search at the far right) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginLeft: 'auto' }}>
-            {/* Manual Entry 3D Button */}
-            <button
-              type="button"
-              onClick={() => setShowManualModal(true)}
-              className="tab-btn-3d-inactive"
+          {/* Right Side: Search Input */}
+          <div style={{ position: 'relative', width: '320px', maxWidth: '100%' }}>
+            <Search size={17} style={{ position: 'absolute', left: '12px', top: '12px', color: '#2563eb' }} />
+            <input
+              type="text"
+              placeholder={isMr ? 'नाव, फोन किंवा पत्त्यानुसार शोधा...' : 'Search by name, phone, or address...'}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               style={{
-                padding: '9px 18px',
-                fontSize: '13.5px',
-                fontWeight: 700,
+                width: '100%',
+                boxSizing: 'border-box',
+                padding: '10px 12px 10px 38px',
                 borderRadius: '10px',
-                color: '#1d4ed8',
-                borderColor: '#93c5fd',
-                borderBottomColor: '#60a5fa',
-                background: 'linear-gradient(180deg, #ffffff 0%, #eff6ff 100%)',
-                whiteSpace: 'nowrap',
+                border: '1.5px solid #cbd5e1',
+                fontSize: '13.5px',
+                fontWeight: 500,
+                color: '#0f172a',
+                outline: 'none',
+                background: '#ffffff',
+                boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.04)',
+                transition: 'all 0.2s ease',
                 height: '42px',
               }}
-            >
-              <FileText size={16} style={{ color: '#2563eb' }} />
-              {isMr ? 'मॅन्युअल नोंद / दुरुस्ती' : 'Manual Entry'}
-            </button>
-
-            {/* Search Input on the Right (at the manual button's place) */}
-            <div style={{ position: 'relative', width: '290px' }}>
-              <Search size={17} style={{ position: 'absolute', left: '12px', top: '12px', color: '#2563eb' }} />
-              <input
-                type="text"
-                placeholder={isMr ? 'नाव, फोन किंवा पत्त्यानुसार शोधा...' : 'Search by name, phone, or address...'}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#2563eb';
+                e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.15)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#cbd5e1';
+                e.target.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.04)';
+              }}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
                 style={{
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  padding: '10px 12px 10px 38px',
-                  borderRadius: '10px',
-                  border: '1.5px solid #cbd5e1',
-                  fontSize: '13.5px',
-                  fontWeight: 500,
-                  color: '#0f172a',
-                  outline: 'none',
-                  background: '#ffffff',
-                  boxShadow: 'inset 0 1px 2px rgba(0, 0, 0, 0.04)',
-                  transition: 'all 0.2s ease',
-                  height: '42px',
+                  position: 'absolute',
+                  right: '10px',
+                  top: '11px',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                  padding: '2px',
                 }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#2563eb';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.15)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#cbd5e1';
-                  e.target.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.04)';
-                }}
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
-                  style={{
-                    position: 'absolute',
-                    right: '10px',
-                    top: '11px',
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: '#94a3b8',
-                    padding: '2px',
-                  }}
-                >
-                  <X size={15} />
-                </button>
-              )}
-            </div>
+              >
+                <X size={15} />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Compact Daily Attendance Summary Badges Strip */}
-        <div
-          style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '8px',
-            alignItems: 'center',
-            padding: '8px 12px',
-            background: '#f8fafc',
-            borderRadius: '10px',
-            border: '1px solid #e2e8f0',
-          }}
-        >
-          <div style={{ fontSize: '11.5px', fontWeight: '800', color: '#475569', display: 'flex', alignItems: 'center', gap: '5px', marginRight: '4px' }}>
-            📊 {isMr ? 'दैनंदिन सारांश:' : 'Daily Summary:'}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setStatusFilter('all')}
-            style={{
-              background: statusFilter === 'all' ? '#1e293b' : '#ffffff',
-              color: statusFilter === 'all' ? '#ffffff' : '#334155',
-              border: '1px solid #cbd5e1',
-              padding: '3px 9px',
-              borderRadius: '6px',
-              fontSize: '11.5px',
-              fontWeight: '750',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            👥 {isMr ? 'एकूण:' : 'Staff:'} <b>{stats.total_users || 0}</b>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setStatusFilter(statusFilter === 'Present' ? 'all' : 'Present')}
-            style={{
-              background: statusFilter === 'Present' ? '#059669' : '#ecfdf5',
-              color: statusFilter === 'Present' ? '#ffffff' : '#059669',
-              border: '1px solid #a7f3d0',
-              padding: '3px 9px',
-              borderRadius: '6px',
-              fontSize: '11.5px',
-              fontWeight: '750',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            🟢 {isMr ? 'उपस्थित:' : 'Present:'} <b>{stats.present_today || 0}</b>
-            <span style={{ fontSize: '10px', opacity: 0.85 }}>({stats.attendance_percentage || 0}%)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setStatusFilter(statusFilter === 'Punched In' ? 'all' : 'Punched In')}
-            style={{
-              background: statusFilter === 'Punched In' ? '#d97706' : '#fffbeb',
-              color: statusFilter === 'Punched In' ? '#ffffff' : '#d97706',
-              border: '1px solid #fde68a',
-              padding: '3px 9px',
-              borderRadius: '6px',
-              fontSize: '11.5px',
-              fontWeight: '750',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            🟡 {isMr ? 'ड्युटी चालू:' : 'Active:'} <b>{stats.punched_in_now || 0}</b>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setStatusFilter(statusFilter === 'Completed' ? 'all' : 'Completed')}
-            style={{
-              background: statusFilter === 'Completed' ? '#2563eb' : '#eff6ff',
-              color: statusFilter === 'Completed' ? '#ffffff' : '#2563eb',
-              border: '1px solid #bfdbfe',
-              padding: '3px 9px',
-              borderRadius: '6px',
-              fontSize: '11.5px',
-              fontWeight: '750',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            🔵 {isMr ? 'पूर्ण:' : 'Completed:'} <b>{stats.completed_today || 0}</b>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setStatusFilter(statusFilter === 'Absent' ? 'all' : 'Absent')}
-            style={{
-              background: statusFilter === 'Absent' ? '#dc2626' : '#fef2f2',
-              color: statusFilter === 'Absent' ? '#ffffff' : '#dc2626',
-              border: '1px solid #fecaca',
-              padding: '3px 9px',
-              borderRadius: '6px',
-              fontSize: '11.5px',
-              fontWeight: '750',
-              cursor: 'pointer',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '4px',
-            }}
-          >
-            🔴 {isMr ? 'हजेरी बाकी:' : 'Pending:'} <b>{stats.absent_today || 0}</b>
-          </button>
-
-          <span
-            style={{
-              marginLeft: 'auto',
-              background: '#f5f3ff',
-              color: '#7c3aed',
-              border: '1px solid #ddd6fe',
-              padding: '3px 8px',
-              borderRadius: '6px',
-              fontSize: '11px',
-              fontWeight: '700',
-            }}
-          >
-            🛡️ {isMr ? 'HQ ठिकाणी:' : 'At HQ:'} {stats.at_designated_location || 0} / {isMr ? 'मुक्त:' : 'Free:'} {stats.remote_anywhere || 0}
-          </span>
-        </div>
-
-        {/* Bottom Filter Badges Row: Role and Location Compliance Aligned Together */}
+        {/* Bottom Filter Row: Role, Status, Compliance Custom Dropdown Popups */}
         <div
           style={{
             display: 'flex',
@@ -971,92 +858,298 @@ export default function UserAttendanceManager({ language = 'mr' }) {
             borderTop: '1px dashed #e2e8f0',
           }}
         >
-          <span style={{ fontSize: '12px', fontWeight: 750, color: '#475569', display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <Filter size={14} style={{ color: '#2563eb' }} />
+          <span style={{ fontSize: '12.5px', fontWeight: 750, color: '#475569', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <Filter size={15} style={{ color: '#2563eb' }} />
             {isMr ? 'फिल्टर्स:' : 'Filters:'}
           </span>
 
-          {/* Status Filter Dropdown */}
-          <div style={{ position: 'relative' }}>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+          {/* Status Filter Custom Popup */}
+          <div className="attendance-filter-dropdown-container" style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setOpenFilterMenu(openFilterMenu === 'status' ? null : 'status')}
               style={{
-                padding: '7px 14px',
-                borderRadius: '9px',
-                border: '1px solid #cbd5e1',
-                borderBottom: '2.5px solid #94a3b8',
-                fontSize: '12.5px',
-                fontWeight: 650,
-                background: '#ffffff',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 14px',
+                borderRadius: '10px',
+                border: '1.5px solid #cbd5e1',
+                background: statusFilter !== 'all' ? '#eff6ff' : '#ffffff',
                 color: statusFilter !== 'all' ? '#1d4ed8' : '#334155',
+                borderColor: statusFilter !== 'all' ? '#93c5fd' : '#cbd5e1',
+                fontSize: '13px',
+                fontWeight: 700,
                 cursor: 'pointer',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
-                outline: 'none',
               }}
             >
-              <option value="all">{isMr ? `सर्व हजेरी स्थिती (All: ${stats.total_users || 0})` : `All Statuses (${stats.total_users || 0})`}</option>
-              <option value="Present">{isMr ? `🟢 उपस्थित (${stats.present_today || 0})` : `🟢 Present (${stats.present_today || 0})`}</option>
-              <option value="Punched In">{isMr ? `🟡 चालू शिफ्ट (${stats.punched_in_now || 0})` : `🟡 Active / Punched In (${stats.punched_in_now || 0})`}</option>
-              <option value="Completed">{isMr ? `🔵 काम पूर्ण (${stats.completed_today || 0})` : `🔵 Completed Shift (${stats.completed_today || 0})`}</option>
-              <option value="Absent">{isMr ? `🔴 हजेरी बाकी / गैरहजर (${stats.absent_today || 0})` : `🔴 Pending / Absent (${stats.absent_today || 0})`}</option>
-            </select>
+              <span>
+                {statusFilter === 'all'
+                  ? (isMr ? 'सर्व हजेरी स्थिती (All)' : 'All Statuses')
+                  : statusFilter === 'Present'
+                  ? (isMr ? '🟢 उपस्थित' : '🟢 Present')
+                  : statusFilter === 'Punched In'
+                  ? (isMr ? '🟡 चालू शिफ्ट' : '🟡 Active / Punched In')
+                  : statusFilter === 'Completed'
+                  ? (isMr ? '🔵 काम पूर्ण' : '🔵 Completed')
+                  : (isMr ? '🔴 हजेरी बाकी / गैरहजर' : '🔴 Pending / Absent')}
+              </span>
+              <ChevronDown size={14} style={{ transform: openFilterMenu === 'status' ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+            </button>
+
+            {openFilterMenu === 'status' && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  left: 0,
+                  zIndex: 1050,
+                  minWidth: '230px',
+                  background: '#ffffff',
+                  borderRadius: '12px',
+                  boxShadow: '0 12px 28px -4px rgba(0, 0, 0, 0.18), 0 4px 10px rgba(0,0,0,0.06)',
+                  border: '1px solid #e2e8f0',
+                  padding: '6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px',
+                }}
+              >
+                {[
+                  { value: 'all', label: isMr ? 'सर्व हजेरी स्थिती (All)' : 'All Statuses' },
+                  { value: 'Present', label: isMr ? '🟢 उपस्थित (Present)' : '🟢 Present' },
+                  { value: 'Punched In', label: isMr ? '🟡 चालू शिफ्ट (Punched In)' : '🟡 Active / Punched In' },
+                  { value: 'Completed', label: isMr ? '🔵 काम पूर्ण (Completed)' : '🔵 Completed' },
+                  { value: 'Absent', label: isMr ? '🔴 हजेरी बाकी / गैरहजर' : '🔴 Pending / Absent' },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      setStatusFilter(opt.value);
+                      setOpenFilterMenu(null);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '9px 12px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: statusFilter === opt.value ? '#eff6ff' : 'transparent',
+                      color: statusFilter === opt.value ? '#1d4ed8' : '#334155',
+                      fontWeight: statusFilter === opt.value ? 800 : 600,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'background 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (statusFilter !== opt.value) e.currentTarget.style.background = '#f8fafc';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (statusFilter !== opt.value) e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <span>{opt.label}</span>
+                    {statusFilter === opt.value && <Check size={15} style={{ color: '#2563eb' }} />}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Role Filter */}
-          <div style={{ position: 'relative' }}>
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
+          {/* Role Filter Custom Popup */}
+          <div className="attendance-filter-dropdown-container" style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setOpenFilterMenu(openFilterMenu === 'role' ? null : 'role')}
               style={{
-                padding: '7px 14px',
-                borderRadius: '9px',
-                border: '1px solid #cbd5e1',
-                borderBottom: '2.5px solid #94a3b8',
-                fontSize: '12.5px',
-                fontWeight: 650,
-                background: '#ffffff',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 14px',
+                borderRadius: '10px',
+                border: '1.5px solid #cbd5e1',
+                background: roleFilter !== 'all' ? '#eff6ff' : '#ffffff',
                 color: roleFilter !== 'all' ? '#1d4ed8' : '#334155',
+                borderColor: roleFilter !== 'all' ? '#93c5fd' : '#cbd5e1',
+                fontSize: '13px',
+                fontWeight: 700,
                 cursor: 'pointer',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
-                outline: 'none',
               }}
             >
-              <option value="all">{isMr ? 'सर्व भूमिका (All Roles)' : 'All Roles'}</option>
-              <option value="WORKER">{isMr ? 'कार्यकर्ता (WORKER)' : 'Worker'}</option>
-              <option value="OFFICER">{isMr ? 'अधिकारी / नेता (OFFICER)' : 'Officer'}</option>
-              <option value="ADMIN">{isMr ? 'प्रशासक (ADMIN)' : 'Admin'}</option>
-            </select>
+              <span>
+                {roleFilter === 'all'
+                  ? (isMr ? 'सर्व भूमिका (All Roles)' : 'All Roles')
+                  : roleFilter === 'WORKER'
+                  ? (isMr ? 'कार्यकर्ता (WORKER)' : 'Worker')
+                  : roleFilter === 'OFFICER'
+                  ? (isMr ? 'अधिकारी / नेता (OFFICER)' : 'Officer')
+                  : (isMr ? 'प्रशासक (ADMIN)' : 'Admin')}
+              </span>
+              <ChevronDown size={14} style={{ transform: openFilterMenu === 'role' ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+            </button>
+
+            {openFilterMenu === 'role' && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  left: 0,
+                  zIndex: 1050,
+                  minWidth: '220px',
+                  background: '#ffffff',
+                  borderRadius: '12px',
+                  boxShadow: '0 12px 28px -4px rgba(0, 0, 0, 0.18), 0 4px 10px rgba(0,0,0,0.06)',
+                  border: '1px solid #e2e8f0',
+                  padding: '6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px',
+                }}
+              >
+                {[
+                  { value: 'all', label: isMr ? 'सर्व भूमिका (All Roles)' : 'All Roles' },
+                  { value: 'WORKER', label: isMr ? 'कार्यकर्ता (WORKER)' : 'Worker' },
+                  { value: 'OFFICER', label: isMr ? 'अधिकारी / नेता (OFFICER)' : 'Officer' },
+                  { value: 'ADMIN', label: isMr ? 'प्रशासक (ADMIN)' : 'Admin' },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      setRoleFilter(opt.value);
+                      setOpenFilterMenu(null);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '9px 12px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: roleFilter === opt.value ? '#eff6ff' : 'transparent',
+                      color: roleFilter === opt.value ? '#1d4ed8' : '#334155',
+                      fontWeight: roleFilter === opt.value ? 800 : 600,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'background 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (roleFilter !== opt.value) e.currentTarget.style.background = '#f8fafc';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (roleFilter !== opt.value) e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <span>{opt.label}</span>
+                    {roleFilter === opt.value && <Check size={15} style={{ color: '#2563eb' }} />}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Compliance Filter */}
-          <div style={{ position: 'relative' }}>
-            <select
-              value={complianceFilter}
-              onChange={(e) => setComplianceFilter(e.target.value)}
+          {/* Compliance Filter Custom Popup */}
+          <div className="attendance-filter-dropdown-container" style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setOpenFilterMenu(openFilterMenu === 'compliance' ? null : 'compliance')}
               style={{
-                padding: '7px 14px',
-                borderRadius: '9px',
-                border: '1px solid #cbd5e1',
-                borderBottom: '2.5px solid #94a3b8',
-                fontSize: '12.5px',
-                fontWeight: 650,
-                background: '#ffffff',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 14px',
+                borderRadius: '10px',
+                border: '1.5px solid #cbd5e1',
+                background: complianceFilter !== 'all' ? '#eff6ff' : '#ffffff',
                 color: complianceFilter !== 'all' ? '#1d4ed8' : '#334155',
+                borderColor: complianceFilter !== 'all' ? '#93c5fd' : '#cbd5e1',
+                fontSize: '13px',
+                fontWeight: 700,
                 cursor: 'pointer',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
-                outline: 'none',
               }}
             >
-              <option value="all">{isMr ? 'सर्व स्थान प्रकार (All Compliance)' : 'All Compliance'}</option>
-              <option value="AT_REQUIRED_LOCATION">{isMr ? '✅ ठरवलेल्या ठिकाणी हजर' : 'At Required Location'}</option>
-              <option value="ANYWHERE_ALLOWED">{isMr ? '🌐 मुक्त हजेरी (Anywhere)' : 'Anywhere Allowed'}</option>
-              <option value="OUTSIDE_RADIUS">{isMr ? '⚠️ ठिकाणाबाहेर (Violation)' : 'Outside Geofence'}</option>
-            </select>
+              <span>
+                {complianceFilter === 'all'
+                  ? (isMr ? 'सर्व स्थान प्रकार (All Compliance)' : 'All Compliance')
+                  : complianceFilter === 'AT_REQUIRED_LOCATION'
+                  ? (isMr ? '✅ ठरवलेल्या ठिकाणी हजर' : 'At Required Location')
+                  : complianceFilter === 'ANYWHERE_ALLOWED'
+                  ? (isMr ? '🌐 मुक्त हजेरी (Anywhere)' : 'Anywhere Allowed')
+                  : (isMr ? '⚠️ ठिकाणाबाहेर (Violation)' : 'Outside Geofence')}
+              </span>
+              <ChevronDown size={14} style={{ transform: openFilterMenu === 'compliance' ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+            </button>
+
+            {openFilterMenu === 'compliance' && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 6px)',
+                  left: 0,
+                  zIndex: 1050,
+                  minWidth: '240px',
+                  background: '#ffffff',
+                  borderRadius: '12px',
+                  boxShadow: '0 12px 28px -4px rgba(0, 0, 0, 0.18), 0 4px 10px rgba(0,0,0,0.06)',
+                  border: '1px solid #e2e8f0',
+                  padding: '6px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '2px',
+                }}
+              >
+                {[
+                  { value: 'all', label: isMr ? 'सर्व स्थान प्रकार (All Compliance)' : 'All Compliance' },
+                  { value: 'AT_REQUIRED_LOCATION', label: isMr ? '✅ ठरवलेल्या ठिकाणी हजर' : 'At Required Location' },
+                  { value: 'ANYWHERE_ALLOWED', label: isMr ? '🌐 मुक्त हजेरी (Anywhere)' : 'Anywhere Allowed' },
+                  { value: 'OUTSIDE_RADIUS', label: isMr ? '⚠️ ठिकाणाबाहेर (Violation)' : 'Outside Geofence' },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      setComplianceFilter(opt.value);
+                      setOpenFilterMenu(null);
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '9px 12px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      background: complianceFilter === opt.value ? '#eff6ff' : 'transparent',
+                      color: complianceFilter === opt.value ? '#1d4ed8' : '#334155',
+                      fontWeight: complianceFilter === opt.value ? 800 : 600,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      transition: 'background 0.15s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (complianceFilter !== opt.value) e.currentTarget.style.background = '#f8fafc';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (complianceFilter !== opt.value) e.currentTarget.style.background = 'transparent';
+                    }}
+                  >
+                    <span>{opt.label}</span>
+                    {complianceFilter === opt.value && <Check size={15} style={{ color: '#2563eb' }} />}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Active Filter Clear indicator if applied */}
-          {(statusFilter !== 'all' || roleFilter !== 'all' || complianceFilter !== 'all' || searchQuery.trim() !== '' || selectedDateFilter !== 'all') && (
+          {(statusFilter !== 'all' || roleFilter !== 'all' || complianceFilter !== 'all' || searchQuery.trim() !== '') && (
             <button
               type="button"
               onClick={() => {
@@ -1064,13 +1157,13 @@ export default function UserAttendanceManager({ language = 'mr' }) {
                 setRoleFilter('all');
                 setComplianceFilter('all');
                 setSearchQuery('');
-                setSelectedDateFilter('all');
+                setAttendanceDate(new Date().toISOString().split('T')[0]);
               }}
               style={{
                 background: '#f8fafc',
                 border: '1px dashed #94a3b8',
                 borderRadius: '8px',
-                padding: '5px 12px',
+                padding: '6px 14px',
                 fontSize: '12px',
                 fontWeight: 650,
                 color: '#64748b',
@@ -1091,7 +1184,7 @@ export default function UserAttendanceManager({ language = 'mr' }) {
                 e.currentTarget.style.backgroundColor = '#f8fafc';
               }}
             >
-              <RotateCcw size={12} />
+              <RotateCcw size={13} />
               {isMr ? 'फिल्टर्स रीसेट करा' : 'Reset Filters'}
             </button>
           )}

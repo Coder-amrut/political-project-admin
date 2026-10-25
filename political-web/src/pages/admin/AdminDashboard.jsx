@@ -413,6 +413,18 @@ function AdminDashboard() {
   const [assignedUsersList, setAssignedUsersList] = useState([]);
   const [loadingAssignedUsers, setLoadingAssignedUsers] = useState(false);
   const [projectFilter, setProjectFilter] = useState('all');
+  const [activeProjectDropdownId, setActiveProjectDropdownId] = useState(null);
+
+  useEffect(() => {
+    const handleOutsideProjectClick = (e) => {
+      if (!e.target.closest('.project-action-dropdown-wrapper')) {
+        setActiveProjectDropdownId(null);
+      }
+    };
+    document.addEventListener('click', handleOutsideProjectClick);
+    return () => document.removeEventListener('click', handleOutsideProjectClick);
+  }, []);
+
   const [projectMembers, setProjectMembers] = useState([]);
   const [selectedMemberIds, setSelectedMemberIds] = useState([]);
   const [memberStatuses, setMemberStatuses] = useState({});
@@ -719,6 +731,25 @@ function AdminDashboard() {
     } else {
       setSelectedMemberIds((prev) => prev.filter((id) => id !== memberId));
     }
+  };
+
+  const changeProjectStatus = async (project, newStatus) => {
+    const statusLabels = {
+      ACTIVE: isMr ? 'सक्रिय (ACTIVE)' : 'ACTIVE',
+      COMPLETED: isMr ? 'पूर्ण (COMPLETED)' : 'COMPLETED',
+      ARCHIVED: isMr ? 'संग्रहित (ARCHIVED)' : 'ARCHIVED',
+      DRAFT: isMr ? 'मसुदा (DRAFT)' : 'DRAFT',
+    };
+    const confirmed = window.confirm(
+      isMr
+        ? `तुम्हाला "${project.name}" प्रकल्पाची स्थिती "${statusLabels[newStatus] || newStatus}" अशी बदलायची आहे का?`
+        : `Are you sure you want to change project "${project.name}" status to "${newStatus}"?`
+    );
+    if (!confirmed) return;
+    await run(async () => {
+      await apiClient.patch(`/admin/projects/${project.uuid}/status`, { status: newStatus });
+      await loadProjects();
+    }, isMr ? `प्रकल्पाची स्थिती बदलली: ${statusLabels[newStatus] || newStatus}` : `Project status updated to ${newStatus}`);
   };
 
   const completeProject = async (project) => {
@@ -1692,20 +1723,259 @@ function AdminDashboard() {
                   <span>👥</span> {isMr ? 'कार्यकर्ते पहा' : 'View Team'}
                 </button>,
                 <span key={`p_date_${p.id || p.uuid}`} style={{ color: '#64748b', fontSize: '12px' }}>{p.created_at ? new Date(p.created_at).toLocaleDateString() : '—'}</span>,
-                <div key={`p_act_${p.id || p.uuid}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  {p.status !== 'COMPLETED' && (
-                    <Button variant="indigo" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => openMemberAssignment(p)}>
-                      {isMr ? 'वाटप करा' : 'Assign'}
-                    </Button>
+                <div key={`p_act_${p.id || p.uuid}`} className="project-action-dropdown-wrapper" style={{ position: 'relative', display: 'inline-block' }}>
+                  <button
+                    type="button"
+                    onClick={() => setActiveProjectDropdownId(activeProjectDropdownId === (p.uuid || p.id) ? null : (p.uuid || p.id))}
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '7px',
+                      padding: '7px 14px',
+                      borderRadius: '8px',
+                      border: '1.5px solid #2563eb',
+                      background: activeProjectDropdownId === (p.uuid || p.id) ? '#2563eb' : '#eff6ff',
+                      color: activeProjectDropdownId === (p.uuid || p.id) ? '#ffffff' : '#1d4ed8',
+                      fontSize: '12.5px',
+                      fontWeight: '800',
+                      cursor: 'pointer',
+                      boxShadow: '0 2px 5px rgba(37, 99, 235, 0.15)',
+                      transition: 'all 0.15s ease',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <span>⚡ {isMr ? 'कृती / Actions' : 'Actions'}</span>
+                    <span style={{ fontSize: '10px', transform: activeProjectDropdownId === (p.uuid || p.id) ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }}>▼</span>
+                  </button>
+
+                  {activeProjectDropdownId === (p.uuid || p.id) && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: 0,
+                        top: 'calc(100% + 6px)',
+                        zIndex: 1050,
+                        minWidth: '220px',
+                        background: '#ffffff',
+                        borderRadius: '12px',
+                        boxShadow: '0 12px 30px -4px rgba(0, 0, 0, 0.22), 0 4px 10px rgba(0, 0, 0, 0.08)',
+                        border: '1px solid #cbd5e1',
+                        padding: '6px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '2px',
+                      }}
+                    >
+                      {/* Option 1: Assign Members */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveProjectDropdownId(null);
+                          openMemberAssignment(p);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: 'transparent',
+                          color: '#1d4ed8',
+                          fontSize: '12.5px',
+                          fontWeight: '750',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#eff6ff'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <span>👥</span>
+                        <span>{isMr ? 'कार्यकर्ते वाटप करा' : 'Assign Members'}</span>
+                      </button>
+
+                      {/* Option 2: View Team */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveProjectDropdownId(null);
+                          openAssignedUsersModal(p);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: 'transparent',
+                          color: '#334155',
+                          fontSize: '12.5px',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <span>👁️</span>
+                        <span>{isMr ? 'कार्यकर्ते यादी पहा' : 'View Assigned Team'}</span>
+                      </button>
+
+                      <div style={{ height: '1px', background: '#e2e8f0', margin: '4px 0' }} />
+
+                      {/* Status Transitions Section */}
+                      <div style={{ padding: '3px 10px', fontSize: '10.5px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>
+                        {isMr ? 'स्थिती बदला:' : 'Change Status:'}
+                      </div>
+
+                      {p.status !== 'ACTIVE' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveProjectDropdownId(null);
+                            changeProjectStatus(p, 'ACTIVE');
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '7px 12px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#059669',
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = '#ecfdf5'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <span>🟢</span>
+                          <span>{isMr ? 'सक्रिय करा (ACTIVE)' : 'Set Active'}</span>
+                        </button>
+                      )}
+
+                      {p.status !== 'COMPLETED' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveProjectDropdownId(null);
+                            changeProjectStatus(p, 'COMPLETED');
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '7px 12px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#2563eb',
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = '#eff6ff'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <span>🔵</span>
+                          <span>{isMr ? 'पूर्ण चिन्हांकित करा' : 'Mark Completed'}</span>
+                        </button>
+                      )}
+
+                      {p.status !== 'ARCHIVED' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveProjectDropdownId(null);
+                            changeProjectStatus(p, 'ARCHIVED');
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '7px 12px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#475569',
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fafc'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <span>📦</span>
+                          <span>{isMr ? 'संग्रहित करा (ARCHIVE)' : 'Archive Project'}</span>
+                        </button>
+                      )}
+
+                      {p.status !== 'DRAFT' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveProjectDropdownId(null);
+                            changeProjectStatus(p, 'DRAFT');
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '7px 12px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#d97706',
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = '#fffbeb'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <span>📝</span>
+                          <span>{isMr ? 'मसुदा बनवा (DRAFT)' : 'Set as Draft'}</span>
+                        </button>
+                      )}
+
+                      <div style={{ height: '1px', background: '#fee2e2', margin: '4px 0' }} />
+
+                      {/* Delete Project */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveProjectDropdownId(null);
+                          deleteProject(p);
+                        }}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          border: 'none',
+                          background: 'transparent',
+                          color: '#dc2626',
+                          fontSize: '12px',
+                          fontWeight: '750',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#fef2f2'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <span>🗑️</span>
+                        <span>{isMr ? 'प्रकल्प हटवा (Delete)' : 'Delete Project'}</span>
+                      </button>
+                    </div>
                   )}
-                  {p.status !== 'COMPLETED' && (
-                    <Button variant="success" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => completeProject(p)}>
-                      {isMr ? 'पूर्ण करा' : 'Complete'}
-                    </Button>
-                  )}
-                  <Button variant="danger" style={{ padding: '6px 12px', fontSize: '12px' }} onClick={() => deleteProject(p)}>
-                    {isMr ? 'हटवा' : 'Delete'}
-                  </Button>
                 </div>,
               ])
             )}

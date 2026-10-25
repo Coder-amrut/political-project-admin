@@ -349,17 +349,54 @@ export default function RolePermissionManager({
     return false;
   }, [stagedPermIds, originalPermIds]);
 
-  // Toggle permission
-  const handleToggle = (permId) => {
-    setStagedPermIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(permId)) {
-        next.delete(permId);
-      } else {
-        next.add(permId);
+  // Toggle permission - immediate optimistic update + auto-persists to backend
+  const handleToggle = async (permId) => {
+    const isCurrentlyGranted = stagedPermIds.has(permId);
+    const nextStaged = new Set(stagedPermIds);
+    if (isCurrentlyGranted) {
+      nextStaged.delete(permId);
+    } else {
+      nextStaged.add(permId);
+    }
+    setStagedPermIds(nextStaged);
+
+    // Direct auto-save to backend
+    try {
+      if (targetType === 'ROLE' && selectedRoleId) {
+        if (isCurrentlyGranted) {
+          await apiClient.delete(`/admin/roles/${selectedRoleId}/permissions/${permId}`);
+        } else {
+          await apiClient.post(`/admin/roles/${selectedRoleId}/permissions/give`, {
+            permission_id: permId,
+          });
+        }
+        setOriginalPermIds(new Set(nextStaged));
+        if (onRefreshRoles) await onRefreshRoles();
+        if (onNotice) {
+          onNotice(isMr ? 'परवानगी स्थिती अद्यतनित केली.' : 'Permission status updated.');
+        }
+      } else if (targetType === 'WORKER' && selectedWorkerId) {
+        if (isCurrentlyGranted) {
+          await apiClient.delete(`/admin/users/${selectedWorkerId}/permissions/${permId}`);
+        } else {
+          await apiClient.post(`/admin/users/${selectedWorkerId}/permissions/give`, {
+            permission_id: permId,
+          });
+        }
+        setOriginalPermIds(new Set(nextStaged));
+        await loadUsers();
+        if (onNotice) {
+          onNotice(isMr ? 'कार्यकर्ता परवानगी अद्यतनित झाली.' : 'Worker permission updated.');
+        }
       }
-      return next;
-    });
+    } catch (err) {
+      console.error('Failed to toggle permission:', err);
+      // Revert if API failed
+      setStagedPermIds(new Set(stagedPermIds));
+      if (onError) {
+        onError(err.response?.data?.message || err.message || (isMr ? 'परवानगी बदलताना त्रुटी आली.' : 'Failed to update permission.'));
+      }
+    }
   };
 
   // Save changes
