@@ -376,27 +376,8 @@ function AdminDashboard() {
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [language, setLanguage] = useState(() => (localStorage.getItem('admin-language') === 'mr' ? 'mr' : 'en'));
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [threeDotOpen, setThreeDotOpen] = useState(false);
-  const threeDotRef = useRef(null);
 
   const isMr = language === 'mr';
-
-  // Click outside to close 3-dot menu
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (threeDotRef.current && !threeDotRef.current.contains(e.target)) {
-        setThreeDotOpen(false);
-      }
-    }
-    if (threeDotOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-    };
-  }, [threeDotOpen]);
 
   const [pending, setPending] = useState([]);
   const [projects, setProjects] = useState([]);
@@ -2370,6 +2351,18 @@ function AdminDashboard() {
           margin-bottom: 20px;
         }
 
+        .admin-sidebar-search-input {
+          background: #ffffff !important;
+          color: #0f172a !important;
+          border: 1.5px solid #bfdbfe !important;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+        }
+        .admin-sidebar-search-input::placeholder {
+          color: #475569 !important;
+          font-weight: 600 !important;
+          opacity: 1 !important;
+        }
+
         .admin-hamburger-btn {
           display: none;
         }
@@ -2428,22 +2421,26 @@ function AdminDashboard() {
 
           .admin-hamburger-btn {
             display: inline-flex !important;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            background: #ffffff;
-            color: #1e293b;
-            cursor: pointer;
-            flex-shrink: 0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            transition: all 0.15s ease;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 42px !important;
+            height: 42px !important;
+            min-width: 42px !important;
+            min-height: 42px !important;
+            border-radius: 9px !important;
+            border: 1.5px solid #93c5fd !important;
+            background: #ffffff !important;
+            color: #1d4ed8 !important;
+            cursor: pointer !important;
+            flex-shrink: 0 !important;
+            box-shadow: 0 2px 6px rgba(29, 78, 216, 0.2) !important;
+            transition: all 0.15s ease !important;
+            padding: 0 !important;
           }
-          .admin-hamburger-btn:hover {
-            background: #f1f5f9;
-            border-color: #94a3b8;
+          .admin-hamburger-btn:hover, .admin-hamburger-btn:active {
+            background: #eff6ff !important;
+            border-color: #2563eb !important;
+            color: #1e40af !important;
           }
 
           .admin-sidebar {
@@ -2480,8 +2477,6 @@ function AdminDashboard() {
             width: 26px;
             height: 26px;
             border-radius: 6px;
-            height: 26px;
-            border-radius: 6px;
             border: 1px solid rgba(15, 23, 42, 0.2);
             background: #f1f5f9;
             color: #0f172a;
@@ -2506,22 +2501,33 @@ function AdminDashboard() {
 
         @media (max-width: 768px) {
           .admin-header-responsive {
-            padding: 10px 14px !important;
+            padding: 8px 12px !important;
             flex-direction: row !important;
             align-items: center !important;
             justify-content: space-between !important;
-            gap: 10px !important;
+            gap: 8px !important;
             flex-wrap: nowrap !important;
+            min-height: 54px !important;
           }
           .admin-header-controls {
             display: flex !important;
             align-items: center !important;
             justify-content: flex-end !important;
-            gap: 8px !important;
+            gap: 6px !important;
             flex-wrap: nowrap !important;
+            flex-shrink: 0 !important;
           }
           .hdr-btn-3d-neta {
             display: none !important;
+          }
+          .admin-header-subdesk {
+            display: none !important;
+          }
+          .admin-time-badge-text {
+            display: none !important;
+          }
+          .admin-time-badge {
+            padding: 4px 8px !important;
           }
           .admin-hamburger-btn {
             width: 42px !important;
@@ -2532,6 +2538,13 @@ function AdminDashboard() {
           .admin-main-workspace {
             padding: 14px 10px !important;
           }
+        }
+
+        @media (max-width: 440px) {
+          .admin-time-badge {
+            display: none !important;
+          }
+        }
           .admin-hero-banner {
             padding: 16px 14px !important;
             border-radius: 12px !important;
@@ -2712,35 +2725,101 @@ function AdminDashboard() {
               </div>
             </div>
 
-            {/* Translucent Search Bar on Royal Blue */}
+            {/* Sidebar Language Switcher - Prominent at Top */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                background: 'rgba(255, 255, 255, 0.16)',
+                border: '1px solid rgba(255, 255, 255, 0.28)',
+                borderRadius: '8px',
+                padding: '4px 6px',
+                marginBottom: '10px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', paddingLeft: '4px', fontSize: '11px', fontWeight: '800', color: '#ffffff' }}>
+                <span style={{ fontSize: '13px' }}>🌐</span>
+                <span>{isMr ? 'भाषा निवडा' : 'Language'}:</span>
+              </div>
+              <div style={{ display: 'flex', gap: '4px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLanguage('mr');
+                    localStorage.setItem('admin-language', 'mr');
+                  }}
+                  style={{
+                    border: 'none',
+                    background: language === 'mr' ? '#ffffff' : 'transparent',
+                    color: language === 'mr' ? '#1e40af' : '#ffffff',
+                    fontWeight: language === 'mr' ? '850' : '650',
+                    fontSize: '11.5px',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: language === 'mr' ? '0 1px 4px rgba(0,0,0,0.2)' : 'none',
+                  }}
+                >
+                  मराठी {language === 'mr' ? '✓' : ''}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLanguage('en');
+                    localStorage.setItem('admin-language', 'en');
+                  }}
+                  style={{
+                    border: 'none',
+                    background: language === 'en' ? '#ffffff' : 'transparent',
+                    color: language === 'en' ? '#1e40af' : '#ffffff',
+                    fontWeight: language === 'en' ? '850' : '650',
+                    fontSize: '11.5px',
+                    padding: '4px 10px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: language === 'en' ? '0 1px 4px rgba(0,0,0,0.2)' : 'none',
+                  }}
+                >
+                  English {language === 'en' ? '✓' : ''}
+                </button>
+              </div>
+            </div>
+
+            {/* High-Contrast Search Bar */}
             <div style={{ position: 'relative', marginBottom: '14px' }}>
-              <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'rgba(255, 255, 255, 0.75)', display: 'flex', alignItems: 'center' }}>
+              <span style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#1e40af', display: 'flex', alignItems: 'center', pointerEvents: 'none', zIndex: 2 }}>
                 {icons.search}
               </span>
               <input
                 type="text"
+                className="admin-sidebar-search-input"
                 placeholder={isMr ? 'पर्याय शोधा...' : 'Search admin sections...'}
                 value={sidebarSearch}
                 onChange={(e) => setSidebarSearch(e.target.value)}
                 style={{
                   width: '100%',
                   boxSizing: 'border-box',
-                  background: 'rgba(255, 255, 255, 0.14)',
-                  border: '1px solid rgba(255, 255, 255, 0.25)',
-                  borderRadius: '7px',
-                  padding: '7px 26px 7px 30px',
-                  color: '#ffffff',
+                  background: '#ffffff',
+                  border: '1.5px solid #bfdbfe',
+                  borderRadius: '8px',
+                  padding: '8px 28px 8px 32px',
+                  color: '#0f172a',
                   fontSize: '12px',
+                  fontWeight: '600',
                   outline: 'none',
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.12)',
                   transition: 'all 0.15s ease',
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.6)';
-                  e.target.style.background = 'rgba(255, 255, 255, 0.22)';
+                  e.target.style.borderColor = '#2563eb';
+                  e.target.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.25)';
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor = 'rgba(255, 255, 255, 0.25)';
-                  e.target.style.background = 'rgba(255, 255, 255, 0.14)';
+                  e.target.style.borderColor = '#bfdbfe';
+                  e.target.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.12)';
                 }}
               />
               {sidebarSearch && (
@@ -2749,14 +2828,21 @@ function AdminDashboard() {
                   onClick={() => setSidebarSearch('')}
                   style={{
                     position: 'absolute',
-                    right: '7px',
+                    right: '8px',
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    background: 'none',
+                    background: '#e2e8f0',
                     border: 'none',
-                    color: 'rgba(255, 255, 255, 0.8)',
+                    borderRadius: '50%',
+                    width: '18px',
+                    height: '18px',
+                    color: '#475569',
                     cursor: 'pointer',
-                    fontSize: '13px',
+                    fontSize: '12px',
+                    fontWeight: '800',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     padding: 0,
                   }}
                 >
@@ -3073,7 +3159,7 @@ function AdminDashboard() {
             style={{
               background: active === 'evm' ? 'linear-gradient(90deg, #091a2f 0%, #0d2340 50%, #122b4e 100%)' : '#ffffff',
               borderBottom: active === 'evm' ? '1px solid rgba(255, 255, 255, 0.08)' : '1px solid #e2e8f0',
-              padding: '14px 28px',
+              padding: '10px 18px',
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -3081,18 +3167,21 @@ function AdminDashboard() {
               top: 0,
               zIndex: 40,
               boxShadow: active === 'evm' ? '0 4px 20px rgba(0, 0, 0, 0.25)' : '0 1px 3px rgba(0,0,0,0.03)',
+              minHeight: '56px',
+              width: '100%',
+              boxSizing: 'border-box',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              {/* Mobile Hamburger Drawer Toggle Button */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+              {/* Mobile Hamburger Drawer Toggle Button (3 Bars) */}
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="admin-hamburger-btn"
                 title={isMr ? 'मेनू उघडा' : 'Open Navigation'}
-                aria-label="Toggle menu"
+                aria-label="Toggle navigation menu"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="3" y1="12" x2="21" y2="12" />
                   <line x1="3" y1="6" x2="21" y2="6" />
                   <line x1="3" y1="18" x2="21" y2="18" />
@@ -3100,11 +3189,11 @@ function AdminDashboard() {
               </button>
 
               {active === 'evm' ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0, flex: 1 }}>
                   <div style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '10px',
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '8px',
                     background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
                     display: 'flex',
                     alignItems: 'center',
@@ -3113,52 +3202,53 @@ function AdminDashboard() {
                     boxShadow: '0 2px 8px rgba(37, 99, 235, 0.35)',
                     flexShrink: 0
                   }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                       <path d="m9 12 2 2 4-4" />
                     </svg>
                   </div>
-                  <div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px' }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div className="admin-header-subdesk" style={{ fontSize: '10.5px', color: '#94a3b8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {isMr ? 'प्रशासन विभाग, महाराष्ट्र शासन' : 'Dept of Administration, Govt of Maharashtra'}
                     </div>
-                    <h2 style={{ margin: 0, fontSize: '17px', fontWeight: '900', color: '#ffffff', letterSpacing: '0.3px' }}>
+                    <h2 style={{ margin: 0, fontSize: '16px', fontWeight: '900', color: '#ffffff', letterSpacing: '0.3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.25 }}>
                       {isMr ? 'डिजिटल EVM व निवडणूक नियंत्रण' : 'Digital EVM & Election Command'}
                     </h2>
                   </div>
                 </div>
               ) : (
-                <div>
-                  <div style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div className="admin-header-subdesk" style={{ fontSize: '11px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {isMr ? 'प्रशासन नियंत्रण केंद्र' : 'Administration Command Desk'}
                   </div>
-                  <h2 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#0f172a' }}>
+                  <h2 style={{ margin: 0, fontSize: '17px', fontWeight: '800', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.25 }}>
                     {isMr ? currentNav.label_mr : currentNav.label_en}
                   </h2>
                 </div>
               )}
             </div>
 
-            <div className="admin-header-controls" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="admin-header-controls" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
               {/* IST Time Badge */}
               <div
+                className="admin-time-badge"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '7px',
+                  gap: '6px',
                   background: active === 'evm' ? 'rgba(255, 255, 255, 0.1)' : '#f8fafc',
                   border: active === 'evm' ? '1px solid rgba(255, 255, 255, 0.16)' : '1px solid #e2e8f0',
                   borderRadius: '999px',
-                  padding: '5px 12px',
+                  padding: '5px 10px',
                   color: active === 'evm' ? '#ffffff' : '#1e293b'
                 }}
                 title={istTimeFormatted.date}
               >
-                <span style={{ fontSize: '12px' }}>🌐</span>
-                <span className="admin-time-badge-text" style={{ fontSize: '11.5px', fontWeight: '800', color: active === 'evm' ? '#ffffff' : '#1e293b' }}>
+                <span style={{ fontSize: '11px' }}>🌐</span>
+                <span className="admin-time-badge-text" style={{ fontSize: '11px', fontWeight: '800', color: active === 'evm' ? '#ffffff' : '#1e293b' }}>
                   {isMr ? 'भारत' : 'INDIA'}
                 </span>
-                <span style={{ fontSize: '11px', color: active === 'evm' ? '#cbd5e1' : '#64748b', fontWeight: '600', fontFamily: 'monospace' }}>
+                <span style={{ fontSize: '10.5px', color: active === 'evm' ? '#cbd5e1' : '#64748b', fontWeight: '700', fontFamily: 'monospace' }}>
                   {istTimeFormatted.time}
                 </span>
               </div>
@@ -3177,197 +3267,6 @@ function AdminDashboard() {
                 <span>🏛️</span>
                 <span>{isMr ? 'नेता कक्ष' : 'Neta Command'}</span>
               </button>
-
-              {/* 3-Dot Sidebar & Quick Action Menu */}
-              <div ref={threeDotRef} style={{ position: 'relative' }}>
-                <button
-                  type="button"
-                  onClick={() => setThreeDotOpen(!threeDotOpen)}
-                  aria-label={isMr ? 'अधिक पर्याय व भाषा' : 'More options and language'}
-                  title={isMr ? 'अधिक पर्याय' : 'More options'}
-                  style={{
-                    width: '38px',
-                    height: '38px',
-                    borderRadius: '10px',
-                    border: active === 'evm' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #cbd5e1',
-                    background: active === 'evm' ? 'rgba(255, 255, 255, 0.1)' : '#ffffff',
-                    color: active === 'evm' ? '#ffffff' : '#1e293b',
-                    cursor: 'pointer',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '20px',
-                    fontWeight: '900',
-                    lineHeight: 1,
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.background = active === 'evm' ? 'rgba(255, 255, 255, 0.2)' : '#f1f5f9';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.background = active === 'evm' ? 'rgba(255, 255, 255, 0.1)' : '#ffffff';
-                  }}
-                >
-                  ⋮
-                </button>
-
-                {/* Floating 3-Dot Dropdown Popover */}
-                {threeDotOpen && (
-                  <div
-                    role="menu"
-                    style={{
-                      position: 'absolute',
-                      right: 0,
-                      top: 'calc(100% + 8px)',
-                      width: '240px',
-                      background: '#ffffff',
-                      borderRadius: '14px',
-                      border: '1px solid #cbd5e1',
-                      boxShadow: '0 14px 35px rgba(0, 0, 0, 0.2), 0 2px 6px rgba(0, 0, 0, 0.08)',
-                      padding: '12px',
-                      zIndex: 9999,
-                      animation: 'fadeIn 0.15s ease-out',
-                      boxSizing: 'border-box',
-                    }}
-                  >
-                    {/* Language Switcher Section */}
-                    <div style={{ marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
-                      <div style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>🌐</span>
-                        <span>{isMr ? 'भाषा निवडा' : 'Select Language'}</span>
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setLanguage('mr');
-                            localStorage.setItem('admin-language', 'mr');
-                            setThreeDotOpen(false);
-                          }}
-                          style={{
-                            padding: '8px',
-                            borderRadius: '8px',
-                            border: language === 'mr' ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
-                            background: language === 'mr' ? '#eff6ff' : '#ffffff',
-                            color: language === 'mr' ? '#1d4ed8' : '#475569',
-                            fontWeight: language === 'mr' ? '800' : '600',
-                            fontSize: '12px',
-                            cursor: 'pointer',
-                            textAlign: 'center',
-                          }}
-                        >
-                          मराठी {language === 'mr' ? '✓' : ''}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setLanguage('en');
-                            localStorage.setItem('admin-language', 'en');
-                            setThreeDotOpen(false);
-                          }}
-                          style={{
-                            padding: '8px',
-                            borderRadius: '8px',
-                            border: language === 'en' ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
-                            background: language === 'en' ? '#eff6ff' : '#ffffff',
-                            color: language === 'en' ? '#1d4ed8' : '#475569',
-                            fontWeight: language === 'en' ? '800' : '600',
-                            fontSize: '12px',
-                            cursor: 'pointer',
-                            textAlign: 'center',
-                          }}
-                        >
-                          English {language === 'en' ? '✓' : ''}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Quick Access to Neta Command */}
-                    <div style={{ marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setThreeDotOpen(false);
-                          navigate('/officer');
-                        }}
-                        style={{
-                          width: '100%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          padding: '9px 10px',
-                          borderRadius: '8px',
-                          border: 'none',
-                          background: 'transparent',
-                          color: '#0f172a',
-                          fontSize: '12.5px',
-                          fontWeight: '700',
-                          cursor: 'pointer',
-                          textAlign: 'left',
-                          transition: 'background 0.15s ease',
-                        }}
-                        onMouseOver={(e) => (e.currentTarget.style.background = '#f8fafc')}
-                        onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
-                      >
-                        <span style={{ fontSize: '15px' }}>🏛️</span>
-                        <span>{isMr ? 'नेता व अधिकारी कक्ष' : 'Neta Command HQ'}</span>
-                      </button>
-                    </div>
-
-                    {/* User Profile summary */}
-                    <div style={{ marginBottom: '10px', paddingBottom: '10px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#1e60d5', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '800' }}>
-                        {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'A'}
-                      </div>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontSize: '11.5px', fontWeight: '750', color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {user?.full_name || 'Admin'}
-                        </div>
-                        <div style={{ fontSize: '10px', color: '#64748b' }}>
-                          {user?.roles?.join(', ') || 'ADMINISTRATOR'}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Sign Out Button */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setThreeDotOpen(false);
-                        handleLogout();
-                      }}
-                      style={{
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        padding: '10px 14px',
-                        borderRadius: '8px',
-                        border: '1px solid #fecaca',
-                        background: '#fef2f2',
-                        color: '#dc2626',
-                        fontSize: '12.5px',
-                        fontWeight: '800',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseOver={(e) => {
-                        e.currentTarget.style.background = '#fee2e2';
-                        e.currentTarget.style.borderColor = '#fca5a5';
-                      }}
-                      onMouseOut={(e) => {
-                        e.currentTarget.style.background = '#fef2f2';
-                        e.currentTarget.style.borderColor = '#fecaca';
-                      }}
-                    >
-                      <span>↪</span>
-                      <span>{isMr ? 'बाहेर पडा (Sign out)' : 'Sign out'}</span>
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
           </header>
 
