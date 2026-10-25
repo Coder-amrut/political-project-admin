@@ -248,6 +248,7 @@ export default function RolePermissionManager({
   const [workerInheritedIds, setWorkerInheritedIds] = useState(new Set());
 
   const [isSaving, setIsSaving] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'ACTIVE'
 
   // Quick Worker Assignment Modal
   const [assignModal, setAssignModal] = useState(null);
@@ -475,6 +476,14 @@ export default function RolePermissionManager({
     });
   }, [availablePermissions]);
 
+  // Displayed permissions filtered by active status if selected
+  const displayedPermissions = useMemo(() => {
+    if (statusFilter === 'ACTIVE') {
+      return sortedPermissions.filter((p) => stagedPermIds.has(p.id));
+    }
+    return sortedPermissions;
+  }, [sortedPermissions, statusFilter, stagedPermIds]);
+
   // Determine label for "Assigned To" dropdown
   const getAssignedToValue = (perm) => {
     const isGranted = stagedPermIds.has(perm.id);
@@ -654,6 +663,12 @@ export default function RolePermissionManager({
         .active-dot-pulsing {
           animation: pulseDot3D 2s infinite ease-in-out;
         }
+
+        @media (max-width: 1024px) {
+          .roles-filter-hub-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
       `}</style>
 
       {/* ============================================================== */}
@@ -786,10 +801,11 @@ export default function RolePermissionManager({
         }}
       >
         <div
+          className="roles-filter-hub-grid"
           style={{
             display: 'grid',
-            gridTemplateColumns: 'minmax(520px, 2.3fr) minmax(260px, 1.2fr) minmax(170px, 0.8fr)',
-            gap: 18,
+            gridTemplateColumns: 'minmax(330px, 2fr) minmax(220px, 1.2fr) minmax(180px, auto)',
+            gap: 16,
             alignItems: 'flex-start',
           }}
         >
@@ -1200,68 +1216,136 @@ export default function RolePermissionManager({
             </div>
           </div>
 
-          {/* Section 3: Active Permissions Card */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ height: 21, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 750, color: '#047857' }}>
-                {isMr ? '📊 सद्यस्थिती' : '📊 Status'}
-              </span>
+          {/* Section 3: Active Permissions Card & Filter Button */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, minWidth: 160 }}>
+            <div style={{ height: 21, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: '#10b981',
+                    boxShadow: '0 0 6px rgba(16,185,129,0.5)',
+                  }}
+                />
+                <span style={{ fontSize: 13, fontWeight: 800, color: '#047857' }}>
+                  {isMr ? '३. सद्यस्थिती (Status)' : '3. Status'}
+                </span>
+              </div>
+              {statusFilter === 'ACTIVE' && (
+                <button
+                  type="button"
+                  onClick={() => setStatusFilter('ALL')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#2563eb',
+                    fontSize: 11,
+                    fontWeight: 750,
+                    cursor: 'pointer',
+                    padding: 0,
+                    textDecoration: 'underline',
+                  }}
+                >
+                  {isMr ? 'सर्व दाखवा' : 'Show All'}
+                </button>
+              )}
             </div>
 
-            <div
+            <button
+              type="button"
               className="status-card-3d"
+              onClick={() => setStatusFilter((prev) => (prev === 'ACTIVE' ? 'ALL' : 'ACTIVE'))}
+              title={
+                isMr
+                  ? statusFilter === 'ACTIVE'
+                    ? 'सर्व परवानग्या दाखवण्यासाठी क्लिक करा'
+                    : 'फक्त सक्रिय परवानग्या फिल्टर करण्यासाठी क्लिक करा'
+                  : statusFilter === 'ACTIVE'
+                  ? 'Click to show all permissions'
+                  : 'Click to filter only active permissions'
+              }
               style={{
-                background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
-                border: '1.5px solid #059669',
+                width: '100%',
+                background: statusFilter === 'ACTIVE'
+                  ? 'linear-gradient(135deg, #047857 0%, #065f46 100%)'
+                  : 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
+                border: statusFilter === 'ACTIVE' ? '2px solid #064e3b' : '1.5px solid #059669',
                 borderRadius: 12,
-                padding: '0 16px',
+                padding: '0 14px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                height: 46,
+                height: 48,
                 boxSizing: 'border-box',
-                boxShadow: '0 8px 20px -2px rgba(16, 185, 129, 0.42), inset 0 1px 1px rgba(255, 255, 255, 0.45)',
-                cursor: 'default',
+                boxShadow: statusFilter === 'ACTIVE'
+                  ? '0 4px 12px rgba(4, 120, 87, 0.45), inset 0 2px 4px rgba(0,0,0,0.2)'
+                  : '0 8px 20px -2px rgba(16, 185, 129, 0.42), inset 0 1px 1px rgba(255, 255, 255, 0.45)',
+                cursor: 'pointer',
+                transition: 'all 0.18s ease',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexShrink: 0 }}>
                 <div
                   style={{
-                    width: 18,
-                    height: 18,
+                    width: 22,
+                    height: 22,
                     borderRadius: '50%',
                     background: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                    flexShrink: 0,
                   }}
                 >
-                  <Check size={11} color="#047857" strokeWidth={3.5} />
+                  <Check size={13} color="#047857" strokeWidth={3.5} />
                 </div>
-                <span
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 750,
-                    color: '#ffffff',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {isMr ? 'सक्रिय' : 'Active'}
-                </span>
+                <div style={{ textAlign: 'left' }}>
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color: '#ffffff',
+                      whiteSpace: 'nowrap',
+                      display: 'block',
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    {isMr ? 'सक्रिय' : 'Active'}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      color: 'rgba(255,255,255,0.85)',
+                      whiteSpace: 'nowrap',
+                      display: 'block',
+                    }}
+                  >
+                    {statusFilter === 'ACTIVE' ? (isMr ? 'फिल्टर चालू' : 'Filtered') : (isMr ? 'क्लिक करा' : 'Click to filter')}
+                  </span>
+                </div>
               </div>
               <div
                 style={{
-                  fontSize: 19,
+                  fontSize: 15,
                   fontWeight: 900,
                   color: '#ffffff',
                   letterSpacing: '0.02em',
-                  textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                  textShadow: '0 1px 3px rgba(0,0,0,0.25)',
+                  background: 'rgba(255, 255, 255, 0.22)',
+                  padding: '3px 8px',
+                  borderRadius: 8,
+                  marginLeft: 8,
+                  flexShrink: 0,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {stagedPermIds.size} / {availablePermissions.length || 10}
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>
@@ -1355,14 +1439,16 @@ export default function RolePermissionManager({
                     Loading permissions...
                   </td>
                 </tr>
-              ) : sortedPermissions.length === 0 ? (
+              ) : displayedPermissions.length === 0 ? (
                 <tr>
                   <td colSpan={4} style={{ padding: 40, textAlign: 'center', color: '#94a3b8', fontSize: 13 }}>
-                    {isMr ? 'कोणतीही परवानगी सापडली नाही.' : 'No permissions available.'}
+                    {statusFilter === 'ACTIVE'
+                      ? (isMr ? 'कोणतीही सक्रिय परवानगी नाही.' : 'No active permissions.')
+                      : (isMr ? 'कोणतीही परवानगी सापडली नाही.' : 'No permissions available.')}
                   </td>
                 </tr>
               ) : (
-                sortedPermissions.map((perm) => {
+                displayedPermissions.map((perm) => {
                   const meta = getPermMeta(perm);
                   const isGranted = stagedPermIds.has(perm.id);
                   const IconComp = meta.Icon || Shield;

@@ -670,19 +670,4 @@ body,
   }
 }
 
-/* Floating Quick Map Button */
-.project-floating-map-btn {
-  position: fixed;
-  bottom: 22px;
-  right: 18px;
-  z-index: 9990;
-}
-
-/* CRITICAL: Hide floating button on mobile screens so it NEVER covers form inputs or options */
-@media (max-width: 768px) {
-  .project-floating-map-btn {
-    display: none !important;
-  }
-}
-
 

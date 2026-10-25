@@ -68,8 +68,19 @@ export default function UserAttendanceManager({ language = 'mr' }) {
     enforce_strict_geofence: true,
   });
 
-  // Calendar Date & Filters State
-  const [attendanceDate, setAttendanceDate] = useState(() => new Date().toISOString().split('T')[0]);
+  // Maximum allowed attendance date: yesterday (today and future dates removed)
+  const maxAllowedDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
+  }, []);
+
+  // Calendar Date & Filters State (defaults to yesterday)
+  const [attendanceDate, setAttendanceDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
+  });
   const [openFilterMenu, setOpenFilterMenu] = useState(null); // 'status' | 'role' | 'compliance' | null
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -85,11 +96,14 @@ export default function UserAttendanceManager({ language = 'mr' }) {
   const handleNextDay = () => {
     const d = new Date(attendanceDate);
     d.setDate(d.getDate() + 1);
-    setAttendanceDate(d.toISOString().split('T')[0]);
+    const nextStr = d.toISOString().split('T')[0];
+    if (nextStr <= maxAllowedDate) {
+      setAttendanceDate(nextStr);
+    }
   };
 
-  const handleToday = () => {
-    setAttendanceDate(new Date().toISOString().split('T')[0]);
+  const handleYesterday = () => {
+    setAttendanceDate(maxAllowedDate);
   };
 
   const formatDisplayDate = (dateStr) => {
@@ -708,13 +722,19 @@ export default function UserAttendanceManager({ language = 'mr' }) {
                 ◀
               </button>
 
-              {/* Calendar Icon + Native Date Input */}
+              {/* Calendar Icon + Native Date Input (Restricted to Yesterday & Earlier) */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
                 <Calendar size={18} style={{ color: '#2563eb', flexShrink: 0 }} />
                 <input
                   type="date"
                   value={attendanceDate}
-                  onChange={(e) => setAttendanceDate(e.target.value)}
+                  max={maxAllowedDate}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (!val || val <= maxAllowedDate) {
+                      setAttendanceDate(val);
+                    }
+                  }}
                   style={{
                     border: '1.5px solid #93c5fd',
                     borderRadius: '8px',
@@ -730,11 +750,12 @@ export default function UserAttendanceManager({ language = 'mr' }) {
                 />
               </div>
 
-              {/* Next Day Button */}
+              {/* Next Day Button (Disabled if at or past Yesterday) */}
               <button
                 type="button"
                 onClick={handleNextDay}
-                title={isMr ? 'पुढचा दिवस' : 'Next Day'}
+                disabled={attendanceDate >= maxAllowedDate}
+                title={attendanceDate >= maxAllowedDate ? (isMr ? 'पुढील तारीख (आज व पुढील) उपलब्ध नाही' : 'Future/today date not allowed') : (isMr ? 'पुढचा दिवस' : 'Next Day')}
                 style={{
                   background: '#ffffff',
                   border: '1px solid #cbd5e1',
@@ -744,8 +765,9 @@ export default function UserAttendanceManager({ language = 'mr' }) {
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: '#334155',
+                  cursor: attendanceDate >= maxAllowedDate ? 'not-allowed' : 'pointer',
+                  color: attendanceDate >= maxAllowedDate ? '#94a3b8' : '#334155',
+                  opacity: attendanceDate >= maxAllowedDate ? 0.45 : 1,
                   fontWeight: 700,
                   fontSize: '14px',
                   transition: 'all 0.15s ease',
@@ -754,11 +776,12 @@ export default function UserAttendanceManager({ language = 'mr' }) {
                 ▶
               </button>
 
-              {/* Today Quick Jump Button */}
+              {/* Yesterday Quick Jump Button (Today & Future Dates Removed) */}
               <button
                 type="button"
-                onClick={handleToday}
-                className={attendanceDate === new Date().toISOString().split('T')[0] ? 'tab-btn-3d-blue' : 'tab-btn-3d-inactive'}
+                onClick={handleYesterday}
+                className={attendanceDate === maxAllowedDate ? 'tab-btn-3d-blue' : 'tab-btn-3d-inactive'}
+                title={isMr ? 'कालची उपस्थिती पहा' : 'View yesterday attendance'}
                 style={{
                   padding: '6px 14px',
                   fontSize: '13px',
@@ -770,7 +793,7 @@ export default function UserAttendanceManager({ language = 'mr' }) {
                   justifyContent: 'center',
                 }}
               >
-                {isMr ? 'आज (Today)' : 'Today'}
+                {isMr ? 'काल (Yesterday)' : 'Yesterday'}
               </button>
             </div>
 

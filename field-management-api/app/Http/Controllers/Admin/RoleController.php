@@ -393,4 +393,36 @@ class RoleController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Alias for removePermission matching api.php Route::delete('/roles/{roleId}/permissions/{permissionId}', ...)
+     */
+    public function revokePermission(Request $request, int|string $roleId, int|string $permissionId): JsonResponse
+    {
+        return $this->removePermission($request, $roleId, $permissionId);
+    }
+
+    /**
+     * Alias for removeUserPermission matching api.php Route::delete('/users/{userId}/permissions/{permissionId}', ...)
+     */
+    public function revokeUserPermission(Request $request, int|string $userId, int|string $permissionId): JsonResponse
+    {
+        return $this->removeUserPermission($request, $userId, $permissionId);
+    }
+
+    /**
+     * Alias for permissionUsers matching api.php Route::get('/permissions/{permissionId}/users', ...)
+     */
+    public function getPermissionUsers(int|string $permissionId): JsonResponse
+    {
+        return $this->permissionUsers($permissionId);
+    }
+
+    /**
+     * Alias for usersList matching api.php Route::get('/users-list', ...)
+     */
+    public function getUsersList(): JsonResponse
+    {
+        return $this->usersList();
+    }
 }

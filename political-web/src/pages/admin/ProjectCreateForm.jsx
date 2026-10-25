@@ -418,14 +418,14 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
     }
   };
 
-  const activeDistrictName = (selectedDistricts[0]?.name_mr || selectedDistricts[0]?.name_en || selectedDistricts[0]?.name || filterDistrict?.name_mr || filterDistrict?.name_en || filterDistrict?.name || 'सांगली');
+  const activeDistrictName = (selectedDistricts[0]?.name_mr || selectedDistricts[0]?.name_en || selectedDistricts[0]?.name || filterDistrict?.name_mr || filterDistrict?.name_en || filterDistrict?.name || '');
 
   const getMapQuery = (mTarget) => {
-    if (!mTarget) return 'Sangli, Maharashtra, India';
+    if (!mTarget) return activeDistrictName ? `${activeDistrictName}, Maharashtra, India` : 'Maharashtra, India';
     const nameEn = mTarget.name_en || mTarget.name || '';
     const nameMr = mTarget.name_mr || '';
-    const place = nameEn || nameMr || 'Sangli';
-    const dist = mTarget.district_name || (activeDistrictName.includes('सांगली') ? 'Sangli' : activeDistrictName) || 'Sangli';
+    const place = nameEn || nameMr || activeDistrictName || 'Maharashtra';
+    const dist = mTarget.district_name || activeDistrictName || 'Maharashtra';
 
     if (mTarget.type === 'TALUKA') return `${place} Taluka, ${dist}, Maharashtra, India`;
     if (mTarget.type === 'DISTRICT') return `${place} District, Maharashtra, India`;
@@ -2048,63 +2048,6 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 12, flexWrap: 'wrap', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
       <button type="button" onClick={() => { setForm({ name: '', description: '', start_date: '', end_date: '' }); resetScope(''); }} style={{ ...style.button, background: '#eef2f8', color: '#334155' }}>Clear</button>
       <button type="submit" disabled={submitting || !scope || !isFormReady} style={{ ...style.button, opacity: submitting || !scope || !isFormReady ? .55 : 1, cursor: submitting || !scope || !isFormReady ? 'not-allowed' : 'pointer' }}>{submitting ? 'Creating…' : 'Create Project'}</button>
-    </div>
-
-    {/* ============================================================== */}
-    {/* FLOATING QUICK MAP BUTTON (Always Accessible in Every Session) */}
-    {/* ============================================================== */}
-    <div className="project-floating-map-btn">
-      <button
-        type="button"
-        onClick={() => {
-          const currentTarget = (
-            selectedTalukas.length > 0
-              ? { type: 'TALUKA', name_en: selectedTalukas[selectedTalukas.length - 1].name_en || selectedTalukas[selectedTalukas.length - 1].taluka_name, name_mr: selectedTalukas[selectedTalukas.length - 1].name_mr, district_name: activeDistrictName }
-              : selectedDistricts.length > 0
-                ? { type: 'DISTRICT', name_en: selectedDistricts[0].name_en || selectedDistricts[0].name, name_mr: selectedDistricts[0].name_mr }
-                : filterDistrict
-                  ? { type: 'DISTRICT', name_en: filterDistrict.name_en || filterDistrict.name, name_mr: filterDistrict.name_mr }
-                  : target
-                    ? { type: scope, name_en: target.name_en || target.name, name_mr: target.name_mr }
-                    : { type: 'DISTRICT', name_en: 'Sangli', name_mr: 'सांगली' }
-          );
-          handleOpenMap(currentTarget, true);
-        }}
-        title={language === 'mr' ? 'नकाशा पहा (सांगली / निवडलेले क्षेत्र)' : 'Watch Map (Sangli / Selected Region)'}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
-          color: '#ffffff',
-          border: '2px solid rgba(255,255,255,0.9)',
-          borderRadius: 999,
-          padding: '10px 16px',
-          fontSize: 13,
-          fontWeight: 750,
-          cursor: 'pointer',
-          boxShadow: '0 8px 24px rgba(37,99,235,0.4)',
-          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-          backdropFilter: 'blur(8px)'
-        }}
-      >
-        <span style={{ fontSize: 18 }}>🗺️</span>
-        <span>{language === 'mr' ? 'नकाशा पहा' : 'Watch Map'}</span>
-        <span style={{
-          fontSize: 11,
-          padding: '2px 7px',
-          borderRadius: 10,
-          background: 'rgba(255,255,255,0.25)',
-          color: '#ffffff',
-          fontWeight: 700,
-          maxWidth: 95,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap'
-        }}>
-          {activeDistrictName || (language === 'mr' ? 'सांगली' : 'Sangli')}
-        </span>
-      </button>
     </div>
 
     {/* ============================================================== */}
