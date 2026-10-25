@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import AreaOverviewDashboard from './components/AreaOverviewDashboard';
@@ -24,6 +24,39 @@ export default function OfficerDashboard() {
   const [overviewData, setOverviewData] = useState(null);
   const [unreadAlerts, setUnreadAlerts] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Scroll Tracking & Animations
+  const mainRef = useRef(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(false);
+
+  const handleMainScroll = () => {
+    if (!mainRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = mainRef.current;
+    const maxScroll = scrollHeight - clientHeight;
+    const progress = maxScroll > 0 ? (scrollTop / maxScroll) * 100 : 0;
+    setScrollProgress(progress);
+    setShowScrollTop(scrollTop > 180);
+    if (maxScroll > 50 && scrollTop + clientHeight >= scrollHeight - 35) {
+      setIsAtBottom(true);
+    } else {
+      setIsAtBottom(false);
+    }
+  };
+
+  const scrollToTop = () => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    setIsAtBottom(false);
+  }, [activeTab]);
 
   // Escape key and background scroll lock for floating AI assistant
   useEffect(() => {
@@ -400,10 +433,11 @@ export default function OfficerDashboard() {
           display: none !important;
         }
 
-        /* Separate Scrollbar Styling for Main Content */
+        /* Separate Scrollbar Styling for Main Content with Smooth Scrolling */
         .neta-main-body {
           scrollbar-width: thin;
           scrollbar-color: #cbd5e1 transparent;
+          scroll-behavior: smooth !important;
         }
         .neta-main-body::-webkit-scrollbar {
           width: 6px;
@@ -412,11 +446,47 @@ export default function OfficerDashboard() {
           background: transparent;
         }
         .neta-main-body::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
+          background: rgba(37, 99, 235, 0.35);
           border-radius: 4px;
         }
         .neta-main-body::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
+          background: rgba(37, 99, 235, 0.65);
+        }
+
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes bounceSlow {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-5px);
+          }
+        }
+
+        @keyframes pulseSlow {
+          0%, 100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.05);
+          }
+        }
+
+        .neta-scroll-top-btn:hover {
+          transform: translateY(-2px) scale(1.06);
+          background: #2563eb !important;
+          color: #ffffff !important;
+          box-shadow: 0 6px 18px rgba(37, 99, 235, 0.4) !important;
         }
 
         /* Mobile Drawer & Responsive Layout */
@@ -1393,50 +1463,64 @@ export default function OfficerDashboard() {
               type="button"
               className="neta-bell-btn"
               onClick={() => setActiveTab('notifications')}
+              title={isMr ? 'सूचना पहा' : 'View Notifications'}
               style={{
                 position: 'relative',
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                width: '36px',
-                height: '36px',
+                background: activeTab === 'notifications' ? '#eff6ff' : '#f8fafc',
+                border: activeTab === 'notifications' ? '1.5px solid #2563eb' : '1px solid #e2e8f0',
                 borderRadius: '8px',
+                padding: '7px 11px',
+                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '17px',
-                cursor: 'pointer',
-                flexShrink: 0,
+                gap: '6px',
+                fontSize: '13px',
               }}
-              title="Notifications"
             >
-              🔔
-              {unreadAlerts > 0 && (
+              <span>🔔</span>
+              {unreadNotificationsCount > 0 && (
                 <span
                   style={{
-                    position: 'absolute',
-                    top: '-4px',
-                    right: '-4px',
                     background: '#ef4444',
                     color: '#ffffff',
                     fontSize: '10px',
                     fontWeight: '800',
-                    width: '18px',
-                    height: '18px',
-                    borderRadius: '9px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    padding: '1px 5px',
+                    borderRadius: '999px',
                   }}
                 >
-                  {unreadAlerts}
+                  {unreadNotificationsCount}
                 </span>
               )}
             </button>
           </div>
         </header>
 
+        {/* Thin Animated Scroll Progress Bar */}
+        <div
+          style={{
+            height: '3px',
+            width: '100%',
+            background: 'transparent',
+            position: 'relative',
+            zIndex: 45,
+          }}
+        >
+          <div
+            style={{
+              height: '100%',
+              width: `${scrollProgress}%`,
+              background: 'linear-gradient(90deg, #2563eb 0%, #10b981 100%)',
+              transition: 'width 0.12s ease-out',
+              boxShadow: scrollProgress > 0 ? '0 0 8px rgba(37, 99, 235, 0.5)' : 'none',
+            }}
+          />
+        </div>
+
         {/* Dynamic Main Body Content with Independent Separate Scroll */}
         <main
+          ref={mainRef}
+          onScroll={handleMainScroll}
           className="neta-main-body"
           style={{
             padding: '24px 28px',
@@ -1474,7 +1558,6 @@ export default function OfficerDashboard() {
               <PendingTasksManager lang={lang} />
             )}
 
-
             {activeTab === 'field_updates' && (
               <FieldUpdatesFeed lang={lang} />
             )}
@@ -1491,7 +1574,106 @@ export default function OfficerDashboard() {
               <DataExportCenter lang={lang} />
             )}
           </ErrorBoundary>
+
+          {/* End of Page Animated Indicator Banner */}
+          <div
+            className="neta-scroll-end-banner"
+            style={{
+              marginTop: '42px',
+              marginBottom: '26px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px',
+              padding: '18px 24px',
+              borderRadius: '14px',
+              background: 'linear-gradient(180deg, rgba(248, 250, 252, 0.6) 0%, #e2e8f0 100%)',
+              border: '1.5px dashed #cbd5e1',
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)',
+              animation: 'fadeInUp 0.3s ease',
+              textAlign: 'center',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#334155', fontSize: '13.5px', fontWeight: '800' }}>
+              <span style={{ fontSize: '20px', animation: 'bounceSlow 2s infinite', display: 'inline-block' }}>🏁</span>
+              <span>
+                {isMr
+                  ? '✓ आपण पृष्ठाच्या अंतिम टोकापर्यंत स्क्रोल केले आहे'
+                  : '✓ You have reached the end of this page'}
+              </span>
+            </div>
+            <p style={{ margin: 0, fontSize: '11.5px', color: '#64748b' }}>
+              {isMr
+                ? 'खालील बटणावर क्लिक करून त्वरित सुरुवातीस जाऊ शकता'
+                : 'Click below to smoothly return to top'}
+            </p>
+            <button
+              type="button"
+              onClick={scrollToTop}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)',
+                color: '#ffffff',
+                border: 'none',
+                padding: '8px 20px',
+                borderRadius: '24px',
+                fontSize: '12.5px',
+                fontWeight: '750',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.35)',
+                transition: 'all 0.2s ease',
+                marginTop: '4px',
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(37, 99, 235, 0.5)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.35)';
+              }}
+            >
+              <span style={{ fontSize: '14px' }}>🔝</span>
+              <span>{isMr ? 'शीर्षावर जा (Back to Top)' : 'Back to Top'}</span>
+            </button>
+          </div>
         </main>
+
+        {/* Floating Quick Back to Top FAB Button */}
+        {showScrollTop && (
+          <button
+            type="button"
+            onClick={scrollToTop}
+            className="neta-scroll-top-btn"
+            title={isMr ? 'वर स्क्रोल करा' : 'Scroll to top'}
+            style={{
+              position: 'fixed',
+              bottom: '24px',
+              right: activeTab !== 'ai_chatbot' ? '210px' : '24px',
+              zIndex: 9990,
+              width: '42px',
+              height: '42px',
+              borderRadius: '50%',
+              background: '#ffffff',
+              border: '2px solid #2563eb',
+              color: '#2563eb',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '18px',
+              fontWeight: '800',
+              cursor: 'pointer',
+              boxShadow: '0 4px 14px rgba(37, 99, 235, 0.25)',
+              transition: 'all 0.2s ease',
+              animation: 'fadeInUp 0.25s ease',
+            }}
+          >
+            ↑
+          </button>
+        )}
 
         {/* Floating AI Political Campaign Assistant Launcher (Hidden when full chatbot tab is active) */}
         {activeTab !== 'ai_chatbot' && (
