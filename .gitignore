@@ -67,3 +67,5 @@ Thumbs.db
 
 # Officer App (handled in separate repository)
 Officer-app/
+
+cloudflared.exe
