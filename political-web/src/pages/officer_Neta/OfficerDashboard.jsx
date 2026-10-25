@@ -432,12 +432,17 @@ export default function OfficerDashboard() {
             left: 0 !important;
             bottom: 0 !important;
             height: 100vh !important;
-            width: 290px !important;
-            max-width: 86vw !important;
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+            width: 295px !important;
+            max-width: 88vw !important;
             z-index: 9999 !important;
             transform: translateX(-100%);
             transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
             box-shadow: 6px 0 30px rgba(0, 0, 0, 0.45) !important;
+            padding-bottom: calc(48px + env(safe-area-inset-bottom, 28px)) !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
           }
           .neta-sidebar.mobile-open {
             transform: translateX(0) !important;
@@ -1049,108 +1054,187 @@ export default function OfficerDashboard() {
             )}
           </div>
 
-          {/* Quick Actions Row */}
-          <div
-            style={{
-              display: 'flex',
-              gap: '6px',
-              flexDirection: isCollapsed ? 'column' : 'row',
-              width: '100%',
-            }}
-          >
-            {user?.roles?.includes('ADMIN') && (
+          {/* Quick Actions */}
+          {isCollapsed ? (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                width: '100%',
+              }}
+            >
+              {user?.roles?.includes('ADMIN') && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin')}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.18)',
+                    border: '1px solid rgba(255, 255, 255, 0.28)',
+                    color: '#ffffff',
+                    padding: '6px 0',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  title={isMr ? 'ॲडमिन डॅशबोर्ड' : 'Admin Dashboard'}
+                >
+                  {Icons.admin}
+                </button>
+              )}
               <button
                 type="button"
-                onClick={() => navigate('/admin')}
+                onClick={() => navigate('/')}
                 style={{
-                  flex: 1,
                   background: 'rgba(255, 255, 255, 0.18)',
                   border: '1px solid rgba(255, 255, 255, 0.28)',
                   color: '#ffffff',
-                  padding: isCollapsed ? '6px 0' : '5px 6px',
+                  padding: '6px 0',
                   borderRadius: '6px',
                   fontSize: '11px',
-                  fontWeight: '600',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '4px',
+                }}
+                title={isMr ? 'मुख्य पृष्ठ' : 'Home'}
+              >
+                <span style={{ fontSize: '13px' }}>🏠</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                style={{
+                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                  border: '1px solid rgba(255, 255, 255, 0.35)',
+                  color: '#ffffff',
+                  padding: '6px 0',
+                  borderRadius: '6px',
+                  fontSize: '11px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                title={isMr ? 'बाहेर पडा' : 'Logout'}
+              >
+                {Icons.logout}
+              </button>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                width: '100%',
+              }}
+            >
+              {/* Secondary Navigation Row (Admin & Home) */}
+              <div style={{ display: 'flex', gap: '6px', width: '100%' }}>
+                {user?.roles?.includes('ADMIN') && (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/admin')}
+                    style={{
+                      flex: 1,
+                      background: 'rgba(255, 255, 255, 0.18)',
+                      border: '1px solid rgba(255, 255, 255, 0.28)',
+                      color: '#ffffff',
+                      padding: '6px 8px',
+                      borderRadius: '6px',
+                      fontSize: '11px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px',
+                      transition: 'all 0.15s ease',
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.28)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)';
+                    }}
+                    title={isMr ? 'ॲडमिन डॅशबोर्ड' : 'Admin Dashboard'}
+                  >
+                    {Icons.admin}
+                    <span>{isMr ? 'ॲडमिन' : 'Admin'}</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => navigate('/')}
+                  style={{
+                    flex: 1,
+                    background: 'rgba(255, 255, 255, 0.18)',
+                    border: '1px solid rgba(255, 255, 255, 0.28)',
+                    color: '#ffffff',
+                    padding: '6px 8px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '4px',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.28)';
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)';
+                  }}
+                  title={isMr ? 'मुख्य पृष्ठ' : 'Home'}
+                >
+                  <span style={{ fontSize: '13px' }}>🏠</span>
+                  <span>{isMr ? 'मुख्य पृष्ठ' : 'Home'}</span>
+                </button>
+              </div>
+
+              {/* Full Width Prominent Logout Button */}
+              <button
+                type="button"
+                onClick={handleLogout}
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                  border: '1px solid rgba(255, 255, 255, 0.35)',
+                  color: '#ffffff',
+                  padding: '9px 12px',
+                  borderRadius: '8px',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 3px 10px rgba(220, 38, 38, 0.4)',
                   transition: 'all 0.15s ease',
                 }}
                 onMouseOver={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.28)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 5px 14px rgba(220, 38, 38, 0.55)';
                 }}
                 onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 3px 10px rgba(220, 38, 38, 0.4)';
                 }}
-                title={isMr ? 'ॲडमिन डॅशबोर्ड' : 'Admin Dashboard'}
+                title={isMr ? 'बाहेर पडा' : 'Logout'}
               >
-                {Icons.admin}
-                {!isCollapsed && <span>{isMr ? 'ॲडमिन' : 'Admin'}</span>}
+                {Icons.logout}
+                <span>{isMr ? 'बाहेर पडा (Sign out)' : 'Sign out'}</span>
               </button>
-            )}
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              style={{
-                flex: 1,
-                background: 'rgba(255, 255, 255, 0.18)',
-                border: '1px solid rgba(255, 255, 255, 0.28)',
-                color: '#ffffff',
-                padding: isCollapsed ? '6px 0' : '5px 6px',
-                borderRadius: '6px',
-                fontSize: '11px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '4px',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.28)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)';
-              }}
-              title={isMr ? 'मुख्य पृष्ठ' : 'Home'}
-            >
-              <span style={{ fontSize: '13px' }}>🏠</span>
-              {!isCollapsed && <span>{isMr ? 'मुख्य' : 'Home'}</span>}
-            </button>
-            <button
-              type="button"
-              onClick={handleLogout}
-              style={{
-                flex: 1,
-                background: 'rgba(239, 68, 68, 0.22)',
-                border: '1px solid rgba(239, 68, 68, 0.38)',
-                color: '#ffffff',
-                padding: isCollapsed ? '6px 0' : '5px 6px',
-                borderRadius: '6px',
-                fontSize: '11px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '4px',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.38)';
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.background = 'rgba(239, 68, 68, 0.22)';
-              }}
-              title={isMr ? 'बाहेर पडा' : 'Logout'}
-            >
-              {Icons.logout}
-              {!isCollapsed && <span>{isMr ? 'बाहेर' : 'Exit'}</span>}
-            </button>
-          </div>
+            </div>
+          )}
         </div>
       </aside>
 
