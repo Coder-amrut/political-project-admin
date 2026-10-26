@@ -2216,6 +2216,283 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
               </button>
             </form>
           </div>
+
+          {/* ELECTION SETTINGS: CANDIDATE DIRECTORY & ADDITION CARD */}
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '16px',
+            border: '1px solid #e2e8f0',
+            padding: '24px',
+            boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '12px',
+              marginBottom: '18px',
+              paddingBottom: '14px',
+              borderBottom: '1px solid #f1f5f9'
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+                    👥 {isMr ? 'या निवडणुकीतील उमेदवार यादी (Election Candidates)' : 'Election Candidates Roster'}
+                  </h2>
+                  <span style={{
+                    fontSize: '11px',
+                    fontWeight: '800',
+                    padding: '3px 9px',
+                    borderRadius: '999px',
+                    background: '#eff6ff',
+                    color: '#1d4ed8',
+                    border: '1px solid #bfdbfe'
+                  }}>
+                    {candidates.length} {isMr ? 'उमेदवार' : 'Candidates'}
+                  </span>
+                </div>
+                <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+                  {isMr
+                    ? 'येथून तुम्ही या निवडणुकीसाठी उमेदवार जोडू शकता, त्यांचे नाव, चिन्ह, फोटो, अनुक्रमांक व पद व्यवस्थापित करू शकता.'
+                    : 'Manage candidates on EVM ballot paper with photos, party symbols, serial numbers, and positions.'}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={openAddCandidateModal}
+                style={{
+                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '10px 18px',
+                  borderRadius: '10px',
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)'
+                }}
+              >
+                <Plus size={16} />
+                <span>{isMr ? '➕ नवीन उमेदवार जोडा' : 'Add New Candidate'}</span>
+              </button>
+            </div>
+
+            {candidates.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
+                {candidates.map((cand) => (
+                  <div
+                    key={cand.id}
+                    style={{
+                      background: cand.highlighted ? '#fffbeb' : '#ffffff',
+                      border: cand.highlighted ? '2px solid #ea580c' : '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      padding: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      gap: '12px',
+                      position: 'relative',
+                      boxShadow: '0 2px 6px rgba(15, 23, 42, 0.04)'
+                    }}
+                  >
+                    {cand.highlighted && (
+                      <span style={{
+                        position: 'absolute',
+                        top: '10px',
+                        right: '10px',
+                        background: '#ea580c',
+                        color: '#ffffff',
+                        fontSize: '10px',
+                        fontWeight: '800',
+                        padding: '2px 8px',
+                        borderRadius: '10px'
+                      }}>
+                        ★ {isMr ? 'प्रचार उमेदवार' : 'Key Candidate'}
+                      </span>
+                    )}
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '8px',
+                        background: '#f1f5f9',
+                        color: '#0f172a',
+                        fontWeight: '800',
+                        fontSize: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        #{cand.serial_number}
+                      </span>
+
+                      <div style={{ width: '46px', height: '46px', flexShrink: 0 }}>
+                        <EvmMediaImage
+                          src={cand.candidate_photo}
+                          alt={cand.candidate_name}
+                          fallbackChar="👤"
+                          style={{
+                            width: '46px',
+                            height: '46px',
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                            border: '2px solid #e2e8f0'
+                          }}
+                        />
+                      </div>
+
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          fontWeight: '800',
+                          fontSize: '14px',
+                          color: '#0f172a',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}>
+                          {cand.candidate_name}
+                        </div>
+                        <div style={{
+                          fontSize: '12px',
+                          color: '#64748b',
+                          marginTop: '2px',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}>
+                          {cand.party_name || (isMr ? 'अपक्ष' : 'Independent')}
+                        </div>
+                      </div>
+
+                      <div style={{
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: '8px',
+                        background: '#f8fafc',
+                        border: '1px solid #cbd5e1',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        padding: '4px'
+                      }}>
+                        <EvmMediaImage
+                          src={cand.party_symbol}
+                          alt="Symbol"
+                          isSymbol={true}
+                          style={{ maxWidth: '36px', maxHeight: '36px', objectFit: 'contain' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{
+                      paddingTop: '10px',
+                      borderTop: '1px solid #f1f5f9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      fontSize: '11.5px',
+                      color: '#64748b'
+                    }}>
+                      <span style={{ fontWeight: '600' }}>
+                        {cand.position || (isMr ? 'विधानसभा आमदार' : 'MLA')}
+                      </span>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => openEditCandidateModal(cand)}
+                          style={{
+                            background: '#f1f5f9',
+                            color: '#334155',
+                            border: '1px solid #cbd5e1',
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            fontSize: '11.5px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <Edit2 size={12} />
+                          <span>{isMr ? 'संपादित' : 'Edit'}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteCandidate(cand.id)}
+                          style={{
+                            background: '#fee2e2',
+                            color: '#b91c1c',
+                            border: 'none',
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            fontSize: '11.5px',
+                            fontWeight: '700',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <Trash2 size={12} />
+                          <span>{isMr ? 'हटवा' : 'Delete'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{
+                padding: '32px 20px',
+                background: '#f8fafc',
+                borderRadius: '12px',
+                border: '1.5px dashed #cbd5e1',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '10px'
+              }}>
+                <span style={{ fontSize: '36px' }}>👥</span>
+                <div style={{ fontSize: '14px', fontWeight: '750', color: '#334155' }}>
+                  {isMr ? 'या निवडणुकीसाठी अद्याप उमेदवार जोडलेले नाहीत' : 'No candidates added to this election yet'}
+                </div>
+                <div style={{ fontSize: '12px', color: '#64748b' }}>
+                  {isMr
+                    ? 'मतदारांसाठी EVM बॅलेटवर दिसणारा पहिला उमेदवार जोडण्यासाठी खालील बटणावर क्लिक करा.'
+                    : 'Click the button below to add candidates to this election ballot.'}
+                </div>
+                <button
+                  type="button"
+                  onClick={openAddCandidateModal}
+                  style={{
+                    marginTop: '6px',
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '8px 18px',
+                    borderRadius: '8px',
+                    fontSize: '12.5px',
+                    fontWeight: '700',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ➕ {isMr ? 'पहिला उमेदवार जोडा' : 'Add First Candidate'}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
