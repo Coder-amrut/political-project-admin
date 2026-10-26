@@ -1587,14 +1587,47 @@ function AdminDashboard() {
     if (active === 'projects') {
       return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18, width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', overflowX: 'hidden' }}>
-          <ProjectCreateForm
-            language={language}
-            onCreated={async (project) => {
-              await loadProjects();
-              setNotice('Project created. Assign workers or officers below.');
-              if (project?.uuid) await openMemberAssignment(project);
-            }}
-          />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+            <div>
+              <h1 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span>📁</span> {isMr ? 'प्रकल्प व्यवस्थापन' : 'Project Management'}
+              </h1>
+              <p style={{ margin: '3px 0 0', fontSize: '13px', color: '#64748b' }}>
+                {isMr ? 'सर्व १४+ निवडणुकांसाठी प्रकल्प तयार करा व कार्यकर्त्यांचे नियोजन करा.' : 'Create and manage campaigns across all 14+ election levels.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById('project-create-form-section');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="tab-btn-3d-blue"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 7,
+                padding: '8px 16px',
+                fontSize: '13px',
+                fontWeight: '800',
+                cursor: 'pointer'
+              }}
+            >
+              <span>➕</span>
+              <span>{isMr ? 'नवीन प्रकल्प जोडा' : 'Add Project'}</span>
+            </button>
+          </div>
+
+          <div id="project-create-form-section">
+            <ProjectCreateForm
+              language={language}
+              onCreated={async (project) => {
+                await loadProjects();
+                setNotice(isMr ? 'प्रकल्प तयार झाला. खाली कार्यकर्ते किंवा अधिकारी नियुक्त करा.' : 'Project created. Assign workers or officers below.');
+                if (project?.uuid) await openMemberAssignment(project);
+              }}
+            />
+          </div>
 
           {/* Projects List Card with Color Accents & Filter Tabs */}
           <div className="admin-card-responsive" style={{ ...styles.card, borderTop: '3.5px solid #2563eb', width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', overflowX: 'hidden' }}>
