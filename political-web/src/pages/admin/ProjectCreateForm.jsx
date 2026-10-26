@@ -3,13 +3,256 @@ import apiClient from '../../api/axios';
 import { translateTree } from '../../i18n/adminTranslations';
 import InteractiveGeographicMap from '../../components/InteractiveGeographicMap';
 
+const electionCategories = [
+  { id: 'ALL', labelMr: 'सर्व निवडणुका (All 14+)', labelEn: 'All Elections', icon: '🗳️' },
+  { id: 'LOCAL_BODY', labelMr: 'स्थानिक स्वराज्य संस्था', labelEn: 'Municipal & Local', icon: '🏢' },
+  { id: 'RURAL', labelMr: 'जि.प., पं.स. व ग्रामपंचायत', labelEn: 'Rural & Panchayats', icon: '🚜' },
+  { id: 'STATE', labelMr: 'राज्य विधानमंडळ', labelEn: 'State Legislature', icon: '🏛️' },
+  { id: 'PARLIAMENTARY', labelMr: 'संसदीय व राष्ट्रीय', labelEn: 'Parliamentary & National', icon: '🇮🇳' },
+  { id: 'ADMIN', labelMr: 'बूथ व जिल्हा', labelEn: 'Booth & District', icon: '📍' },
+];
+
 const scopes = [
-  { value: 'DISTRICT', title: 'District', description: 'Target an administrative district', icon: '▤' },
-  { value: 'LOK_SABHA', title: 'Lok Sabha', description: 'Target a parliamentary constituency', icon: '⌂' },
-  { value: 'ASSEMBLY', title: 'Assembly', description: 'Target an assembly constituency', icon: '⌖' },
-  { value: 'POLLING_STATION', title: 'Polling Station', description: 'Target a polling part or booth', icon: '▦' },
-  { value: 'GRADUATE_CONSTITUENCY', title: 'Graduate Constituency Election', description: 'Target a graduate council constituency', icon: '🎓' },
-  { value: 'TEACHER_CONSTITUENCY', title: 'Teacher Constituency Election', description: 'Target a teacher council constituency', icon: '📚' },
+  // १. लोकसभा
+  {
+    value: 'LOK_SABHA',
+    number: '१',
+    title: '१. लोकसभा निवडणूक (Lok Sabha Election)',
+    shortTitle: 'लोकसभा',
+    nameMr: 'लोकसभा निवडणूक',
+    nameEn: 'Lok Sabha Parliamentary Election',
+    voters: 'मतदारसंघातील १८ वर्षांवरील सर्व नागरिक (Direct Vote)',
+    representative: 'लोकसभा खासदार (MP - Member of Parliament)',
+    category: 'PARLIAMENTARY',
+    categoryName: 'संसदीय व राष्ट्रीय',
+    icon: '🏛️',
+    description: 'संसदेच्या कनिष्ठ सभागृहासाठी जनतेद्वारे थेट खासदार निवड',
+  },
+  // २. विधानसभा
+  {
+    value: 'ASSEMBLY',
+    number: '२',
+    title: '२. विधानसभा निवडणूक (Vidhan Sabha Election)',
+    shortTitle: 'विधानसभा',
+    nameMr: 'विधानसभा निवडणूक',
+    nameEn: 'Vidhan Sabha / Assembly Election',
+    voters: 'मतदारसंघातील १८ वर्षांवरील सर्व नागरिक (Direct Vote)',
+    representative: 'विधानसभा आमदार (MLA)',
+    category: 'STATE',
+    categoryName: 'राज्य विधानमंडळ',
+    icon: '🏛️',
+    description: 'राज्य विधानसभेसाठी थेट जनतेद्वारे आमदार निवड',
+  },
+  // ३. पदवीधर मतदारसंघ
+  {
+    value: 'GRADUATE_CONSTITUENCY',
+    number: '३',
+    title: '३. पदवीधर मतदारसंघ निवडणूक (Graduate Constituency Election)',
+    shortTitle: 'पदवीधर मतदारसंघ',
+    nameMr: 'पदवीधर मतदारसंघ निवडणूक',
+    nameEn: 'Graduate Constituency Election',
+    voters: 'नोंदणीकृत पदवीधर नागरिक (३ वर्षे पदवी पूर्ण)',
+    representative: 'विधान परिषद आमदार (MLC)',
+    category: 'STATE',
+    categoryName: 'राज्य विधानमंडळ',
+    icon: '🎓',
+    description: 'विधान परिषदेसाठी पदवीधर मतदारांद्वारे आमदार निवड',
+  },
+  // ४. शिक्षक मतदारसंघ
+  {
+    value: 'TEACHER_CONSTITUENCY',
+    number: '४',
+    title: '४. शिक्षक मतदारसंघ निवडणूक (Teacher Constituency Election)',
+    shortTitle: 'शिक्षक मतदारसंघ',
+    nameMr: 'शिक्षक मतदारसंघ निवडणूक',
+    nameEn: 'Teacher Constituency Election',
+    voters: 'नोंदणीकृत माध्यमिक व उच्च माध्यमिक शिक्षक',
+    representative: 'विधान परिषद आमदार (MLC)',
+    category: 'STATE',
+    categoryName: 'राज्य विधानमंडळ',
+    icon: '📚',
+    description: 'विधान परिषदेसाठी शिक्षक मतदारांद्वारे आमदार निवड',
+  },
+  // ५. स्थानिक स्वराज्य संस्था निवडणूक
+  {
+    value: 'LOCAL_AUTHORITIES',
+    number: '५',
+    title: '५. स्थानिक स्वराज्य संस्था निवडणूक (Local Authorities\' Election)',
+    shortTitle: 'स्थानिक स्वराज्य संस्था',
+    nameMr: 'स्थानिक स्वराज्य संस्था निवडणूक',
+    nameEn: 'Local Authorities\' Constituency Election',
+    voters: 'नगरसेवक, जिल्हा परिषद सदस्य, नगरपंचायत सदस्य (Indirect Vote)',
+    representative: 'विधान परिषद आमदार (MLC)',
+    category: 'STATE',
+    categoryName: 'राज्य विधानमंडळ',
+    icon: '🏢',
+    description: 'स्थानिक स्वराज्य संस्था प्रतिनिधींद्वारे विधान परिषद आमदार निवड',
+  },
+  // ६. विधानसभा आमदार कोटा निवडणूक
+  {
+    value: 'MLA_QUOTA',
+    number: '६',
+    title: '६. विधानसभा आमदार कोटा निवडणूक (MLA Quota Election)',
+    shortTitle: 'आमदार कोटा निवडणूक',
+    nameMr: 'विधानसभा आमदार कोटा निवडणूक',
+    nameEn: 'MLA Quota Legislative Council Election',
+    voters: 'राज्याचे निवडून आलेले विधानसभा आमदार (MLAs)',
+    representative: 'विधान परिषद आमदार (MLC)',
+    category: 'STATE',
+    categoryName: 'राज्य विधानमंडळ',
+    icon: '🗳️',
+    description: 'विधानसभेच्या आमदारांद्वारे विधान परिषद सदस्य निवड',
+  },
+  // ७. राष्ट्रपती निवडणूक
+  {
+    value: 'PRESIDENTIAL',
+    number: '७',
+    title: '७. राष्ट्रपती निवडणूक (Presidential Election)',
+    shortTitle: 'राष्ट्रपती निवडणूक',
+    nameMr: 'राष्ट्रपती निवडणूक',
+    nameEn: 'Presidential Election of India',
+    voters: 'सर्व राज्यातील आमदार (MLAs) आणि संसदेचे खासदार (MPs)',
+    representative: 'भारताचे राष्ट्रपती (President of India)',
+    category: 'PARLIAMENTARY',
+    categoryName: 'संसदीय व राष्ट्रीय',
+    icon: '🇮🇳',
+    description: 'इलेक्टोरल कॉलेज द्वारे भारताच्या राष्ट्रपतींची निवड',
+  },
+  // ८. उपराष्ट्रपती निवडणूक
+  {
+    value: 'VICE_PRESIDENTIAL',
+    number: '८',
+    title: '८. उपराष्ट्रपती निवडणूक (Vice-Presidential Election)',
+    shortTitle: 'उपराष्ट्रपती निवडणूक',
+    nameMr: 'उपराष्ट्रपती निवडणूक',
+    nameEn: 'Vice-Presidential Election of India',
+    voters: 'लोकसभेचे आणि राज्यसभेचे सर्व खासदार (MPs)',
+    representative: 'भारताचे उपराष्ट्रपती (Vice-President of India)',
+    category: 'PARLIAMENTARY',
+    categoryName: 'संसदीय व राष्ट्रीय',
+    icon: '🇮🇳',
+    description: 'संसदेच्या दोन्ही सभागृहांच्या सर्व खासदारांद्वारे निवड',
+  },
+  // ९. राज्यसभा निवडणूक
+  {
+    value: 'RAJYA_SABHA',
+    number: '९',
+    title: '९. राज्यसभा निवडणूक (Rajya Sabha Election)',
+    shortTitle: 'राज्यसभा निवडणूक',
+    nameMr: 'राज्यसभा निवडणूक',
+    nameEn: 'Rajya Sabha Election',
+    voters: 'राज्याचे विधानसभा आमदार (MLAs)',
+    representative: 'राज्यसभा खासदार (MP - Member of Rajya Sabha)',
+    category: 'PARLIAMENTARY',
+    categoryName: 'संसदीय व राष्ट्रीय',
+    icon: '🏛️',
+    description: 'विधानसभा आमदारांद्वारे राज्यसभेच्या खासदारांची निवड',
+  },
+  // १०. महानगरपालिका निवडणूक
+  {
+    value: 'MUNICIPAL_CORPORATION',
+    number: '१०',
+    title: '१०. महानगरपालिका निवडणूक (Municipal Corporation - उदा. BMC, PMC, SMC)',
+    shortTitle: 'महानगरपालिका',
+    nameMr: 'महानगरपालिका निवडणूक',
+    nameEn: 'Municipal Corporation Election',
+    voters: 'शहरातील १८ वर्षांवरील सर्व नागरिक',
+    representative: 'नगरसेवक (Corporator / Councillor)',
+    category: 'LOCAL_BODY',
+    categoryName: 'स्थानिक स्वराज्य संस्था',
+    icon: '🏙️',
+    description: 'महानगरपालिका प्रभाग व वॉर्ड स्तरावर नगरसेवकांची निवड',
+  },
+  // ११. नगरपालिका / नगरपरिषद निवडणूक
+  {
+    value: 'MUNICIPAL_COUNCIL',
+    number: '११',
+    title: '११. नगरपालिका / नगरपरिषद निवडणूक (Municipal Council Election)',
+    shortTitle: 'नगरपालिका / नगरपरिषद',
+    nameMr: 'नगरपालिका / नगरपरिषद निवडणूक',
+    nameEn: 'Municipal Council Election',
+    voters: 'संबंधित शहरातील नागरिक',
+    representative: 'नगरसेवक आणि नगराध्यक्ष (President & Councillors)',
+    category: 'LOCAL_BODY',
+    categoryName: 'स्थानिक स्वराज्य संस्था',
+    icon: '🏘️',
+    description: 'शहरी नगरपरिषद प्रभाग पातळीवर नगरसेवक व नगराध्यक्ष निवड',
+  },
+  // १२. जिल्हा परिषद निवडणूक
+  {
+    value: 'ZILLA_PARISHAD',
+    number: '१२',
+    title: '१२. जिल्हा परिषद निवडणूक (Zilla Parishad Election - ZP)',
+    shortTitle: 'जिल्हा परिषद (ZP)',
+    nameMr: 'जिल्हा परिषद निवडणूक (ZP)',
+    nameEn: 'Zilla Parishad Election (ZP)',
+    voters: 'ग्रामीण भागातील संबंधित गटातील नागरिक',
+    representative: 'जिल्हा परिषद सदस्य (ZP Member)',
+    category: 'RURAL',
+    categoryName: 'जि.प., पं.स. व ग्रामपंचायत',
+    icon: '🚜',
+    description: 'ग्रामीण जिल्हा निवडणूक गट पातळीवर जिल्हा परिषद सदस्य निवड',
+  },
+  // १३. पंचायत समिती निवडणूक
+  {
+    value: 'PANCHAYAT_SAMITI',
+    number: '१३',
+    title: '१३. पंचायत समिती निवडणूक (Panchayat Samiti Election)',
+    shortTitle: 'पंचायत समिती',
+    nameMr: 'पंचायत समिती निवडणूक',
+    nameEn: 'Panchayat Samiti Election',
+    voters: 'ग्रामीण भागातील संबंधित गणातील नागरिक',
+    representative: 'पंचायत समिती सदस्य (Panchayat Samiti Member)',
+    category: 'RURAL',
+    categoryName: 'जि.प., पं.स. व ग्रामपंचायत',
+    icon: '🌾',
+    description: 'तालुका पातळीवरील निवडणूक गण स्तरावर सदस्य निवड',
+  },
+  // १४. ग्रामपंचायत निवडणूक
+  {
+    value: 'GRAM_PANCHAYAT',
+    number: '१४',
+    title: '१४. ग्रामपंचायत निवडणूक (Gram Panchayat Election)',
+    shortTitle: 'ग्रामपंचायत',
+    nameMr: 'ग्रामपंचायत निवडणूक',
+    nameEn: 'Gram Panchayat Election',
+    voters: 'गावातील १८ वर्षांवरील सर्व नागरिक',
+    representative: 'ग्रामपंचायत सदस्य आणि सरपंच (Sarpanch & Members)',
+    category: 'RURAL',
+    categoryName: 'जि.प., पं.स. व ग्रामपंचायत',
+    icon: '🏡',
+    description: 'गाव पातळीवर वॉर्ड सदस्य आणि सरपंचांची थेट निवड',
+  },
+  // १५. मतदान केंद्र / बूथ
+  {
+    value: 'POLLING_STATION',
+    number: '१५',
+    title: '१५. मतदान केंद्र / बूथ मोहीम (Polling Station / Booth Level)',
+    shortTitle: 'मतदान केंद्र / बूथ',
+    nameMr: 'मतदान केंद्र / बूथ कार्यक्षेत्र',
+    nameEn: 'Polling Station / Booth Level',
+    voters: 'संबंधित मतदान केंद्रातील सर्व मतदार',
+    representative: 'बूथ प्रमुख / बीएलओ / यादी प्रमुख',
+    category: 'ADMIN',
+    categoryName: 'बूथ व जिल्हा',
+    icon: '▦',
+    description: 'विशिष्ट मतदान केंद्र, बूथ किंवा यादी भाग स्तरावर काम',
+  },
+  // १६. जिल्हा कार्यक्षेत्र
+  {
+    value: 'DISTRICT',
+    number: '१६',
+    title: '१६. जिल्हा कार्यक्षेत्र (District Level Campaign)',
+    shortTitle: 'जिल्हा कार्यक्षेत्र',
+    nameMr: 'जिल्हा कार्यक्षेत्र',
+    nameEn: 'District Level Campaign',
+    voters: 'संपूर्ण जिल्ह्यातील सर्व नागरिक व मतदार',
+    representative: 'जिल्हा प्रशासन / मुख्य समन्वयक',
+    category: 'ADMIN',
+    categoryName: 'बूथ व जिल्हा',
+    icon: '▤',
+    description: 'संपूर्ण महसूल जिल्ह्यासाठी प्रकल्प कार्यक्षेत्र',
+  },
 ];
 
 const style = {
@@ -374,6 +617,8 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
   const [selectedStations, setSelectedStations] = useState([]);
   const [relatedAssembliesLoading, setRelatedAssembliesLoading] = useState(false);
   const [relatedAssembliesError, setRelatedAssembliesError] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [localUnitName, setLocalUnitName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -457,6 +702,7 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
     setSelectedTalukas([]);
     setSelectedVillages([]);
     setSelectedStations([]);
+    setLocalUnitName('');
     setError('');
     setRelatedAssemblies([]);
     setRelatedAssembliesError('');
@@ -492,7 +738,7 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
       setRelatedAssembliesLoading(false);
       return undefined;
     }
-    if (!['LOK_SABHA', 'ASSEMBLY', 'GRADUATE_CONSTITUENCY', 'TEACHER_CONSTITUENCY'].includes(scope)) {
+    if (!['LOK_SABHA', 'ASSEMBLY', 'GRADUATE_CONSTITUENCY', 'TEACHER_CONSTITUENCY', 'LOCAL_AUTHORITIES'].includes(scope)) {
       setRelatedAssemblies([]);
       setDistrictOptions([]);
       setSelectedDistricts([]);
@@ -521,6 +767,8 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
             districtUrl = `/admin/project-geography/graduate-constituencies/${encodeURIComponent(target.code)}/districts`;
           } else if (scope === 'TEACHER_CONSTITUENCY') {
             districtUrl = `/admin/project-geography/teacher-constituencies/${encodeURIComponent(target.code)}/districts`;
+          } else if (scope === 'LOCAL_AUTHORITIES') {
+            districtUrl = `/admin/project-geography/local-authorities/${encodeURIComponent(target.code)}/districts`;
           }
           if (districtUrl) {
             const { data: districtData } = await apiClient.get(districtUrl);
@@ -602,6 +850,8 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
     ? (filterDistrict?.code ? [String(filterDistrict.code)] : [])
     : selectedDistricts.map((item) => String(item.code));
 
+  const isTargetBasedScope = ['LOK_SABHA', 'ASSEMBLY', 'GRADUATE_CONSTITUENCY', 'TEACHER_CONSTITUENCY', 'LOCAL_AUTHORITIES'].includes(scope);
+
   const submit = async (event) => {
     event.preventDefault();
     setError('');
@@ -616,6 +866,8 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
     const context = {
       district_code: activeDistrictCodes[0] || null,
       district_codes: activeDistrictCodes,
+      local_unit_name: localUnitName.trim() || null,
+      election_type: scope,
       ...(scope === 'POLLING_STATION' ? {
         assembly_no: filterAssembly?.code && !isNaN(Number(filterAssembly.code)) ? Number(filterAssembly.code) : null,
         election_year: selectedStations[0]?.election_year ? Number(selectedStations[0].election_year) : null,
@@ -640,18 +892,23 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
     let geoNameEn = '';
     let geoNameMr = null;
 
-    if (scope === 'DISTRICT') {
-      geoCode = selectedDistricts.map((d) => d.code).filter(Boolean).join(',');
-      geoNameEn = selectedDistricts.map((d) => d.name_en || d.name).filter(Boolean).join(', ');
-      geoNameMr = selectedDistricts.map((d) => d.name_mr || d.name_en || d.name).filter(Boolean).join(', ') || null;
-    } else if (scope === 'POLLING_STATION') {
+    if (scope === 'POLLING_STATION') {
       geoCode = selectedStations.map((s) => s.part_no || s.code).filter(Boolean).join(',');
       geoNameEn = selectedStations.map((s) => s.part_no ? `Part No. ${s.part_no}` : (s.name_en || s.name || s.code)).filter(Boolean).join(', ');
       geoNameMr = selectedStations.map((s) => s.name_mr || s.name_en || s.name).filter(Boolean).join(', ') || null;
-    } else {
+    } else if (isTargetBasedScope && target) {
       geoCode = target?.code ? String(target.code) : (scope || 'GENERAL');
       geoNameEn = target?.name_en || target?.name || form.name.trim();
       geoNameMr = target?.name_mr || null;
+    } else {
+      const distCodes = selectedDistricts.map((d) => d.code).filter(Boolean);
+      const distNamesEn = selectedDistricts.map((d) => d.name_en || d.name).filter(Boolean).join(', ');
+      const distNamesMr = selectedDistricts.map((d) => d.name_mr || d.name_en || d.name).filter(Boolean).join(', ');
+
+      geoCode = distCodes.length ? distCodes.join(',') : (scope || 'GENERAL');
+      const unitPrefix = localUnitName.trim() ? `${localUnitName.trim()} · ` : '';
+      geoNameEn = unitPrefix + (distNamesEn || form.name.trim());
+      geoNameMr = unitPrefix + (distNamesMr || form.name.trim());
     }
 
     if (!geoCode) geoCode = scope || 'GENERAL';
@@ -698,6 +955,7 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
     POLLING_STATION: '/admin/project-geography/polling-stations',
     GRADUATE_CONSTITUENCY: '/admin/project-geography/graduate-constituencies',
     TEACHER_CONSTITUENCY: '/admin/project-geography/teacher-constituencies',
+    LOCAL_AUTHORITIES: '/admin/project-geography/local-authorities',
   }[scope];
 
   const stationParams = {
@@ -723,12 +981,12 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
     taluka_code: selectedTalukas.map((item) => item.taluka_code || item.code).join(','),
   };
 
-  const isFormReady = Boolean(form.name.trim()) && (
-    scope === 'DISTRICT'
-      ? selectedDistricts.length > 0
-      : scope === 'POLLING_STATION'
-        ? selectedStations.length > 0
-        : Boolean(target)
+  const isFormReady = Boolean(form.name.trim()) && Boolean(scope) && (
+    scope === 'POLLING_STATION'
+      ? selectedStations.length > 0
+      : isTargetBasedScope
+        ? Boolean(target)
+        : selectedDistricts.length > 0
   );
 
   return translateTree(<form onSubmit={submit} className="project-create-card" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box', overflowX: 'hidden', margin: 0 }}>
@@ -781,42 +1039,114 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
     </div>
 
     <section aria-labelledby="scope-heading" style={{ marginTop: 20, width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
-      <div id="scope-heading" style={{ fontSize: 13.5, fontWeight: 750, marginBottom: 8, letterSpacing: '0.2px' }}>
-        PROJECT GEOGRAPHY <span style={{ color: '#d92d20' }}>*</span>
+      <div id="scope-heading" style={{ fontSize: 14, fontWeight: 800, marginBottom: 6, letterSpacing: '0.2px', color: '#0f172a' }}>
+        {language === 'mr' ? 'प्रकल्प निवडणूक व कार्यक्षेत्र (PROJECT GEOGRAPHY & ELECTION TYPE)' : 'PROJECT GEOGRAPHY & ELECTION TYPE'} <span style={{ color: '#d92d20' }}>*</span>
       </div>
-      <p style={{ ...style.muted, marginTop: 0, marginBottom: 10, fontSize: 12 }}>What area does this project cover?</p>
+      <p style={{ ...style.muted, marginTop: 0, marginBottom: 12, fontSize: 12.5 }}>
+        {language === 'mr' ? 'हा प्रकल्प कोणत्या निवडणुकीसाठी किंवा कार्यक्षेत्रासाठी आहे? खालील योग्य प्रकार निवडा:' : 'What election or geographical area does this project cover? Select the election type below:'}
+      </p>
+
+      {/* Category Filter Pills */}
+      <div className="project-election-categories">
+        {electionCategories.map((cat) => (
+          <button
+            key={cat.id}
+            type="button"
+            className={`project-election-cat-btn ${selectedCategory === cat.id ? 'active' : ''}`}
+            onClick={() => setSelectedCategory(cat.id)}
+          >
+            <span>{cat.icon}</span>
+            <span>{language === 'mr' ? cat.labelMr : cat.labelEn}</span>
+          </button>
+        ))}
+      </div>
+
       <div role="radiogroup" aria-label="Geographic scope" className="project-geo-grid" style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
-        {scopes.map((option) => {
-          const isWide = ['GRADUATE_CONSTITUENCY', 'TEACHER_CONSTITUENCY'].includes(option.value);
-          const isSelected = scope === option.value;
-          return (
-            <button
-              key={option.value}
-              type="button"
-              role="radio"
-              aria-checked={isSelected}
-              onClick={() => resetScope(option.value)}
-              className={`project-geo-card ${isSelected ? 'selected' : ''} ${isWide ? 'project-geo-wide' : ''}`}
-            >
-              <span className="project-geo-card-top">
-                <span
-                  aria-hidden="true"
-                  className={`project-geo-radio ${isSelected ? 'selected' : ''}`}
-                />
-                <span className="project-geo-title">
-                  {option.title}
-                </span>
-              </span>
-              <span className="project-geo-desc">
-                {option.description}
-              </span>
-            </button>
-          );
-        })}
+        {scopes
+          .filter((option) => selectedCategory === 'ALL' || option.category === selectedCategory)
+          .map((option) => {
+            const isSelected = scope === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={isSelected}
+                onClick={() => resetScope(option.value)}
+                className={`project-geo-card ${isSelected ? 'selected' : ''}`}
+              >
+                <div style={{ width: '100%' }}>
+                  <div className="project-geo-card-top">
+                    <span
+                      aria-hidden="true"
+                      className={`project-geo-radio ${isSelected ? 'selected' : ''}`}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
+                        <span style={{ fontSize: 16 }}>{option.icon}</span>
+                        <span style={{ fontSize: 11, fontWeight: 800, padding: '1px 6px', borderRadius: 4, background: isSelected ? '#dbeafe' : '#f1f5f9', color: isSelected ? '#1d4ed8' : '#475569' }}>
+                          क्र. {option.number}
+                        </span>
+                        <span style={{ fontSize: 10.5, fontWeight: 650, padding: '1px 6px', borderRadius: 10, background: '#f8fafc', color: '#64748b', border: '1px solid #e2e8f0' }}>
+                          {option.categoryName}
+                        </span>
+                      </div>
+                      <div className="project-geo-title">
+                        {language === 'mr' ? option.nameMr : option.title}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="project-geo-meta-box">
+                    <div className="project-geo-meta-row">
+                      <span className="project-geo-meta-label">👥 मतदार:</span>
+                      <span className="project-geo-meta-value">{option.voters}</span>
+                    </div>
+                    <div className="project-geo-meta-row">
+                      <span className="project-geo-meta-label">🎖️ प्रतिनिधी:</span>
+                      <span className="project-geo-meta-value" style={{ color: '#047857' }}>{option.representative}</span>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
       </div>
     </section>
 
     {scope && <div style={{ maxWidth: 780, marginTop: 22 }}>
+      {/* Active Election Banner */}
+      {(() => {
+        const activeOpt = scopes.find(s => s.value === scope);
+        if (!activeOpt) return null;
+        return (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            padding: '12px 16px',
+            background: '#f0fdf4',
+            border: '1.5px solid #86efac',
+            borderRadius: 10,
+            marginBottom: 18,
+            boxShadow: '0 2px 6px rgba(16, 185, 129, 0.08)'
+          }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: '#166534', display: 'flex', alignItems: 'center', gap: 7 }}>
+                <span>{activeOpt.icon}</span>
+                <span>{language === 'mr' ? activeOpt.nameMr : activeOpt.title}</span>
+                <span style={{ fontSize: 11, background: '#dcfce7', color: '#15803d', padding: '1px 7px', borderRadius: 6, fontWeight: 700 }}>
+                  निवडलेली निवडणूक ✓
+                </span>
+              </div>
+              <div style={{ fontSize: 12, color: '#15803d', marginTop: 4 }}>
+                👥 <strong>मतदार:</strong> {activeOpt.voters} | 🎖️ <strong>प्रतिनिधी:</strong> {activeOpt.representative}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       {scope === 'POLLING_STATION' ? (
         <>
           <SearchPicker
@@ -892,8 +1222,33 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
             placeholder="Search assembly..."
           />
         </>
-      ) : scope === 'DISTRICT' ? (
+      ) : !isTargetBasedScope ? (
         <>
+          {/* Specific Unit / Ward / Gat / Gan Name Input for Local Bodies */}
+          {['MUNICIPAL_CORPORATION', 'MUNICIPAL_COUNCIL', 'ZILLA_PARISHAD', 'PANCHAYAT_SAMITI', 'GRAM_PANCHAYAT'].includes(scope) && (
+            <div style={{ marginBottom: 16 }}>
+              <label style={style.label}>
+                {scope === 'MUNICIPAL_CORPORATION' ? 'महानगरपालिका व प्रभाग नाव (Municipal Corporation / Ward)' :
+                 scope === 'MUNICIPAL_COUNCIL' ? 'नगरपालिका / नगरपरिषद नाव (Municipal Council / Ward)' :
+                 scope === 'ZILLA_PARISHAD' ? 'जिल्हा परिषद निवडणूक गट नाव (ZP Electoral Gat Name)' :
+                 scope === 'PANCHAYAT_SAMITI' ? 'पंचायत समिती निवडणूक गण नाव (PS Electoral Gan Name)' :
+                 'ग्रामपंचायत नाव व वॉर्ड क्र. (Gram Panchayat / Village Name)'}
+                <input
+                  value={localUnitName}
+                  onChange={(e) => setLocalUnitName(e.target.value)}
+                  style={{ ...style.input, width: '100%', boxSizing: 'border-box' }}
+                  placeholder={
+                    scope === 'MUNICIPAL_CORPORATION' ? 'उदा. सांगली मिरज कुपवाड महानगरपालिका (प्रभाग क्र. १२)' :
+                    scope === 'MUNICIPAL_COUNCIL' ? 'उदा. इस्लामपूर नगरपरिषद (प्रभाग क्र. ५)' :
+                    scope === 'ZILLA_PARISHAD' ? 'उदा. कसबे डिग्रज ZP गट' :
+                    scope === 'PANCHAYAT_SAMITI' ? 'उदा. कुपवाड गण' :
+                    'उदा. बांबवडे ग्रामपंचायत (वॉर्ड क्र. ३)'
+                  }
+                />
+              </label>
+            </div>
+          )}
+
           <MultiSearchPicker
             language={language}
             pickerType="DISTRICT"
@@ -979,7 +1334,7 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
             </div>
           )}
         </>
-      ) : (
+      ) : isTargetBasedScope ? (
         <SearchPicker
           language={language}
           key={scope}
@@ -991,7 +1346,7 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
           onClear={() => selectRootTarget(null)}
           placeholder={`Search ${scopes.find((item) => item.value === scope)?.title.toLowerCase()} in English or Marathi...`}
         />
-      )}
+      ) : null}
 
       {scope === 'LOK_SABHA' && target && <section aria-label="Related Assembly constituencies" style={{ marginBottom: 17, padding: 15, border: '1px solid #dbe4f0', borderRadius: 9, background: '#f8faff' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, flexWrap: 'wrap', gap: 8 }}>
