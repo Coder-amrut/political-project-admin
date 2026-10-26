@@ -747,6 +747,20 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
     setIsCandidateModalOpen(true);
   };
 
+  // Upload Photo or Symbol from device
+  const handleCandidateFileUpload = (e, field) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (uploadEvent) => {
+      setCandidateFormData(prev => ({
+        ...prev,
+        [field]: uploadEvent.target.result
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Delete Candidate
   const handleDeleteCandidate = async (id) => {
     if (!window.confirm(isMr ? 'हा उमेदवार EVM बॅलेटवरून काढायचा का?' : 'Delete candidate from EVM ballot?')) return;
@@ -2220,17 +2234,17 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1000,
+          zIndex: 2000,
           padding: '16px'
         }}>
           <div style={{
             background: '#ffffff',
             borderRadius: '18px',
             width: '100%',
-            maxWidth: '520px',
+            maxWidth: '560px',
             maxHeight: '90vh',
             overflowY: 'auto',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.25)',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
             border: '1px solid #cbd5e1'
           }}>
             <div style={{
@@ -2241,10 +2255,13 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
               justifyContent: 'space-between',
               alignItems: 'center'
             }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0 }}>
-                {editingCandidate
-                  ? (isMr ? '✏️ उमेदवार माहिती संपादित करा' : 'Edit Candidate')
-                  : (isMr ? '➕ EVM बॅलेटवर नवीन उमेदवार जोडा' : 'Add Candidate to EVM')}
+              <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>🗳️</span>
+                <span>
+                  {editingCandidate
+                    ? (isMr ? 'उमेदवार माहिती संपादित करा' : 'Edit Candidate')
+                    : (isMr ? 'EVM बॅलेटवर नवीन उमेदवार तयार करा' : 'Create & Add Candidate to EVM')}
+                </span>
               </h3>
               <button
                 type="button"
@@ -2267,7 +2284,7 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
                     max="16"
                     value={candidateFormData.serial_number}
                     onChange={(e) => setCandidateFormData(prev => ({ ...prev, serial_number: e.target.value }))}
-                    style={{ width: '100%', padding: '9px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
+                    style={{ width: '100%', padding: '9px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box', fontWeight: '800' }}
                     required
                   />
                 </div>
@@ -2301,31 +2318,147 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
                 />
               </div>
 
+              {/* Quick Party / Election Symbol Picker Pills */}
+              <div>
+                <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                  ⚡ {isMr ? 'निवडणूक चिन्ह निवडा (Quick Symbol Picker):' : 'Pick Election Symbol:'}
+                </label>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                  {[
+                    { label: '⏰ घड्याळ', val: '⏰' },
+                    { label: '🌸 कमळ', val: '🌸' },
+                    { label: '🏹 धनुष्यबाण', val: '🏹' },
+                    { label: '✋ पंजा', val: '✋' },
+                    { label: '🚜 ट्रॅक्टर', val: '🚜' },
+                    { label: '🦁 सिंह', val: '🦁' },
+                    { label: '⚖️ तराजू', val: '⚖️' },
+                    { label: '☀️ सूर्य', val: '☀️' },
+                    { label: '🚲 सायकल', val: '🚲' },
+                    { label: '🪷 मशाल', val: '🪷' },
+                    { label: '⚡ वीज', val: '⚡' },
+                    { label: '🚂 रेल्वे', val: '🚂' },
+                    { label: '🕊️ कबूतर', val: '🕊️' },
+                    { label: '🚗 कार', val: '🚗' },
+                  ].map((sym, sIdx) => (
+                    <button
+                      key={sIdx}
+                      type="button"
+                      onClick={() => setCandidateFormData(prev => ({ ...prev, party_symbol: sym.val }))}
+                      style={{
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        border: candidateFormData.party_symbol === sym.val ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
+                        background: candidateFormData.party_symbol === sym.val ? '#eff6ff' : '#f8fafc',
+                        color: candidateFormData.party_symbol === sym.val ? '#1d4ed8' : '#334155',
+                        fontSize: '11.5px',
+                        fontWeight: '700',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {sym.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Photo & Symbol inputs with File Upload and Live Preview */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
+                {/* Photo Input */}
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }}>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
-                    {isMr ? 'फोटो URL / Web Link:' : 'Photo URL:'}
+                    📷 {isMr ? 'उमेदवाराचा फोटो:' : 'Candidate Photo:'}
                   </label>
                   <input
                     type="text"
                     value={candidateFormData.candidate_photo}
                     onChange={(e) => setCandidateFormData(prev => ({ ...prev, candidate_photo: e.target.value }))}
-                    style={{ width: '100%', padding: '9px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
-                    placeholder="https://..."
+                    style={{ width: '100%', padding: '7px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11.5px', boxSizing: 'border-box', marginBottom: '6px' }}
+                    placeholder="URL किंवा खालील फाईल निवडा"
                   />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id="candPhotoUpload"
+                    onChange={(e) => handleCandidateFileUpload(e, 'candidate_photo')}
+                    style={{ display: 'none' }}
+                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <label
+                      htmlFor="candPhotoUpload"
+                      style={{
+                        padding: '5px 10px',
+                        borderRadius: '6px',
+                        background: '#ffffff',
+                        border: '1px solid #94a3b8',
+                        color: '#334155',
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      📁 {isMr ? 'फोटो अपलोड' : 'Upload File'}
+                    </label>
+                    {candidateFormData.candidate_photo && (
+                      <EvmMediaImage
+                        src={candidateFormData.candidate_photo}
+                        alt="Photo Preview"
+                        fallbackChar="👤"
+                        style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
+                      />
+                    )}
+                  </div>
                 </div>
 
-                <div>
+                {/* Symbol Input */}
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px' }}>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: '#334155', marginBottom: '4px' }}>
-                    {isMr ? 'निवडणूक चिन्ह URL:' : 'Symbol URL:'}
+                    🗳️ {isMr ? 'निवडणूक चिन्ह:' : 'Party Symbol:'}
                   </label>
                   <input
                     type="text"
                     value={candidateFormData.party_symbol}
                     onChange={(e) => setCandidateFormData(prev => ({ ...prev, party_symbol: e.target.value }))}
-                    style={{ width: '100%', padding: '9px', borderRadius: '7px', border: '1px solid #cbd5e1', fontSize: '13px', boxSizing: 'border-box' }}
-                    placeholder="https://..."
+                    style={{ width: '100%', padding: '7px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '11.5px', boxSizing: 'border-box', marginBottom: '6px' }}
+                    placeholder="चिन्ह / इमोजी / URL"
                   />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id="candSymbolUpload"
+                    onChange={(e) => handleCandidateFileUpload(e, 'party_symbol')}
+                    style={{ display: 'none' }}
+                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <label
+                      htmlFor="candSymbolUpload"
+                      style={{
+                        padding: '5px 10px',
+                        borderRadius: '6px',
+                        background: '#ffffff',
+                        border: '1px solid #94a3b8',
+                        color: '#334155',
+                        fontSize: '11px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      📁 {isMr ? 'चिन्ह अपलोड' : 'Upload Symbol'}
+                    </label>
+                    {candidateFormData.party_symbol && (
+                      <EvmMediaImage
+                        src={candidateFormData.party_symbol}
+                        alt="Symbol Preview"
+                        isSymbol={true}
+                        style={{ width: '28px', height: '28px', objectFit: 'contain' }}
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -2621,6 +2754,169 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Option to create & configure candidates when starting election */}
+              <div style={{
+                background: '#f8fafc',
+                border: '1.5px solid #cbd5e1',
+                borderRadius: '12px',
+                padding: '14px 16px',
+                marginBottom: '16px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+                  <div>
+                    <div style={{ fontSize: '13.5px', fontWeight: '800', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>👥</span>
+                      <span>{isMr ? 'निवडणुकीतील उमेदवार यादी (Candidates)' : 'Election Candidates'}</span>
+                      <span style={{
+                        background: '#dbeafe',
+                        color: '#1d4ed8',
+                        fontSize: '11px',
+                        fontWeight: '800',
+                        padding: '2px 8px',
+                        borderRadius: '999px',
+                        border: '1px solid #bfdbfe'
+                      }}>
+                        {candidates.length} {isMr ? 'उमेदवार' : 'Candidates'}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '2px' }}>
+                      {isMr ? 'निवडणूक सुरू करताना येथे नवीन उमेदवार तयार करू शकता (नाव, चिन्ह, फोटो इ.)' : 'Add candidates with name, symbol, photo & info before starting.'}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => openAddCandidateModal()}
+                    style={{
+                      background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '7px 14px',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      fontWeight: '800',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 2px 6px rgba(37, 99, 235, 0.25)'
+                    }}
+                  >
+                    <Plus size={14} />
+                    <span>{isMr ? '➕ नवीन उमेदवार तयार करा' : '➕ Add Candidate'}</span>
+                  </button>
+                </div>
+
+                {/* Candidate list preview */}
+                {candidates.length === 0 ? (
+                  <div style={{
+                    textAlign: 'center',
+                    padding: '14px',
+                    background: '#ffffff',
+                    border: '1px dashed #cbd5e1',
+                    borderRadius: '8px',
+                    color: '#64748b',
+                    fontSize: '12px'
+                  }}>
+                    <span>⚠️ {isMr ? 'सध्या कोणताही उमेदवार जोडलेला नाही. वरील "➕ नवीन उमेदवार तयार करा" बटणावर क्लिक करून नाव, चिन्ह व फोटो जोडा.' : 'No candidates added yet. Click "+ Add Candidate" above.'}</span>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto' }}>
+                    {candidates.map((cand) => (
+                      <div
+                        key={cand.id}
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '8px',
+                          padding: '8px 12px',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '10px'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '6px',
+                            background: '#0f172a',
+                            color: '#ffffff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '11px',
+                            fontWeight: '800'
+                          }}>
+                            {cand.serial_number}
+                          </span>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <EvmMediaImage
+                              src={cand.candidate_photo}
+                              alt={cand.candidate_name}
+                              fallbackChar={cand.candidate_name?.charAt(0) || '👤'}
+                              style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
+                            />
+                            <EvmMediaImage
+                              src={cand.party_symbol}
+                              alt={cand.party_name}
+                              isSymbol={true}
+                              style={{ width: '26px', height: '26px', objectFit: 'contain' }}
+                            />
+                          </div>
+
+                          <div>
+                            <div style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a' }}>
+                              {cand.candidate_name}
+                            </div>
+                            <div style={{ fontSize: '11px', color: '#64748b' }}>
+                              {cand.party_name} • {cand.position || 'उमेदवार'}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => openEditCandidateModal(cand)}
+                            style={{
+                              background: '#f1f5f9',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '5px 8px',
+                              fontSize: '11px',
+                              fontWeight: '700',
+                              color: '#2563eb',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            ✏️ {isMr ? 'संपादित करा' : 'Edit'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCandidate(cand.id)}
+                            style={{
+                              background: '#fee2e2',
+                              border: 'none',
+                              borderRadius: '6px',
+                              padding: '5px 8px',
+                              fontSize: '11px',
+                              fontWeight: '700',
+                              color: '#b91c1c',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Reset Previous Votes Checkbox */}
