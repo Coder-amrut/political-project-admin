@@ -6,6 +6,7 @@ import Register from '../pages/auth/Register';
 import Unauthorized from '../pages/Unauthorized';
 import AdminDashboard from '../pages/admin/AdminDashboard';
 import OfficerDashboard from '../pages/officer_Neta/OfficerDashboard';
+import KarkartaEvmVotingSystem from '../pages/admin/AdminEvmVotingSystem';
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleRoute } from './RoleRoute';
 import { RoleName } from '../api/contracts';
@@ -19,6 +20,11 @@ function AppRoutes() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Login />} />
       <Route path="/unauthorized" element={<Unauthorized />} />
+
+      {/* Public EVM Voting Portal (Direct Link from WhatsApp & Social Media Shares) */}
+      <Route path="/voting" element={<KarkartaEvmVotingSystem isMr={true} isAdmin={false} />} />
+      <Route path="/voting/:id" element={<KarkartaEvmVotingSystem isMr={true} isAdmin={false} />} />
+      <Route path="/evm-ballot" element={<KarkartaEvmVotingSystem isMr={true} isAdmin={false} />} />
 
       {/* Admin Protected Routes */}
       <Route

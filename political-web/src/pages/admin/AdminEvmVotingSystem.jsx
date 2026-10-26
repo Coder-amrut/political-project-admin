@@ -176,6 +176,9 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
 
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0, totalSeconds: 0, isExpired: false });
   const [isStartElectionModalOpen, setIsStartElectionModalOpen] = useState(false);
+  const [isShareElectionModalOpen, setIsShareElectionModalOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [customShareText, setCustomShareText] = useState('');
   const [timerFormData, setTimerFormData] = useState({
     name: '२८२ - सांगली विधानसभा / नगर परिषद निवडणूक २०२६',
     days: 0,
@@ -186,6 +189,83 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
   });
   const [isStartingElection, setIsStartingElection] = useState(false);
   const [isEndingElection, setIsEndingElection] = useState(false);
+
+  // Voting URL calculation for WhatsApp & Social Media Shares
+  const votingUrl = useMemo(() => {
+    if (typeof window === 'undefined') return '';
+    return `${window.location.origin}/voting${election?.id ? `/${election.id}` : ''}`;
+  }, [election?.id]);
+
+  // Default formatted bilingual invitation message
+  const defaultShareMessage = useMemo(() => {
+    const elName = election?.name || (isMr ? 'सांगली विधानसभा निवडणूक २०२६' : 'Assembly Election 2026');
+    const timeText = timeLeft && !timeLeft.isExpired
+      ? `${timeLeft.days > 0 ? `${timeLeft.days} दिवस ` : ''}${timeLeft.hours} तास ${timeLeft.minutes} मिनिटे`
+      : (isMr ? 'सक्रिय' : 'Live');
+
+    if (isMr) {
+      return `🗳️ *${elName}* निवडणूक सुरू झाली आहे!\n\n📍 सर्व मतदार व कार्यकर्त्यांनी खालील अधिकृत लिंकवर जाऊन आपले मत नोंदवा:\n👉 ${votingUrl}\n\n⏱️ मतदानाची उर्वरित वेळ: ${timeText}\n\n🏛️ महाराष्ट्र निवडणूक व राजकीय व्यवस्थापन प्रणाली (Election War Room)`;
+    }
+    return `🗳️ *${elName}* is now officially LIVE!\n\n📍 All voters & party workers, please cast your vote using this link:\n👉 ${votingUrl}\n\n⏱️ Time remaining: ${timeText}\n\n🏛️ Election Management Central HQ`;
+  }, [election?.name, votingUrl, timeLeft, isMr]);
+
+  const handleShareWhatsApp = () => {
+    const text = customShareText.trim() || defaultShareMessage;
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleCopyVotingLink = () => {
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(votingUrl);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2500);
+    }
+  };
+
+  const handleCopyFullMessage = () => {
+    const text = customShareText.trim() || defaultShareMessage;
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2500);
+    }
+  };
+
+  const handleNativeShare = async () => {
+    const text = customShareText.trim() || defaultShareMessage;
+    if (navigator?.share) {
+      try {
+        await navigator.share({
+          title: election?.name || 'निवडणूक मतदान लिंक',
+          text: text,
+          url: votingUrl,
+        });
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Share error:', err);
+        }
+      }
+    } else {
+      handleShareWhatsApp();
+    }
+  };
+
+  const handleShareTelegram = () => {
+    const text = customShareText.trim() || defaultShareMessage;
+    const url = `https://t.me/share/url?url=${encodeURIComponent(votingUrl)}&text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleShareFacebook = () => {
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(votingUrl)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleShareSms = () => {
+    const text = customShareText.trim() || defaultShareMessage;
+    window.open(`sms:?body=${encodeURIComponent(text)}`, '_self');
+  };
 
   // Voting Simulator State
   const [votedCandidate, setVotedCandidate] = useState(null);
@@ -318,7 +398,8 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
           setTimeLeft(calculateTimeLeft(res.data.end_time_iso || res.data.end_time, res.data.remaining_seconds));
         }
         await loadEvmData();
-        alert(isMr ? 'निवडणूक अधिकृतपणे डेटाबेसमध्ये अपडेट व सुरू झाली आहे! मतदान टाइमर सक्रिय झाला.' : 'Election has been updated in database and officially started! Countdown timer is live.');
+        // Open the WhatsApp / Multi-platform Share modal immediately
+        setIsShareElectionModalOpen(true);
       } else {
         alert(res?.message || 'निवडणूक सुरू करताना त्रुटी आली.');
       }
@@ -1034,9 +1115,37 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
           )}
         </div>
 
-        {/* Right: Admin Action Buttons (Start Election / End Election) */}
+        {/* Right: Admin Action Buttons (Start Election / End Election / Share Election) */}
         {isAdmin && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            {/* Always provide Share button when election exists */}
+            <button
+              type="button"
+              onClick={() => setIsShareElectionModalOpen(true)}
+              style={{
+                background: election?.status === 'ACTIVE' && !timeLeft.isExpired
+                  ? 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)'
+                  : 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                color: '#ffffff',
+                border: 'none',
+                padding: '9px 18px',
+                borderRadius: '10px',
+                fontSize: '13px',
+                fontWeight: '800',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: election?.status === 'ACTIVE' && !timeLeft.isExpired
+                  ? '0 4px 14px rgba(37, 211, 102, 0.35)'
+                  : '0 4px 12px rgba(2, 132, 199, 0.25)',
+                transition: 'transform 0.1s ease',
+              }}
+            >
+              <Share2 size={15} />
+              <span>{isMr ? '📲 WhatsApp / लिंक शेअर करा' : 'Share on WhatsApp'}</span>
+            </button>
+
             {election?.status === 'ACTIVE' && !timeLeft.isExpired ? (
               <button
                 type="button"
@@ -2579,6 +2688,353 @@ function KarkartaEvmVotingSystem({ user, isMr = true, isAdmin: isAdminProp }) {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* MODAL: SHARE ELECTION ON WHATSAPP & OTHER PLATFORMS           */}
+      {/* ------------------------------------------------------------- */}
+      {isShareElectionModalOpen && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(15, 23, 42, 0.7)',
+          backdropFilter: 'blur(5px)',
+          zIndex: 1050,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '18px',
+            maxWidth: '560px',
+            width: '100%',
+            maxHeight: '92vh',
+            overflowY: 'auto',
+            padding: '24px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+            border: '1px solid #e2e8f0',
+            position: 'relative'
+          }}>
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <span style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '22px',
+                  boxShadow: '0 4px 12px rgba(37, 211, 102, 0.3)'
+                }}>
+                  📲
+                </span>
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: '850', color: '#0f172a', margin: 0 }}>
+                    {isMr ? 'निवडणूक लिंक शेअर करा' : 'Share Election Link'}
+                  </h3>
+                  <span style={{ fontSize: '12.5px', color: '#64748b' }}>
+                    {isMr ? 'WhatsApp आणि इतर सोशल प्लॅटफॉर्मवर थेट मतदानाची लिंक पाठवा' : 'Broadcast direct voting link on WhatsApp & other channels'}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsShareElectionModalOpen(false)}
+                style={{ background: 'none', border: 'none', fontSize: '20px', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Live Election Status Badge */}
+            <div style={{
+              background: '#f8fafc',
+              border: '1.5px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '14px 16px',
+              marginBottom: '18px'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <span style={{ fontSize: '13.5px', fontWeight: '800', color: '#1e293b' }}>
+                  {election?.name || (isMr ? 'सांगली विधानसभा निवडणूक २०२६' : 'Assembly Election 2026')}
+                </span>
+                <span style={{
+                  background: election?.status === 'ACTIVE' && !timeLeft.isExpired ? '#dcfce7' : '#fee2e2',
+                  color: election?.status === 'ACTIVE' && !timeLeft.isExpired ? '#16a34a' : '#b91c1c',
+                  fontSize: '11px',
+                  fontWeight: '800',
+                  padding: '3px 8px',
+                  borderRadius: '999px',
+                  border: election?.status === 'ACTIVE' && !timeLeft.isExpired ? '1px solid #86efac' : '1px solid #fca5a5'
+                }}>
+                  {election?.status === 'ACTIVE' && !timeLeft.isExpired
+                    ? (isMr ? '🟢 मतदान सुरू आहे (LIVE)' : '🟢 LIVE')
+                    : (isMr ? '🔴 मतदान थांबलेले' : '🔴 CLOSED')}
+                </span>
+              </div>
+              <div style={{ fontSize: '12px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Clock size={13} />
+                <span>
+                  {isMr ? 'उर्वरित वेळ:' : 'Remaining:'} <strong>{timeLeft.days > 0 ? `${timeLeft.days} दिवस ` : ''}{timeLeft.hours} तास {timeLeft.minutes} मि. {timeLeft.seconds} से.</strong>
+                </span>
+              </div>
+            </div>
+
+            {/* Direct Voting Link Bar with 1-Click Copy */}
+            <div style={{ marginBottom: '18px' }}>
+              <label style={{ display: 'block', fontSize: '12.5px', fontWeight: '800', color: '#334155', marginBottom: '6px' }}>
+                🔗 {isMr ? 'अधिकृत मतदान वेब लिंक (Voting Web Link):' : 'Official Voting Web Link:'}
+              </label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  readOnly
+                  value={votingUrl}
+                  style={{
+                    flex: 1,
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    border: '1.5px solid #cbd5e1',
+                    background: '#f8fafc',
+                    color: '#0f172a',
+                    fontSize: '13px',
+                    fontFamily: 'monospace',
+                    fontWeight: '600',
+                    outline: 'none'
+                  }}
+                  onClick={(e) => e.target.select()}
+                />
+                <button
+                  type="button"
+                  onClick={handleCopyVotingLink}
+                  style={{
+                    background: isCopied ? '#10b981' : 'linear-gradient(135deg, #1e60d5 0%, #2b74f0 100%)',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '10px 16px',
+                    borderRadius: '8px',
+                    fontSize: '12.5px',
+                    fontWeight: '800',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 2px 6px rgba(30, 96, 213, 0.25)',
+                    whiteSpace: 'nowrap',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {isCopied ? <Check size={15} /> : <Copy size={15} />}
+                  <span>{isCopied ? (isMr ? 'कॉपी झाली!' : 'Copied!') : (isMr ? 'लिंक कॉपी करा' : 'Copy Link')}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Primary Action 1: Instant WhatsApp Share */}
+            <div style={{ marginBottom: '18px' }}>
+              <button
+                type="button"
+                onClick={handleShareWhatsApp}
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '14px 20px',
+                  borderRadius: '12px',
+                  fontSize: '15px',
+                  fontWeight: '850',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  boxShadow: '0 6px 16px rgba(37, 211, 102, 0.35)',
+                  transition: 'transform 0.15s ease'
+                }}
+              >
+                <span style={{ fontSize: '20px' }}>💬</span>
+                <span>{isMr ? 'WhatsApp वर त्वरित शेअर करा' : 'Share Directly on WhatsApp'}</span>
+              </button>
+            </div>
+
+            {/* Primary Action 2: Multi-Platform Quick Share Icons */}
+            <div style={{ marginBottom: '18px' }}>
+              <div style={{ fontSize: '12px', fontWeight: '800', color: '#64748b', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {isMr ? 'इतर प्लॅटफॉर्मवर पाठवा (Other Platforms):' : 'Share to Other Platforms:'}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+                {/* Native Device Share */}
+                <button
+                  type="button"
+                  onClick={handleNativeShare}
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '10px',
+                    padding: '10px 6px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer',
+                    fontSize: '11px',
+                    fontWeight: '750',
+                    color: '#1e293b'
+                  }}
+                  title={isMr ? 'सर्व ॲप्स (Share Sheet)' : 'All Apps'}
+                >
+                  <Share2 size={18} color="#2563eb" />
+                  <span>{isMr ? 'सर्व ॲप्स' : 'All Apps'}</span>
+                </button>
+
+                {/* Telegram */}
+                <button
+                  type="button"
+                  onClick={handleShareTelegram}
+                  style={{
+                    background: '#f0f9ff',
+                    border: '1px solid #bae6fd',
+                    borderRadius: '10px',
+                    padding: '10px 6px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer',
+                    fontSize: '11px',
+                    fontWeight: '750',
+                    color: '#0369a1'
+                  }}
+                  title="Telegram"
+                >
+                  <span style={{ fontSize: '18px' }}>✈️</span>
+                  <span>Telegram</span>
+                </button>
+
+                {/* Facebook */}
+                <button
+                  type="button"
+                  onClick={handleShareFacebook}
+                  style={{
+                    background: '#eff6ff',
+                    border: '1px solid #bfdbfe',
+                    borderRadius: '10px',
+                    padding: '10px 6px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer',
+                    fontSize: '11px',
+                    fontWeight: '750',
+                    color: '#1d4ed8'
+                  }}
+                  title="Facebook"
+                >
+                  <span style={{ fontSize: '18px' }}>📘</span>
+                  <span>Facebook</span>
+                </button>
+
+                {/* SMS */}
+                <button
+                  type="button"
+                  onClick={handleShareSms}
+                  style={{
+                    background: '#fefce8',
+                    border: '1px solid #fef08a',
+                    borderRadius: '10px',
+                    padding: '10px 6px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '4px',
+                    cursor: 'pointer',
+                    fontSize: '11px',
+                    fontWeight: '750',
+                    color: '#854d0e'
+                  }}
+                  title="SMS"
+                >
+                  <span style={{ fontSize: '18px' }}>✉️</span>
+                  <span>SMS</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Custom / Editable Message Preview */}
+            <div style={{ marginBottom: '18px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label style={{ fontSize: '12px', fontWeight: '800', color: '#334155' }}>
+                  📝 {isMr ? 'शेअर होणारा संदेश (Preview / Edit Message):' : 'Share Message Preview:'}
+                </label>
+                <button
+                  type="button"
+                  onClick={handleCopyFullMessage}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#2563eb',
+                    fontSize: '11.5px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                >
+                  <Copy size={13} />
+                  <span>{isMr ? 'संदेश कॉपी करा' : 'Copy Message'}</span>
+                </button>
+              </div>
+              <textarea
+                rows={4}
+                value={customShareText || defaultShareMessage}
+                onChange={(e) => setCustomShareText(e.target.value)}
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  border: '1.5px solid #cbd5e1',
+                  background: '#f8fafc',
+                  color: '#334155',
+                  fontSize: '12.5px',
+                  lineHeight: '1.5',
+                  outline: 'none',
+                  resize: 'vertical',
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
+
+            {/* Close Button */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setIsShareElectionModalOpen(false)}
+                style={{
+                  padding: '9px 20px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  color: '#475569',
+                  fontWeight: '700',
+                  fontSize: '13px',
+                  cursor: 'pointer'
+                }}
+              >
+                {isMr ? 'बंद करा' : 'Close'}
+              </button>
+            </div>
           </div>
         </div>
       )}
