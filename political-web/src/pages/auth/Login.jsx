@@ -453,36 +453,132 @@ export default function Login() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#f1f5f9',
-      backgroundImage: 'radial-gradient(at 0% 0%, #dcfce7 0px, transparent 50%), radial-gradient(at 100% 100%, #e0f2fe 0px, transparent 50%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '24px 16px',
-      fontFamily: language === 'mr'
-        ? "'Noto Sans Devanagari', 'Mukta', 'Inter', -apple-system, sans-serif"
-        : "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
-    }}>
-      <div style={{
-        width: '100%',
-        maxWidth: '520px',
-        backgroundColor: '#ffffff',
-        borderRadius: '20px',
-        boxShadow: '0 20px 40px -15px rgba(5, 150, 105, 0.15), 0 0 1px 1px rgba(0,0,0,0.05)',
-        overflow: 'hidden',
-        border: '1px solid #e2e8f0',
-      }}>
+    <div
+      className="login-page-root"
+      style={{
+        minHeight: '100vh',
+        backgroundColor: '#f1f5f9',
+        backgroundImage: 'radial-gradient(at 0% 0%, #dcfce7 0px, transparent 50%), radial-gradient(at 100% 100%, #e0f2fe 0px, transparent 50%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px 16px',
+        fontFamily: language === 'mr'
+          ? "'Noto Sans Devanagari', 'Mukta', 'Inter', -apple-system, sans-serif"
+          : "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+      }}
+    >
+      <style>{`
+        /* Prevent outer page scrolling on mobile devices - fit screen cleanly */
+        @media (max-width: 640px) {
+          html, body {
+            overflow: hidden !important;
+            height: 100% !important;
+            height: 100dvh !important;
+          }
+          .login-page-root {
+            min-height: 100vh !important;
+            min-height: 100dvh !important;
+            height: 100vh !important;
+            height: 100dvh !important;
+            max-height: 100dvh !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: hidden !important;
+            align-items: stretch !important;
+            justify-content: stretch !important;
+          }
+          .login-card-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: 100% !important;
+            max-height: 100dvh !important;
+            border-radius: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+          }
+          .login-header-banner {
+            padding: 12px 18px 10px 18px !important;
+            flex-shrink: 0 !important;
+          }
+          .login-header-top-row {
+            margin-bottom: 8px !important;
+          }
+          .login-header-icon {
+            width: 38px !important;
+            height: 38px !important;
+            font-size: 19px !important;
+            border-radius: 10px !important;
+          }
+          .login-header-title {
+            font-size: 16.5px !important;
+          }
+          .login-header-subtitle {
+            font-size: 11.5px !important;
+          }
+          .login-content-body {
+            padding: 14px 18px !important;
+            flex: 1 !important;
+            overflow-y: auto !important;
+            overscroll-behavior: contain !important;
+            -webkit-overflow-scrolling: touch !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justifyContent: space-between !important;
+          }
+          .login-form-inner {
+            gap: 11px !important;
+          }
+          .login-form-inner label {
+            font-size: 12px !important;
+            margin-bottom: 3px !important;
+          }
+          .login-input-field {
+            padding: 10px 12px 10px 38px !important;
+            font-size: 13.5px !important;
+          }
+          .login-submit-button {
+            padding: 11px !important;
+            margin-top: 4px !important;
+            font-size: 14px !important;
+          }
+          .login-switch-footer {
+            margin-top: 10px !important;
+            font-size: 12px !important;
+          }
+        }
+      `}</style>
+
+      <div
+        className="login-card-container"
+        style={{
+          width: '100%',
+          maxWidth: '520px',
+          backgroundColor: '#ffffff',
+          borderRadius: '20px',
+          boxShadow: '0 20px 40px -15px rgba(5, 150, 105, 0.15), 0 0 1px 1px rgba(0,0,0,0.05)',
+          overflow: 'hidden',
+          border: '1px solid #e2e8f0',
+        }}
+      >
         {/* Top Header Banner */}
-        <div style={{
-          background: 'linear-gradient(135deg, #065f46 0%, #059669 100%)',
-          padding: '22px 26px 18px 26px',
-          color: '#ffffff',
-          position: 'relative',
-        }}>
+        <div
+          className="login-header-banner"
+          style={{
+            background: 'linear-gradient(135deg, #065f46 0%, #059669 100%)',
+            padding: '22px 26px 18px 26px',
+            color: '#ffffff',
+            position: 'relative',
+          }}
+        >
           {/* Top Row: Language Toggle & Portal Badge (Home Option Removed) */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <div
+            className="login-header-top-row"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}
+          >
             <span style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -547,24 +643,33 @@ export default function Login() {
 
           {/* Title and Icon */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{
-              width: '46px',
-              height: '46px',
-              borderRadius: '12px',
-              backgroundColor: 'rgba(255, 255, 255, 0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '22px',
-              boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
-            }}>
+            <div
+              className="login-header-icon"
+              style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: '12px',
+                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '22px',
+                boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+              }}
+            >
               🏛️
             </div>
             <div>
-              <h1 style={{ margin: 0, fontSize: '20px', fontWeight: '800', letterSpacing: '-0.02em', color: '#ffffff' }}>
+              <h1
+                className="login-header-title"
+                style={{ margin: 0, fontSize: '20px', fontWeight: '800', letterSpacing: '-0.02em', color: '#ffffff' }}
+              >
                 {activeTab === 'signup' ? t.signUpTitle : t.title}
               </h1>
-              <p style={{ margin: '3px 0 0 0', fontSize: '13px', color: '#d1fae5', fontWeight: '400' }}>
+              <p
+                className="login-header-subtitle"
+                style={{ margin: '3px 0 0 0', fontSize: '13px', color: '#d1fae5', fontWeight: '400' }}
+              >
                 {t.subtitle}
               </p>
             </div>
@@ -572,7 +677,7 @@ export default function Login() {
         </div>
 
         {/* Content Body */}
-        <div style={{ padding: '24px 26px' }}>
+        <div className="login-content-body" style={{ padding: '24px 26px' }}>
           {/* Notifications */}
           {generalError && (
             <div style={{
@@ -615,7 +720,11 @@ export default function Login() {
           {/* ============================================================== */}
           {activeTab === 'signin' && (
             <div>
-              <form onSubmit={handleSignInSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <form
+                className="login-form-inner"
+                onSubmit={handleSignInSubmit}
+                style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
+              >
                 {/* Identifier Input (Email or Mobile Phone Number) */}
                 <div>
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', color: '#1e293b', marginBottom: '6px' }}>
@@ -625,6 +734,7 @@ export default function Login() {
                     <input
                       type="text"
                       name="login"
+                      className="login-input-field"
                       value={signInData.login}
                       onChange={handleSignInChange}
                       placeholder={t.idOrEmailPlaceholder}
@@ -657,6 +767,7 @@ export default function Login() {
                     <input
                       type={showPassword ? 'text' : 'password'}
                       name="password"
+                      className="login-input-field"
                       value={signInData.password}
                       onChange={handleSignInChange}
                       placeholder={t.passwordPlaceholder}
@@ -697,6 +808,7 @@ export default function Login() {
                 {/* Submit Sign In Button */}
                 <button
                   type="submit"
+                  className="login-submit-button"
                   disabled={isSubmitting}
                   style={{
                     padding: '13px',
@@ -1178,7 +1290,7 @@ export default function Login() {
           )}
 
           {/* Bottom Switch Links */}
-          <div style={{ marginTop: '22px', fontSize: '13px', color: '#64748b', textAlign: 'center' }}>
+          <div className="login-switch-footer" style={{ marginTop: '22px', fontSize: '13px', color: '#64748b', textAlign: 'center' }}>
             {activeTab === 'signin' ? (
               <div>
                 <span>{t.newAccountQuestion} </span>
