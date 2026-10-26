@@ -343,6 +343,42 @@ const style = {
   button: { border: 0, borderRadius: 8, padding: '11px 17px', background: '#2457d6', color: '#fff', cursor: 'pointer', fontWeight: 700 },
 };
 
+const stateNameMrMap = {
+  '01': 'जम्मू आणि काश्मीर',
+  '02': 'हिमाचल प्रदेश',
+  '03': 'पंजाब',
+  '04': 'चंदिगढ',
+  '05': 'उत्तराखंड',
+  '06': 'हरियाणा',
+  '07': 'दिल्ली (NCT)',
+  '08': 'राजस्थान',
+  '09': 'उत्तर प्रदेश',
+  '10': 'बिहार',
+  '11': 'सिक्कीम',
+  '12': 'अरुणाचल प्रदेश',
+  '13': 'नागालँड',
+  '14': 'मणिपूर',
+  '15': 'मिझोरम',
+  '16': 'त्रिपुरा',
+  '17': 'मेघालय',
+  '18': 'आसाम',
+  '19': 'पश्चिम बंगाल',
+  '20': 'झारखंड',
+  '21': 'ओडिशा',
+  '22': 'छत्तीसगड',
+  '23': 'मध्य प्रदेश',
+  '24': 'गुजरात',
+  '27': 'महाराष्ट्र',
+  '28': 'आंध्र प्रदेश',
+  '29': 'कर्नाटक',
+  '30': 'गोवा',
+  '32': 'केरळ',
+  '33': 'तामिळनाडू',
+  '34': 'पुडुचेरी',
+  '36': 'तेलंगणा',
+  '37': 'लडाख',
+};
+
 function SearchPicker({ label, endpoint, params = {}, value, onSelect, onClear, disabled = false, placeholder, noResultsText = 'No matching records found.', language = 'en', onViewMap = null }) {
   const [search, setSearch] = useState('');
   const [results, setResults] = useState([]);
@@ -353,7 +389,12 @@ function SearchPicker({ label, endpoint, params = {}, value, onSelect, onClear, 
   const itemTitle = (item) => {
     if (!item) return '';
     if (item.part_no) return `Part No. ${item.part_no}`;
-    if (item.state_name) return item.state_name;
+    if (item.state_name) {
+      if (language === 'mr' && (stateNameMrMap[item.state_code] || item.name_mr)) {
+        return stateNameMrMap[item.state_code] || item.name_mr;
+      }
+      return item.state_name;
+    }
     if (item.local_body_name) return item.local_body_name;
     if (item.village_name) return item.village_name;
     if (item.taluka_name) return item.taluka_name;
@@ -365,7 +406,7 @@ function SearchPicker({ label, endpoint, params = {}, value, onSelect, onClear, 
 
   const itemSub = (item) => {
     if (!item) return null;
-    if (item.state_code) return `State Code: ${item.state_code}`;
+    if (item.state_code) return `${language === 'mr' ? 'राज्य कोड' : 'State Code'}: ${item.state_code}`;
     if (item.village_name && item.population) return `${language === 'mr' ? 'लोकसंख्या' : 'Population'}: ${Number(item.population).toLocaleString()} | ${language === 'mr' ? 'एकूण मतदार' : 'Voters'}: ${Number(item.total_voters || 0).toLocaleString()}`;
     if (item.local_body_type) {
       const typeMap = {
@@ -764,6 +805,7 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
 
   const getTargetDefaultZoom = (mTarget) => {
     if (!mTarget) return 13;
+    if (mTarget.type === 'STATE') return 7;
     if (mTarget.type === 'DISTRICT') return 11;
     if (mTarget.type === 'ASSEMBLY' || mTarget.type === 'LOK_SABHA') return 12;
     if (mTarget.type === 'TALUKA') return 13;
@@ -802,6 +844,7 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
     const place = nameEn || nameMr || activeDistrictName || 'Maharashtra';
     const dist = mTarget.district_name || activeDistrictName || 'Maharashtra';
 
+    if (mTarget.type === 'STATE') return `${place}, India`;
     if (mTarget.type === 'TALUKA') return `${place} Taluka, ${dist}, Maharashtra, India`;
     if (mTarget.type === 'DISTRICT') return `${place} District, Maharashtra, India`;
     if (mTarget.type === 'ASSEMBLY' || mTarget.type === 'LOK_SABHA') return `${place} Constituency, Maharashtra, India`;
@@ -842,6 +885,27 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
     setRelatedAssembliesError('');
     setActiveMapTarget(null);
     setShowMapModal(false);
+  };
+
+  const changeSelectedState = (st) => {
+    setSelectedState(st);
+    setFilterDistrict(null);
+    setFilterTaluka(null);
+    setSelectedLocalBody(null);
+    setSelectedVillage(null);
+    setTarget(null);
+    setSelectedDistricts([]);
+    setSelectedAssemblies([]);
+    setSelectedTalukas([]);
+    setSelectedVillages([]);
+    setSelectedStations([]);
+    if (st) {
+      setActiveMapTarget({
+        type: 'STATE',
+        name_en: st.state_name || st.name_en,
+        name_mr: stateNameMrMap[st.state_code] || st.name_mr,
+      });
+    }
   };
 
   const selectRootTarget = (item) => {
@@ -1334,6 +1398,103 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
       })()}
 
       {/* ============================================================== */}
+      {/* UNIVERSAL STATE SELECTOR & SWITCHER (राज्य निवड व बदल)          */}
+      {/* ============================================================== */}
+      <div style={{
+        padding: '14px 16px',
+        background: '#ffffff',
+        border: '1.5px solid #cbd5e1',
+        borderRadius: 10,
+        marginBottom: 18,
+        boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 22 }}>🇮🇳</span>
+            <div>
+              <span style={{ fontSize: 13.5, fontWeight: 750, color: '#0f172a' }}>
+                {isMr ? 'निवडणूक राज्य (Election State) *' : 'Election State *'}
+              </span>
+              <span style={{ marginLeft: 8, fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 6, background: '#dbeafe', color: '#1d4ed8' }}>
+                {isMr
+                  ? (stateNameMrMap[selectedState?.state_code] || selectedState?.state_name || 'राज्य निवडा')
+                  : (selectedState?.state_name || selectedState?.name_en || 'Select State')}
+              </span>
+              {selectedState?.state_code && (
+                <span style={{ marginLeft: 6, fontSize: 11, background: '#f1f5f9', color: '#475569', padding: '2px 6px', borderRadius: 4, fontWeight: 650 }}>
+                  {isMr ? `कोड: ${selectedState.state_code}` : `Code: ${selectedState.state_code}`}
+                </span>
+              )}
+            </div>
+          </div>
+          {selectedState && (
+            <button
+              type="button"
+              onClick={() => changeSelectedState(null)}
+              style={{
+                border: '1px solid #cbd5e1',
+                background: '#f8fafc',
+                borderRadius: 6,
+                padding: '4px 11px',
+                fontSize: 12,
+                fontWeight: 650,
+                color: '#2563eb',
+                cursor: 'pointer'
+              }}
+            >
+              {isMr ? '🔄 राज्य बदला' : '🔄 Change State'}
+            </button>
+          )}
+        </div>
+
+        {/* Quick State Switcher Pills */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+          <span style={{ fontSize: 11.5, fontWeight: 700, color: '#64748b' }}>
+            {isMr ? 'त्वरित राज्य निवडा:' : 'Quick Select:'}
+          </span>
+          {[
+            { code: '27', nameEn: 'Maharashtra', nameMr: 'महाराष्ट्र' },
+            { code: '30', nameEn: 'Goa', nameMr: 'गोवा' },
+            { code: '29', nameEn: 'Karnataka', nameMr: 'कर्नाटक' },
+            { code: '24', nameEn: 'Gujarat', nameMr: 'गुजरात' },
+            { code: '23', nameEn: 'Madhya Pradesh', nameMr: 'मध्य प्रदेश' },
+            { code: '07', nameEn: 'Delhi (NCT)', nameMr: 'दिल्ली' },
+          ].map((stItem) => {
+            const isCur = selectedState?.state_code === stItem.code;
+            return (
+              <button
+                key={stItem.code}
+                type="button"
+                onClick={() => changeSelectedState({ state_code: stItem.code, state_name: stItem.nameEn, name_en: stItem.nameEn, name_mr: stItem.nameMr })}
+                style={{
+                  border: isCur ? '1.5px solid #2563eb' : '1px solid #cbd5e1',
+                  background: isCur ? '#dbeafe' : '#f8fafc',
+                  color: isCur ? '#1d4ed8' : '#334155',
+                  borderRadius: 14,
+                  padding: '3px 10px',
+                  fontSize: 11.5,
+                  fontWeight: isCur ? 750 : 600,
+                  cursor: 'pointer'
+                }}
+              >
+                {isMr ? stItem.nameMr : stItem.nameEn}
+              </button>
+            );
+          })}
+        </div>
+
+        <SearchPicker
+          language={language}
+          label={isMr ? 'किंवा इतर सर्व ३३ राज्यांमधून शोधा व निवडा:' : 'Or search from all 33 Indian States / UTs:'}
+          endpoint="/master-data/states"
+          value={selectedState}
+          onSelect={(st) => changeSelectedState(st)}
+          onClear={() => changeSelectedState(null)}
+          placeholder={isMr ? 'राज्य शोधा (उदा. महाराष्ट्र, गोवा, गुजरात, कर्नाटक, दिल्ली, राजस्थान)...' : 'Search state (e.g. Maharashtra, Goa, Gujarat, Karnataka, Delhi, Rajasthan)...'}
+        />
+      </div>
+
+      {/* ============================================================== */}
       {/* SCOPE 1: GRAM PANCHAYAT (गाव / ग्रामीण स्तर)                      */}
       {/* ============================================================== */}
       {scope === 'GRAM_PANCHAYAT' && (
@@ -1711,14 +1872,8 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
             label={isMr ? '१. राज्य निवडा *' : '1. Select State *'}
             endpoint="/master-data/states"
             value={selectedState}
-            onSelect={(st) => {
-              setSelectedState(st);
-              setTarget(null);
-            }}
-            onClear={() => {
-              setSelectedState(null);
-              setTarget(null);
-            }}
+            onSelect={(st) => changeSelectedState(st)}
+            onClear={() => changeSelectedState(null)}
             placeholder={isMr ? 'राज्य निवडा...' : 'Select state...'}
           />
 
@@ -1807,8 +1962,8 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
             label={isMr ? '१. राज्य निवडा *' : '1. Select State *'}
             endpoint="/master-data/states"
             value={selectedState}
-            onSelect={(st) => setSelectedState(st)}
-            onClear={() => setSelectedState(null)}
+            onSelect={(st) => changeSelectedState(st)}
+            onClear={() => changeSelectedState(null)}
             placeholder={isMr ? 'राज्य निवडा (उदा. महाराष्ट्र)...' : 'Select state...'}
           />
 
