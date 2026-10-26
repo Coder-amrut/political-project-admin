@@ -785,6 +785,111 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // Election Candidates State & Management
+  const [electionCandidates, setElectionCandidates] = useState([]);
+  const [showCandModal, setShowCandModal] = useState(false);
+  const [editingCandIdx, setEditingCandIdx] = useState(null);
+  const [candForm, setCandForm] = useState({
+    candidate_name: '',
+    party_name: '',
+    party_symbol: '',
+    candidate_photo: '',
+    serial_number: 1,
+    position: '',
+    contact_phone: '',
+    ward_village: '',
+    voice_message: '',
+    highlighted: false,
+  });
+
+  const QUICK_SYMBOLS = [
+    { label: 'घड्याळ (Clock)', emoji: '⏰' },
+    { label: 'कमळ (Lotus)', emoji: '🪷' },
+    { label: 'धनुष्यबाण (Bow & Arrow)', emoji: '🏹' },
+    { label: 'हात (Hand)', emoji: '✋' },
+    { label: 'मशाल (Torch)', emoji: '🔥' },
+    { label: 'ट्रॅक्टर (Tractor)', emoji: '🚜' },
+    { label: 'सिंह (Lion)', emoji: '🦁' },
+    { label: 'तराजू (Scale)', emoji: '⚖️' },
+    { label: 'सूर्य (Sun)', emoji: '☀️' },
+    { label: 'सायकल (Bicycle)', emoji: '🚲' },
+    { label: 'विद्युत दिवा (Bulb)', emoji: '💡' },
+    { label: 'रेल्वे इंजिन (Engine)', emoji: '🚂' },
+    { label: 'विमान (Airplane)', emoji: '✈️' },
+    { label: 'पतंग (Kite)', emoji: '🪁' },
+  ];
+
+  const handleCandFileUpload = (e, field) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setCandForm((prev) => ({ ...prev, [field]: ev.target.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const openAddCandModal = () => {
+    setEditingCandIdx(null);
+    setCandForm({
+      candidate_name: '',
+      party_name: '',
+      party_symbol: '',
+      candidate_photo: '',
+      serial_number: electionCandidates.length + 1,
+      position: '',
+      contact_phone: '',
+      ward_village: '',
+      voice_message: '',
+      highlighted: false,
+    });
+    setShowCandModal(true);
+  };
+
+  const openEditCandModal = (cand, idx) => {
+    setEditingCandIdx(idx);
+    setCandForm({
+      candidate_name: cand.candidate_name || '',
+      party_name: cand.party_name || '',
+      party_symbol: cand.party_symbol || '',
+      candidate_photo: cand.candidate_photo || '',
+      serial_number: cand.serial_number || idx + 1,
+      position: cand.position || '',
+      contact_phone: cand.contact_phone || '',
+      ward_village: cand.ward_village || '',
+      voice_message: cand.voice_message || '',
+      highlighted: Boolean(cand.highlighted),
+    });
+    setShowCandModal(true);
+  };
+
+  const handleSaveCandidate = (e) => {
+    e.preventDefault();
+    if (!candForm.candidate_name.trim()) {
+      alert(isMr ? 'कृपया उमेदवाराचे नाव प्रविष्ट करा.' : 'Please enter candidate name.');
+      return;
+    }
+    const cleanCand = {
+      ...candForm,
+      candidate_name: candForm.candidate_name.trim(),
+      party_name: candForm.party_name.trim() || (isMr ? 'अपक्ष' : 'Independent'),
+      party_symbol: candForm.party_symbol.trim() || '🗳️',
+      serial_number: Number(candForm.serial_number) || (editingCandIdx !== null ? editingCandIdx + 1 : electionCandidates.length + 1),
+    };
+    if (editingCandIdx !== null) {
+      setElectionCandidates((prev) => prev.map((item, i) => (i === editingCandIdx ? cleanCand : item)));
+    } else {
+      setElectionCandidates((prev) => [...prev, cleanCand]);
+    }
+    setShowCandModal(false);
+  };
+
+  const handleDeleteCandidate = (idx) => {
+    if (window.confirm(isMr ? 'तुम्हाला हा उमेदवार हटवायचा आहे का?' : 'Are you sure you want to remove this candidate?')) {
+      setElectionCandidates((prev) => prev.filter((_, i) => i !== idx));
+    }
+  };
+
   // Map Feature States & Helpers
   const [activeMapTarget, setActiveMapTarget] = useState(null);
   const [showMapModal, setShowMapModal] = useState(false);
@@ -1165,9 +1270,14 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
         geographic_code: geoCode,
         geographic_name_en: geoNameEn,
         geographic_name_mr: geoNameMr,
-        geographic_context: context,
+        geographic_context: {
+          ...context,
+          candidates: electionCandidates,
+        },
+        candidates: electionCandidates,
       });
       setForm({ name: '', description: '', start_date: '', end_date: '' });
+      setElectionCandidates([]);
       resetScope('');
       onCreated?.(data.project);
     } catch (requestError) {
@@ -2873,6 +2983,730 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
         </label>
       </div>
     </div>
+
+    {/* ============================================================== */}
+    {/* ELECTION CANDIDATES SECTION (उमेदवार व्यवस्थापन)               */}
+    {/* ============================================================== */}
+    <hr style={{ border: 0, borderTop: '1px solid #e8edf3', margin: '22px 0 18px 0', width: '100%' }} />
+    <div style={{ width: '100%', maxWidth: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10, marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 20 }}>🗳️</span>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 750, color: '#0f172a' }}>
+              {isMr ? 'या निवडणुकीतील उमेदवार (Election Candidates) - ऐच्छिक' : 'Election Candidates (Optional)'}
+            </div>
+            <div style={{ fontSize: 12, color: '#64748b' }}>
+              {isMr
+                ? 'निवडणुकीसाठी उमेदवार, पक्षाचे चिन्ह व फोटो आधीच जोडा किंवा नंतर जोडा.'
+                : 'Pre-configure candidates, party symbols and photos for EVM voting.'}
+            </div>
+          </div>
+          <span style={{
+            fontSize: 11,
+            fontWeight: 700,
+            padding: '3px 9px',
+            borderRadius: 999,
+            background: electionCandidates.length > 0 ? '#eff6ff' : '#f1f5f9',
+            color: electionCandidates.length > 0 ? '#1d4ed8' : '#64748b',
+            border: `1px solid ${electionCandidates.length > 0 ? '#bfdbfe' : '#e2e8f0'}`
+          }}>
+            {electionCandidates.length} {isMr ? 'उमेदवार' : `Candidate${electionCandidates.length === 1 ? '' : 's'}`}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={openAddCandModal}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '8px 14px',
+            borderRadius: 8,
+            background: '#2563eb',
+            color: '#fff',
+            border: 0,
+            fontWeight: 700,
+            fontSize: 13,
+            cursor: 'pointer',
+            boxShadow: '0 2px 4px rgba(37,99,235,0.2)',
+            transition: 'all 0.15s ease'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#1d4ed8'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = '#2563eb'; }}
+        >
+          <span>➕</span>
+          <span>{isMr ? 'नवीन उमेदवार जोडा' : 'Add Candidate'}</span>
+        </button>
+      </div>
+
+      {electionCandidates.length > 0 ? (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
+          gap: 12,
+          width: '100%',
+          boxSizing: 'border-box'
+        }}>
+          {electionCandidates.map((cand, idx) => (
+            <div
+              key={idx}
+              style={{
+                background: cand.highlighted ? '#fffbeb' : '#ffffff',
+                border: cand.highlighted ? '1.5px solid #f59e0b' : '1px solid #e2e8f0',
+                borderRadius: 12,
+                padding: '12px 14px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 10,
+                position: 'relative',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {/* Top row: Serial badge & Actions */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{
+                    fontSize: 12,
+                    fontWeight: 800,
+                    padding: '2px 8px',
+                    borderRadius: 6,
+                    background: '#1e293b',
+                    color: '#f8fafc'
+                  }}>
+                    #{cand.serial_number || idx + 1}
+                  </span>
+                  {cand.highlighted && (
+                    <span style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: '2px 7px',
+                      borderRadius: 6,
+                      background: '#fef3c7',
+                      color: '#b45309',
+                      border: '1px solid #fde68a'
+                    }}>
+                      ⭐ {isMr ? 'प्रमुख उमेदवार' : 'Star'}
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <button
+                    type="button"
+                    onClick={() => openEditCandModal(cand, idx)}
+                    style={{
+                      border: 0,
+                      background: '#f1f5f9',
+                      color: '#334155',
+                      padding: '4px 8px',
+                      borderRadius: 6,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      fontWeight: 650
+                    }}
+                    title={isMr ? 'संपादित करा' : 'Edit'}
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCandidate(idx)}
+                    style={{
+                      border: 0,
+                      background: '#fee2e2',
+                      color: '#dc2626',
+                      padding: '4px 8px',
+                      borderRadius: 6,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      fontWeight: 650
+                    }}
+                    title={isMr ? 'हटवा' : 'Delete'}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+
+              {/* Main Candidate Info */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                {/* Candidate Photo */}
+                <div style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 26,
+                  overflow: 'hidden',
+                  background: '#f1f5f9',
+                  border: '2px solid #e2e8f0',
+                  flexShrink: 0,
+                  display: 'grid',
+                  placeItems: 'center'
+                }}>
+                  {cand.candidate_photo ? (
+                    <img
+                      src={cand.candidate_photo}
+                      alt={cand.candidate_name}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: 24, color: '#94a3b8' }}>👤</span>
+                  )}
+                </div>
+
+                {/* Candidate Name & Party */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontWeight: 750,
+                    fontSize: 14,
+                    color: '#0f172a',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}>
+                    {cand.candidate_name}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 3 }}>
+                    <span style={{
+                      fontSize: 11,
+                      fontWeight: 700,
+                      padding: '1px 6px',
+                      borderRadius: 4,
+                      background: '#eff6ff',
+                      color: '#1d4ed8'
+                    }}>
+                      {cand.party_name || (isMr ? 'अपक्ष' : 'Independent')}
+                    </span>
+                    {cand.position && (
+                      <span style={{
+                        fontSize: 11,
+                        color: '#64748b',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        • {cand.position}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Party Symbol Preview */}
+                <div style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 8,
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  flexShrink: 0,
+                  display: 'grid',
+                  placeItems: 'center',
+                  overflow: 'hidden'
+                }} title={`${isMr ? 'पक्ष चिन्ह' : 'Symbol'}: ${cand.party_symbol || '🗳️'}`}>
+                  {cand.party_symbol && (cand.party_symbol.startsWith('http') || cand.party_symbol.startsWith('data:')) ? (
+                    <img
+                      src={cand.party_symbol}
+                      alt="symbol"
+                      style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: 24 }}>{cand.party_symbol || '🗳️'}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Extra details (Ward, Phone, Voice) */}
+              {(cand.ward_village || cand.contact_phone || cand.voice_message) && (
+                <div style={{
+                  paddingTop: 8,
+                  borderTop: '1px solid #f1f5f9',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 6,
+                  fontSize: 11,
+                  color: '#64748b'
+                }}>
+                  {cand.ward_village && (
+                    <span>📍 {cand.ward_village}</span>
+                  )}
+                  {cand.contact_phone && (
+                    <span>📞 {cand.contact_phone}</span>
+                  )}
+                  {cand.voice_message && (
+                    <span title={cand.voice_message} style={{ color: '#059669', fontWeight: 600 }}>
+                      🎙️ {isMr ? 'धन्यवाद संदेश' : 'Voice Note'}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{
+          padding: '24px 16px',
+          background: '#f8fafc',
+          borderRadius: 12,
+          border: '1.5px dashed #cbd5e1',
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 10
+        }}>
+          <span style={{ fontSize: 32 }}>👥</span>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#334155' }}>
+              {isMr ? 'या निवडणुकीसाठी अद्याप उमेदवार जोडलेले नाहीत' : 'No candidates configured for this election yet'}
+            </div>
+            <div style={{ fontSize: 12, color: '#64748b', marginTop: 3 }}>
+              {isMr
+                ? 'तुम्ही आताच उमेदवार जोडू शकता किंवा प्रकल्प तयार झाल्यानंतर EVM स्क्रीनवर देखील उमेदवार जोडता येतील.'
+                : 'You can add candidates now or configure them later in the EVM Voting screen.'}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={openAddCandModal}
+            style={{
+              marginTop: 4,
+              padding: '7px 14px',
+              borderRadius: 6,
+              background: '#ffffff',
+              color: '#2563eb',
+              border: '1px solid #bfdbfe',
+              fontWeight: 700,
+              fontSize: 12,
+              cursor: 'pointer'
+            }}
+          >
+            ➕ {isMr ? 'पहिला उमेदवार जोडा' : 'Add First Candidate'}
+          </button>
+        </div>
+      )}
+    </div>
+
+    {/* ============================================================== */}
+    {/* CANDIDATE CREATION / EDIT MODAL                                */}
+    {/* ============================================================== */}
+    {showCandModal && (
+      <div
+        role="dialog"
+        aria-modal="true"
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 100000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 16,
+          boxSizing: 'border-box'
+        }}
+        onClick={() => setShowCandModal(false)}
+      >
+        <div
+          style={{
+            background: '#ffffff',
+            borderRadius: 14,
+            width: '100%',
+            maxWidth: 620,
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.35)',
+            boxSizing: 'border-box'
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Modal Header */}
+          <div style={{
+            padding: '14px 18px',
+            background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
+            color: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexShrink: 0
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: 20 }}>🗳️</span>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 750, color: '#ffffff' }}>
+                  {editingCandIdx !== null
+                    ? (isMr ? 'उमेदवार माहिती संपादित करा' : 'Edit Candidate Details')
+                    : (isMr ? 'नवीन उमेदवार तयार करा' : 'Add New Candidate')}
+                </h3>
+                <span style={{ fontSize: 11, color: '#94a3b8' }}>
+                  {isMr ? 'नाव, पक्षाचे नाव, चिन्ह, फोटो व पद प्रविष्ट करा' : 'Enter name, party, symbol, photo and position'}
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowCandModal(false)}
+              style={{
+                border: 0,
+                background: 'rgba(255,255,255,0.1)',
+                color: '#ffffff',
+                borderRadius: 8,
+                width: 32,
+                height: 32,
+                display: 'grid',
+                placeItems: 'center',
+                cursor: 'pointer',
+                fontSize: 16
+              }}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Modal Form Content */}
+          <form
+            onSubmit={handleSaveCandidate}
+            style={{
+              padding: '18px 20px',
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 14,
+              boxSizing: 'border-box'
+            }}
+          >
+            {/* Row 1: Serial No & Star Checkbox */}
+            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: 12, alignItems: 'center' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                  {isMr ? 'अनुक्रमांक (Serial)' : 'Serial No.'}
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  required
+                  value={candForm.serial_number}
+                  onChange={(e) => setCandForm({ ...candForm, serial_number: e.target.value })}
+                  style={{ ...style.input, margin: 0, padding: '8px 10px', fontSize: 13 }}
+                />
+              </div>
+
+              <div style={{ paddingTop: 18 }}>
+                <label style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, fontWeight: 650, color: '#1e293b' }}>
+                  <input
+                    type="checkbox"
+                    checked={candForm.highlighted}
+                    onChange={(e) => setCandForm({ ...candForm, highlighted: e.target.checked })}
+                    style={{ width: 17, height: 17, cursor: 'pointer' }}
+                  />
+                  <span>⭐ {isMr ? 'प्रमुख / स्टार उमेदवार (Highlight on EVM)' : 'Star Candidate (Highlight on EVM)'}</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Row 2: Candidate Name */}
+            <div>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                {isMr ? 'उमेदवाराचे पूर्ण नाव *' : 'Candidate Full Name *'}
+              </label>
+              <input
+                type="text"
+                required
+                placeholder={isMr ? 'उदा. राजेश रामचंद्र पाटील' : 'e.g. Rajesh Ramchandra Patil'}
+                value={candForm.candidate_name}
+                onChange={(e) => setCandForm({ ...candForm, candidate_name: e.target.value })}
+                style={{ ...style.input, margin: 0, padding: '9px 12px', fontSize: 14 }}
+              />
+            </div>
+
+            {/* Row 3: Party Name & Quick Chips */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: '#334155' }}>
+                  {isMr ? 'राजकीय पक्ष / आघाडी' : 'Political Party / Alliance'}
+                </label>
+                <span style={{ fontSize: 11, color: '#64748b' }}>
+                  {isMr ? 'किंवा अपक्ष' : 'or Independent'}
+                </span>
+              </div>
+              <input
+                type="text"
+                placeholder={isMr ? 'उदा. शिवसेना, भाजप, काँग्रेस, राष्ट्रवादी, आप, अपक्ष' : 'e.g. BJP, Shiv Sena, Congress, NCP, Independent'}
+                value={candForm.party_name}
+                onChange={(e) => setCandForm({ ...candForm, party_name: e.target.value })}
+                style={{ ...style.input, margin: 0, padding: '8px 12px', fontSize: 13 }}
+              />
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                {['भाजप', 'शिवसेना', 'काँग्रेस', 'राष्ट्रवादी', 'मनसे', 'आप', 'वंचित', 'अपक्ष'].map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setCandForm({ ...candForm, party_name: p })}
+                    style={{
+                      border: '1px solid #e2e8f0',
+                      background: candForm.party_name === p ? '#2563eb' : '#f8fafc',
+                      color: candForm.party_name === p ? '#ffffff' : '#334155',
+                      padding: '2px 8px',
+                      borderRadius: 6,
+                      fontSize: 11,
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Row 4: Party Symbol with Quick Pills and Upload */}
+            <div>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                {isMr ? 'निवडणूक चिन्ह (Party Symbol)' : 'Election Symbol'}
+              </label>
+
+              {/* Quick symbol picker */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
+                {QUICK_SYMBOLS.map((s) => (
+                  <button
+                    key={s.label}
+                    type="button"
+                    onClick={() => setCandForm({ ...candForm, party_symbol: s.emoji })}
+                    style={{
+                      border: candForm.party_symbol === s.emoji ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                      background: candForm.party_symbol === s.emoji ? '#eff6ff' : '#ffffff',
+                      padding: '4px 8px',
+                      borderRadius: 6,
+                      fontSize: 14,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4
+                    }}
+                    title={s.label}
+                  >
+                    <span>{s.emoji}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Symbol Custom inputs & Live Preview */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px', gap: 10, alignItems: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <input
+                    type="text"
+                    placeholder={isMr ? 'चिन्ह इमोजी किंवा इमेज URL प्रविष्ट करा' : 'Symbol emoji or image URL'}
+                    value={candForm.party_symbol}
+                    onChange={(e) => setCandForm({ ...candForm, party_symbol: e.target.value })}
+                    style={{ ...style.input, margin: 0, padding: '7px 10px', fontSize: 13 }}
+                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <label style={{
+                      fontSize: 11,
+                      fontWeight: 650,
+                      color: '#2563eb',
+                      background: '#eff6ff',
+                      padding: '4px 8px',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                      border: '1px solid #bfdbfe'
+                    }}>
+                      📁 {isMr ? 'चिन्ह इमेज फाइल निवडा' : 'Upload Symbol File'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleCandFileUpload(e, 'party_symbol')}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div style={{
+                  width: 54,
+                  height: 54,
+                  borderRadius: 8,
+                  border: '1.5px solid #cbd5e1',
+                  background: '#f8fafc',
+                  display: 'grid',
+                  placeItems: 'center',
+                  overflow: 'hidden'
+                }}>
+                  {candForm.party_symbol && (candForm.party_symbol.startsWith('http') || candForm.party_symbol.startsWith('data:')) ? (
+                    <img src={candForm.party_symbol} alt="Symbol" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  ) : (
+                    <span style={{ fontSize: 28 }}>{candForm.party_symbol || '🗳️'}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Row 5: Candidate Photo with Upload and Live Preview */}
+            <div>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                {isMr ? 'उमेदवाराचा फोटो (Candidate Photo)' : 'Candidate Photo'}
+              </label>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px', gap: 10, alignItems: 'center' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <input
+                    type="text"
+                    placeholder={isMr ? 'फोटो URL प्रविष्ट करा किंवा खालील बटणाने फाइल निवडा' : 'Photo URL or choose file below'}
+                    value={candForm.candidate_photo}
+                    onChange={(e) => setCandForm({ ...candForm, candidate_photo: e.target.value })}
+                    style={{ ...style.input, margin: 0, padding: '7px 10px', fontSize: 13 }}
+                  />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <label style={{
+                      fontSize: 11,
+                      fontWeight: 650,
+                      color: '#2563eb',
+                      background: '#eff6ff',
+                      padding: '4px 8px',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                      border: '1px solid #bfdbfe'
+                    }}>
+                      📷 {isMr ? 'फोटो फाइल निवडा (Upload Photo)' : 'Upload Photo File'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={(e) => handleCandFileUpload(e, 'candidate_photo')}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div style={{
+                  width: 54,
+                  height: 54,
+                  borderRadius: 27,
+                  border: '2px solid #cbd5e1',
+                  background: '#f8fafc',
+                  display: 'grid',
+                  placeItems: 'center',
+                  overflow: 'hidden'
+                }}>
+                  {candForm.candidate_photo ? (
+                    <img src={candForm.candidate_photo} alt="Photo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{ fontSize: 24, color: '#94a3b8' }}>👤</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Row 6: Position & Ward/Village */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                  {isMr ? 'निवडणूक पद (Position)' : 'Electoral Position'}
+                </label>
+                <input
+                  type="text"
+                  placeholder={isMr ? 'उदा. नगराध्यक्ष, सरपंच, नगरसेवक, आमदार' : 'e.g. Mayor, Sarpanch, MLA, Corporator'}
+                  value={candForm.position}
+                  onChange={(e) => setCandForm({ ...candForm, position: e.target.value })}
+                  style={{ ...style.input, margin: 0, padding: '8px 10px', fontSize: 13 }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                  {isMr ? 'प्रभाग क्र. / गाव (Ward / Village)' : 'Ward / Village'}
+                </label>
+                <input
+                  type="text"
+                  placeholder={isMr ? 'उदा. प्रभाग क्र. १२ / सांगली गाव' : 'e.g. Ward No. 12 / Sangli'}
+                  value={candForm.ward_village}
+                  onChange={(e) => setCandForm({ ...candForm, ward_village: e.target.value })}
+                  style={{ ...style.input, margin: 0, padding: '8px 10px', fontSize: 13 }}
+                />
+              </div>
+            </div>
+
+            {/* Row 7: Contact Phone & Voice Message */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                  {isMr ? 'संपर्क मोबाईल क्र.' : 'Contact Phone'}
+                </label>
+                <input
+                  type="tel"
+                  placeholder="e.g. 9876543210"
+                  value={candForm.contact_phone}
+                  onChange={(e) => setCandForm({ ...candForm, contact_phone: e.target.value })}
+                  style={{ ...style.input, margin: 0, padding: '8px 10px', fontSize: 13 }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#334155', marginBottom: 4 }}>
+                  {isMr ? 'मतदारांसाठी संदेश (Thank-You Message)' : 'Voter Voice Message'}
+                </label>
+                <input
+                  type="text"
+                  placeholder={isMr ? 'मतदान केल्याबद्दल धन्यवाद!' : 'Thank you for your valuable vote!'}
+                  value={candForm.voice_message}
+                  onChange={(e) => setCandForm({ ...candForm, voice_message: e.target.value })}
+                  style={{ ...style.input, margin: 0, padding: '8px 10px', fontSize: 13 }}
+                />
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
+              <button
+                type="button"
+                onClick={() => setShowCandModal(false)}
+                style={{
+                  padding: '9px 16px',
+                  borderRadius: 8,
+                  background: '#f1f5f9',
+                  color: '#475569',
+                  border: 0,
+                  fontWeight: 650,
+                  fontSize: 13,
+                  cursor: 'pointer'
+                }}
+              >
+                {isMr ? 'रद्द करा' : 'Cancel'}
+              </button>
+              <button
+                type="submit"
+                style={{
+                  padding: '9px 18px',
+                  borderRadius: 8,
+                  background: '#2563eb',
+                  color: '#ffffff',
+                  border: 0,
+                  fontWeight: 700,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 4px rgba(37,99,235,0.2)'
+                }}
+              >
+                {editingCandIdx !== null
+                  ? (isMr ? '✓ बदल जतन करा' : 'Save Changes')
+                  : (isMr ? '➕ उमेदवार जोडा' : 'Add Candidate')}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )}
 
     {error && <div role="alert" style={{ marginTop: 8, marginBottom: 14, padding: 12, background: '#fff2f0', color: '#b42318', border: '1px solid #fecdca', borderRadius: 8, width: '100%', boxSizing: 'border-box' }}>{error}</div>}
     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 12, flexWrap: 'wrap', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
