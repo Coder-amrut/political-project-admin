@@ -985,6 +985,8 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
       ? [String(filterDistrict.code)]
       : selectedDistricts.map((item) => String(item.code));
 
+  const effectiveDistCodes = activeDistrictCodes.length ? activeDistrictCodes : (filterDistrict?.code ? [String(filterDistrict.code)] : []);
+
   const isTargetBasedScope = ['LOK_SABHA', 'ASSEMBLY', 'GRADUATE_CONSTITUENCY', 'TEACHER_CONSTITUENCY', 'LOCAL_AUTHORITIES'].includes(scope);
 
   const submit = async (event) => {
@@ -997,8 +999,6 @@ function ProjectCreateForm({ onCreated, language = 'en' }) {
       ? selectedAssemblies.map((item) => Number(item.code)).filter((n) => !isNaN(n) && n > 0)
       : scope === 'ASSEMBLY' ? (target?.code && !isNaN(Number(target.code)) ? [Number(target.code)] : [])
         : scope === 'POLLING_STATION' ? (filterAssembly?.code && !isNaN(Number(filterAssembly.code)) ? [Number(filterAssembly.code)] : []) : [];
-
-    const effectiveDistCodes = activeDistrictCodes.length ? activeDistrictCodes : (filterDistrict?.code ? [String(filterDistrict.code)] : []);
 
     const context = {
       state_code: selectedState?.state_code || '27',
